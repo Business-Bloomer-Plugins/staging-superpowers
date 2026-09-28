@@ -1,0 +1,83 @@
+=== Staging Superpowers for WooCommerce ===
+Contributors: businessbloomer
+Tags: woocommerce, staging, emails, payment gateway, development
+Requires at least: 6.5
+Tested up to: 7.1
+Requires PHP: 7.4
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Make a WooCommerce staging copy safe to test on. Redirects emails, swaps payment gateways for a test gateway, pauses webhooks and more.
+
+== Description ==
+
+A staging copy of a live WooCommerce store is dangerous. It has real customer emails, live payment keys, active webhooks and pending subscription renewals, all ready to fire the moment someone places a test order or WP-Cron runs.
+
+Install this plugin on the staging site and it is safe as soon as you activate it.
+
+**Emails**
+
+* Send every outgoing email to one address (the site admin email by default), or block them all.
+* The original recipient is added to the subject line, for example "[STAGING to jane@example.com] Your order is complete".
+* CC and BCC headers are removed, so nobody gets a copy by accident.
+* Works for WooCommerce emails and any other email sent through WordPress.
+
+**Payments**
+
+* Hides every payment gateway at checkout, so live Stripe, PayPal or WooPayments keys are never used.
+* Adds a Staging Test Gateway instead. Choose whether test payments succeed, go on hold or fail. Refunds are simulated too.
+* Works with the classic checkout and the Checkout block.
+
+**Webhooks**
+
+* Stops every WooCommerce webhook from being delivered, so your ERP, fulfillment or accounting tools never receive staging orders.
+
+**HTTP firewall**
+
+* Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more).
+* Blocking payment APIs also stops a refund from the order screen reaching the real payment account.
+
+**Scheduled actions**
+
+* Freezes the Action Scheduler queue, so subscription renewals, follow-up emails and sync jobs copied from the live site do not run.
+* You can still run any single action by hand from Tools > Scheduled Actions.
+
+**Staging look**
+
+* Orange admin bar with a STAGING badge, on the dashboard and on the front end.
+* "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
+* Adds noindex, nofollow to every page.
+
+**Deploy guard**
+
+The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live store keeps sending emails and taking payments even if the plugin comes along by mistake.
+
+If the site sets WP_ENVIRONMENT_TYPE to "production", the plugin also stays off.
+
+Nothing is changed in the database: gateway settings, webhook statuses and scheduled actions are left exactly as they were. Deactivate the plugin and the store behaves as before.
+
+Settings are at WooCommerce > Settings > Staging.
+
+== Frequently Asked Questions ==
+
+= I cloned my staging site to a new URL and the plugin says it is paused =
+
+That is the deploy guard. Click "This is a staging site: turn on for ..." in the admin notice to turn it on for the new URL.
+
+= Does the HTTP firewall block every request a plugin makes? =
+
+It blocks requests made through the WordPress HTTP API, which is what almost every WordPress plugin uses. A plugin that bypasses it with its own cURL calls will not be blocked.
+
+= Some WooCommerce background tasks are not running =
+
+WooCommerce uses the Action Scheduler for its own background jobs too, for example analytics imports and order table syncs. Untick "Scheduled actions" in WooCommerce > Settings > Staging if you need them, or run the ones you need by hand from Tools > Scheduled Actions.
+
+= Can the Staging Test Gateway be used on my live store? =
+
+No. It only exists while the plugin is turned on for the current URL, and the deploy guard switches the plugin off on any other URL.
+
+== Changelog ==
+
+= 1.0.0 =
+* First release.
