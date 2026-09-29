@@ -162,7 +162,7 @@ function sspw_purge_page_caches() {
 }
 
 function sspw_guard_notice() {
-	if ( sspw_is_armed() || ! current_user_can( 'manage_options' ) ) {
+	if ( sspw_is_armed() || ! current_user_can( 'manage_options' ) || ! sspw_is_notice_screen() ) {
 		return;
 	}
 
@@ -207,6 +207,23 @@ function sspw_guard_notice() {
 		esc_html( sprintf( __( 'This is a staging site: turn on for %s', 'staging-superpowers-for-woocommerce' ), $current ) )
 	);
 	echo '</p></div>';
+}
+
+/**
+ * The "not turned on" notice only appears where it helps: the Dashboard, the
+ * Plugins screen and this plugin's own settings.
+ */
+function sspw_is_notice_screen() {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+	if ( ! $screen ) {
+		return false;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check of which settings tab is open.
+	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+
+	return in_array( $screen->id, array( 'dashboard', 'plugins' ), true ) || ( 'woocommerce_page_wc-settings' === $screen->id && 'sspw' === $tab );
 }
 
 function sspw_handle_arm() {

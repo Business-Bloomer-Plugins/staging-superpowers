@@ -12,7 +12,7 @@ if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) 
 	add_action( 'admin_init', 'sspw_remember_staff_session' );
 	add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
 } elseif ( 'bar' === sspw_get( 'sspw_visitors' ) ) {
-	add_action( 'wp_head', 'sspw_visitor_bar_style' );
+	add_action( 'wp_enqueue_scripts', 'sspw_visitor_bar_style' );
 	add_action( 'wp_footer', 'sspw_visitor_bar' );
 }
 
@@ -56,7 +56,9 @@ function sspw_show_visitor_bar() {
 
 function sspw_visitor_bar_style() {
 	if ( sspw_show_visitor_bar() ) {
-		echo '<style id="sspw-visitor-bar-css">' . sspw_visitor_bar_css() . 'html{margin-top:32px !important}</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static CSS.
+		wp_register_style( 'sspw-visitor-bar', false, array(), SSPW_VERSION );
+		wp_enqueue_style( 'sspw-visitor-bar' );
+		wp_add_inline_style( 'sspw-visitor-bar', sspw_visitor_bar_css() . 'html{margin-top:32px !important}' );
 	}
 }
 
@@ -94,6 +96,22 @@ function sspw_visitor_page() {
 		exit;
 	}
 
+	// The page below is a complete document of its own, so its styles are
+	// registered here and printed in its head with wp_print_styles().
+	wp_register_style( 'sspw-visitor-page', false, array(), SSPW_VERSION );
+	wp_add_inline_style(
+		'sspw-visitor-page',
+		sspw_visitor_bar_css() .
+		'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff7ed;color:#1c1917;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;padding:72px 16px 32px;box-sizing:border-box}' .
+		'.sspw-card{max-width:520px;background:#fff;border:1px solid #fed7aa;border-radius:12px;padding:32px;box-shadow:0 10px 30px rgba(124,45,18,.08)}' .
+		'.sspw-card h1{margin:0 0 12px;font-size:26px;line-height:1.25}' .
+		'.sspw-card p{margin:0 0 16px}' .
+		'.sspw-button{display:inline-block;background:#c2410c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600}' .
+		'.sspw-button:hover,.sspw-button:focus{background:#9a3412;color:#fff}' .
+		'.sspw-small{font-size:14px;color:#57534e}' .
+		'.sspw-small a{color:#9a3412}'
+	);
+
 	status_header( 503 );
 	nocache_headers();
 	header( 'Retry-After: 3600' );
@@ -108,17 +126,7 @@ function sspw_visitor_page() {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title><?php echo esc_html( sprintf( /* translators: %s: site name */ __( 'Staging site: %s', 'staging-superpowers-for-woocommerce' ), $name ) ); ?></title>
-<style>
-	<?php echo sspw_visitor_bar_css(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static CSS. ?>
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff7ed;color:#1c1917;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;padding:72px 16px 32px;box-sizing:border-box}
-.sspw-card{max-width:520px;background:#fff;border:1px solid #fed7aa;border-radius:12px;padding:32px;box-shadow:0 10px 30px rgba(124,45,18,.08)}
-.sspw-card h1{margin:0 0 12px;font-size:26px;line-height:1.25}
-.sspw-card p{margin:0 0 16px}
-.sspw-button{display:inline-block;background:#c2410c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600}
-.sspw-button:hover,.sspw-button:focus{background:#9a3412;color:#fff}
-.sspw-small{font-size:14px;color:#57534e}
-.sspw-small a{color:#9a3412}
-</style>
+	<?php wp_print_styles( 'sspw-visitor-page' ); ?>
 </head>
 <body>
 	<?php echo sspw_visitor_bar_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped when built. ?>

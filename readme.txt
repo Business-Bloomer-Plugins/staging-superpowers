@@ -91,6 +91,12 @@ Nothing is changed in the database: gateway settings, webhook statuses and sched
 
 Settings are at WooCommerce > Settings > Staging Superpowers.
 
+== External services ==
+
+This plugin does not connect to any external service and does not send data anywhere.
+
+The web addresses listed in its settings (such as api.stripe.com, api.mailchimp.com or graph.facebook.com) are services the plugin blocks. When "Connected services" is on, the plugin stops the staging site from contacting them, so a staging copy cannot reach your live accounts. The plugin never sends requests to them itself.
+
 == Installation ==
 
 1. On your staging site, go to Plugins > Add New, search for "Staging Superpowers" and click Install Now, then Activate.

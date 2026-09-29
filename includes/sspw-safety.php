@@ -276,17 +276,6 @@ function sspw_status_bar() {
 	);
 
 	echo '</div>';
-
-	// On phones, core lets the admin bar scroll away but some screens (WooCommerce's
-	// own pages) keep it fixed, so the status bar copies whatever the admin bar does.
-	wp_print_inline_script_tag(
-		"( function () {
-			var adminBar = document.getElementById( 'wpadminbar' ), statusBar = document.getElementById( 'sspw-status-bar' );
-			function sspwFollowAdminBar() { statusBar.style.position = 'fixed' === getComputedStyle( adminBar ).position ? 'fixed' : 'absolute'; }
-			sspwFollowAdminBar();
-			window.addEventListener( 'resize', sspwFollowAdminBar );
-		} )();"
-	);
 }
 
 /**
@@ -328,6 +317,33 @@ function sspw_admin_bar_style() {
 				'@media screen and (max-width:782px){#sspw-status-bar{top:46px}html:root{margin-top:74px !important}}' .
 				'@media screen and (max-width:600px){#sspw-status-bar{position:absolute}}';
 		}
+	}
+
+	if ( sspw_can_see_status_bar() ) {
+		// On phones, core lets the admin bar scroll away but some screens (WooCommerce's
+		// own pages) keep it fixed, so the status bar copies whatever the admin bar does.
+		// It runs once the page is parsed, because the front-end admin bar is printed last.
+		wp_register_script( 'sspw-status-bar', false, array(), SSPW_VERSION, true );
+		wp_enqueue_script( 'sspw-status-bar' );
+		wp_add_inline_script(
+			'sspw-status-bar',
+			"( function () {
+				function sspwFollowAdminBar() {
+					var adminBar = document.getElementById( 'wpadminbar' ), statusBar = document.getElementById( 'sspw-status-bar' );
+					if ( adminBar && statusBar ) {
+						statusBar.style.position = 'fixed' === getComputedStyle( adminBar ).position ? 'fixed' : 'absolute';
+					}
+				}
+				if ( 'loading' === document.readyState ) {
+					document.addEventListener( 'DOMContentLoaded', sspwFollowAdminBar );
+				} else {
+					sspwFollowAdminBar();
+				}
+				// Some screens apply their admin bar styles late, so check again once everything has loaded.
+				window.addEventListener( 'load', sspwFollowAdminBar );
+				window.addEventListener( 'resize', sspwFollowAdminBar );
+			} )();"
+		);
 	}
 
 	wp_add_inline_style( 'admin-bar', $css );
