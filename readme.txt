@@ -45,11 +45,10 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 
 **Visitors**
 
+* Customers and logged-out visitors who find the staging copy (through Google or an old link) are sent to the same page on your live store, so nobody places orders that go nowhere.
+* You, and anyone who can edit the site, see the staging copy as normal once logged in. The login page is never redirected.
 * Your live store address is filled in for you when it can be detected from your store data (you check it and save).
-* Customers who find the staging copy (through Google or an old link) see a "This is a staging site" page with a button to your live store, instead of a shop where they could place orders that go nowhere.
-* The page tells search engines the site is temporarily unavailable, and the sitemap, feeds and the checkout API are blocked too.
-* Store managers and editors see the full site after logging in.
-* Or let visitors browse, with a STAGING bar on every page.
+* Prefer something else? Show visitors a "this is a staging site" page, or let them browse with a STAGING bar on every page. The checkout API, sitemap and feeds are blocked for them either way, and search engines are told not to index anything.
 
 **Staging look**
 
@@ -68,11 +67,11 @@ Copying a staging database over your live store wipes every order placed since t
 * Cart or checkout switched between blocks and classic.
 * Products, pages, posts, coupons, categories, tags and menus created, edited or deleted.
 
-Find it at WooCommerce > Settings > Staging > Changelog. Entries follow the WooCommerce log retention setting (30 days by default).
+Find it at WooCommerce > Settings > Staging Superpowers > Changelog. Entries follow the WooCommerce log retention setting (30 days by default).
 
 **Troubleshooting**
 
-Find out if a problem is caused by another plugin or by the theme, from WooCommerce > Settings > Staging > Troubleshooting.
+Find out if a problem is caused by another plugin or by the theme, from WooCommerce > Settings > Staging Superpowers > Troubleshooting.
 
 * Switch off every plugin except WooCommerce and the ones you choose. Plugins that a kept plugin needs stay on automatically.
 * Switch the same plugins back on with one click, or switch on every installed plugin.
@@ -88,7 +87,7 @@ If the site's configuration says it is the live store (WP_ENVIRONMENT_TYPE set t
 
 Nothing is changed in the database: gateway settings, webhook statuses and scheduled actions are left exactly as they were. Deactivate the plugin and the store behaves as before.
 
-Settings are at WooCommerce > Settings > Staging.
+Settings are at WooCommerce > Settings > Staging Superpowers.
 
 == Frequently Asked Questions ==
 
@@ -106,7 +105,7 @@ It blocks requests made through the WordPress HTTP API, which is what almost eve
 
 = Some WooCommerce background tasks are not running =
 
-WooCommerce uses the Action Scheduler for its own background jobs too, for example analytics imports and order table syncs. Untick "Scheduled actions" in WooCommerce > Settings > Staging if you need them, or run the ones you need by hand from Tools > Scheduled Actions.
+WooCommerce uses the Action Scheduler for its own background jobs too, for example analytics imports and order table syncs. Untick "Scheduled actions" in WooCommerce > Settings > Staging Superpowers if you need them, or run the ones you need by hand from Tools > Scheduled Actions.
 
 = Can the Staging Test Gateway be used on my live store? =
 

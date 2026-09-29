@@ -1,6 +1,6 @@
 <?php
 /**
- * Settings tab at WooCommerce > Settings > Staging.
+ * Settings tab at WooCommerce > Settings > Staging Superpowers.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -52,7 +52,7 @@ function sspw_get( $key ) {
 		'sspw_freeze_actions' => 'yes',
 		'sspw_look'           => 'yes',
 		'sspw_noindex'        => 'yes',
-		'sspw_visitors'       => 'lock',
+		'sspw_visitors'       => 'redirect',
 		'sspw_live_url'       => '',
 	);
 
@@ -167,7 +167,7 @@ function sspw_can_see_store() {
 }
 
 function sspw_add_settings_tab( $tabs ) {
-	$tabs['sspw'] = __( 'Staging', 'staging-superpowers-for-woocommerce' );
+	$tabs['sspw'] = __( 'Staging Superpowers', 'staging-superpowers-for-woocommerce' );
 
 	return $tabs;
 }
@@ -228,10 +228,26 @@ function sspw_live_url_field() {
 	return $field;
 }
 
+function sspw_visitors_description() {
+	$login = wp_login_url();
+
+	$text = sprintf(
+		/* translators: %s: login page link */
+		__( 'For customers and logged-out visitors, so nobody browses this copy or places orders that never reach your live store. You, and anyone who can edit the site, see this copy as normal once logged in. To log in, go to %s: that page is never redirected.', 'staging-superpowers-for-woocommerce' ),
+		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
+	);
+
+	if ( '' === sspw_live_url() ) {
+		$text .= ' <strong>' . esc_html__( 'Save your live store address above to send visitors there. Until then, they see the "this is a staging site" page instead.', 'staging-superpowers-for-woocommerce' ) . '</strong>';
+	}
+
+	return $text;
+}
+
 function sspw_settings_fields() {
 	return array(
 		array(
-			'title' => __( 'Staging Superpowers', 'staging-superpowers-for-woocommerce' ),
+			'title' => __( 'Status', 'staging-superpowers-for-woocommerce' ),
 			'type'  => 'title',
 			'desc'  => sspw_status_text(),
 			'id'    => 'sspw_status',
@@ -351,32 +367,23 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Visitors', 'staging-superpowers-for-woocommerce' ),
-			'type'  => 'title',
-			'desc'  => __( 'If a customer finds this copy (for example through Google or an old link), they could browse it and place orders that never reach your live store.', 'staging-superpowers-for-woocommerce' ),
-			'id'    => 'sspw_visitors_section',
-		),
-		array(
-			'title'   => __( 'What visitors see', 'staging-superpowers-for-woocommerce' ),
-			'desc'    => __( 'Store managers and anyone who can edit content always see the full site after logging in. Customers and logged-out visitors get the choice below.', 'staging-superpowers-for-woocommerce' ),
-			'id'      => 'sspw_visitors',
-			'type'    => 'select',
-			'default' => 'lock',
-			'options' => array(
-				'lock' => __( 'A "this is a staging site" page (recommended)', 'staging-superpowers-for-woocommerce' ),
-				'bar'  => __( 'The site, with a STAGING bar on every page', 'staging-superpowers-for-woocommerce' ),
-				'off'  => __( 'The site as normal (not safe)', 'staging-superpowers-for-woocommerce' ),
-			),
-		),
-		array(
-			'type' => 'sectionend',
-			'id'   => 'sspw_visitors_section',
-		),
-
-		array(
 			'title' => __( 'Look and feel', 'staging-superpowers-for-woocommerce' ),
 			'type'  => 'title',
 			'id'    => 'sspw_look_section',
+		),
+		array(
+			'title'   => __( 'Visitors', 'staging-superpowers-for-woocommerce' ),
+			'desc'    => sspw_visitors_description(),
+			'id'      => 'sspw_visitors',
+			'type'    => 'select',
+			'css'     => 'min-width:440px;',
+			'default' => 'redirect',
+			'options' => array(
+				'redirect' => __( 'Send them to the same page on the live store (recommended)', 'staging-superpowers-for-woocommerce' ),
+				'lock'     => __( 'Show a "this is a staging site" page', 'staging-superpowers-for-woocommerce' ),
+				'bar'      => __( 'Show the site, with a STAGING bar on every page', 'staging-superpowers-for-woocommerce' ),
+				'off'      => __( 'Show the site as normal (not safe)', 'staging-superpowers-for-woocommerce' ),
+			),
 		),
 		array(
 			'title'    => __( 'Staging look', 'staging-superpowers-for-woocommerce' ),

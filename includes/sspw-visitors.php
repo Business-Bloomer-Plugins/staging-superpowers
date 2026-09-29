@@ -6,7 +6,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( 'lock' === sspw_get( 'sspw_visitors' ) ) {
+if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) ) {
 	add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
 	add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
 } elseif ( 'bar' === sspw_get( 'sspw_visitors' ) ) {
@@ -76,6 +76,14 @@ function sspw_visitor_page() {
 
 	$name = get_bloginfo( 'name' );
 	$live = sspw_live_url();
+
+	// 302, not 301: browsers remember a 301, and would keep sending the admin
+	// to the live store even after logging in here.
+	if ( 'redirect' === sspw_get( 'sspw_visitors' ) && $live ) {
+		header( 'X-Robots-Tag: noindex, nofollow', true );
+		wp_redirect( $live . sspw_current_path(), 302, 'Staging Superpowers' ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- the admin-saved live store is on another host by design.
+		exit;
+	}
 
 	status_header( 503 );
 	nocache_headers();
