@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Source for the WP.org banner. Render with render-banner.py; not shipped with the plugin. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+	--navy: #0b1033;
+	--ink: #111827;
+	--muted: #5b6475;
+	--orange: #c2410c;
+	--rust: #7c2d12;
+	--coral: #f08a6c;
+	--sage: #b7d4c4;
+	--sage-dark: #6fa58a;
+	--green: #16a34a;
+	--card: #ffffff;
+	--bg: #f8f7f4;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { width: 1544px; height: 500px; overflow: hidden; font-family: Inter, sans-serif; }
+
+#banner { position: relative; width: 1544px; height: 500px; overflow: hidden; background: var(--bg); color: var(--ink); }
+
+/* soft color blobs, Jetpack/Site Kit style */
+.blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; }
+.blob.a { width: 620px; height: 520px; right: 60px; top: -160px; background: #fed7aa; }
+.blob.b { width: 520px; height: 460px; right: -120px; bottom: -220px; background: var(--sage); }
+.blob.c { width: 380px; height: 380px; right: 520px; bottom: -260px; background: #fde2d6; }
+
+/* left column */
+.brand { position: absolute; left: 88px; top: 72px; display: flex; align-items: center; gap: 16px; }
+.brand svg { width: 64px; height: 64px; }
+.brand .name { font-size: 30px; font-weight: 700; letter-spacing: -.01em; line-height: 1.05; }
+.brand .name small { display: block; font-size: 17px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+
+.headline { position: absolute; left: 88px; top: 182px; font-size: 56px; font-weight: 800; letter-spacing: -.035em; line-height: 1.04; }
+.headline em { font-style: normal; color: var(--orange); }
+.sub { position: absolute; left: 90px; top: 326px; width: 560px; font-size: 21px; line-height: 1.45; color: var(--muted); }
+
+/* browser mockup */
+.browser { position: absolute; left: 880px; top: 62px; width: 610px; height: 470px; background: #fff; border-radius: 16px; box-shadow: 0 30px 70px rgba(17, 24, 39, .18), 0 0 0 1px rgba(17, 24, 39, .06); overflow: hidden; }
+.chrome { height: 34px; background: #eef0f3; display: flex; align-items: center; gap: 7px; padding: 0 14px; }
+.chrome i { width: 11px; height: 11px; border-radius: 50%; background: #d4d7dd; display: block; }
+.chrome .url { margin-left: 16px; height: 20px; flex: 1; max-width: 300px; border-radius: 6px; background: #fff; font: 500 11px/20px Inter, sans-serif; color: var(--muted); padding-left: 10px; }
+.adminbar { height: 30px; background: var(--orange); display: flex; align-items: center; }
+.adminbar .badge { height: 30px; background: var(--rust); color: #fff; font: 700 12px/30px Inter, sans-serif; letter-spacing: .09em; padding: 0 12px; }
+.adminbar .dots { display: flex; gap: 10px; padding-left: 14px; }
+.adminbar .dots span { width: 44px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .35); display: block; }
+.statusbar { height: 28px; background: var(--rust); display: flex; align-items: center; gap: 16px; padding: 0 12px; color: #fff; font: 500 11.5px/28px Inter, sans-serif; white-space: nowrap; }
+.statusbar b { color: #86efac; font-weight: 700; margin-right: 4px; }
+.admin { display: flex; height: 100%; }
+.admin .side { width: 120px; background: #1d2327; padding: 16px 14px; display: flex; flex-direction: column; gap: 12px; }
+.admin .side span { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .18); display: block; }
+.admin .side span.on { background: #3858e9; }
+.admin .main { flex: 1; padding: 20px; background: #f0f0f1; display: flex; flex-direction: column; gap: 12px; }
+.admin .main .line { height: 12px; border-radius: 6px; background: #dcdcde; }
+.admin .main .panel { height: 90px; border-radius: 8px; background: #fff; }
+
+/* floating cards */
+.card { position: absolute; background: var(--card); border-radius: 14px; box-shadow: 0 18px 40px rgba(17, 24, 39, .14), 0 0 0 1px rgba(17, 24, 39, .05); padding: 16px 18px; }
+.card .t { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.card .t svg { width: 16px; height: 16px; }
+.card .big { font-size: 34px; font-weight: 800; letter-spacing: -.03em; margin-top: 6px; }
+.card .small { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.check { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--green); color: #fff; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+
+.c-email { left: 800px; top: 262px; width: 200px; }
+.c-pay { left: 1040px; top: 330px; width: 300px; }
+.c-pay .row { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 15px; font-weight: 700; }
+.c-actions { left: 1346px; top: 150px; width: 172px; }
+.c-visitors { left: 1362px; top: 420px; width: 200px; padding: 12px 16px; }
+.c-visitors .row { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+.c-visitors .row span.arrow { color: var(--orange); font-weight: 800; }
+
+/* dark variant */
+body.dark #banner { background: radial-gradient(circle at 78% 20%, #3b1d5c 0%, transparent 45%), radial-gradient(circle at 92% 95%, #7c2d12 0%, transparent 40%), linear-gradient(120deg, #070b24 0%, #0b1033 55%, #131a4a 100%); color: #fff; }
+body.dark .blob { display: none; }
+body.dark .brand .name small, body.dark .sub { color: #aab2cc; }
+body.dark .headline em { color: var(--coral); }
+body.dark .brand svg rect { fill: #1e2757; stroke: rgba(255,255,255,.18); stroke-width: 2; }
+body.dark .browser { box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .08); }
+body.dark .card { background: rgba(255, 255, 255, .96); color: var(--ink); }
+body.dark .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(90deg, transparent 0%, #000 55%, #000 100%); }
+body:not(.dark) .grid { display: none; }
+</style>
+</head>
+<body>
+<div id="banner">
+	<div class="blob a"></div><div class="blob b"></div><div class="blob c"></div>
+	<div class="grid"></div>
+
+	<div class="brand">
+		<svg viewBox="0 0 100 100" aria-hidden="true">
+			<rect width="100" height="100" rx="24" fill="#0b1033"/>
+			<path d="M50 16 L78 24 V50 C78 68 66 80 50 86 C34 80 22 68 22 50 V24 Z" fill="#b7d4c4"/>
+			<path d="M50 16 L78 24 V50 C78 68 66 80 50 86 Z" fill="#9cbeac"/>
+			<path d="M55 28 L38 54 H49 L44 74 L62 46 H51 L57 28 Z" fill="#f08a6c"/>
+		</svg>
+		<div class="name">Staging Superpowers<small>for WooCommerce</small></div>
+	</div>
+
+	<div class="headline">Test freely.<br><em>Customers never notice.</em></div>
+	<div class="sub">Emails, payments, webhooks and renewals stay locked on your staging copy, from the moment you activate it.</div>
+
+	<div class="browser">
+		<div class="chrome"><i></i><i></i><i></i><div class="url">staging.yourstore.com/wp-admin</div></div>
+		<div class="adminbar"><div class="badge">STAGING</div><div class="dots"><span></span><span></span><span></span></div></div>
+		<div class="statusbar"><span><b>&#10003;</b>Emails blocked</span><span><b>&#10003;</b>Payments hidden</span><span><b>&#10003;</b>Webhooks paused</span><span><b>&#10003;</b>Actions frozen</span></div>
+		<div class="admin">
+			<div class="side"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+			<div class="main"><div class="line" style="width:40%"></div><div class="panel"></div><div class="line" style="width:70%"></div><div class="line" style="width:55%"></div><div class="panel"></div></div>
+		</div>
+	</div>
+
+	<div class="card c-email">
+		<div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Customer emails</div>
+		<div class="big">1,284</div>
+		<div class="small">blocked this week</div>
+	</div>
+
+	<div class="card c-pay">
+		<div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Checkout</div>
+		<div class="row"><span class="check">&#10003;</span>Test payment, no real money</div>
+	</div>
+
+	<div class="card c-actions">
+		<div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Renewals</div>
+		<div class="big">3,012</div>
+		<div class="small">scheduled actions frozen</div>
+	</div>
+
+	<div class="card c-visitors">
+		<div class="row">Visitors <span class="arrow">&rarr;</span> live store</div>
+	</div>
+</div>
+</body>
+</html>

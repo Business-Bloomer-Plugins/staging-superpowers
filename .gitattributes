@@ -3,3 +3,4 @@
 /.github export-ignore
 /.wordpress-org export-ignore
 phpcs.xml.dist export-ignore
+/.wordpress-org-src export-ignore
