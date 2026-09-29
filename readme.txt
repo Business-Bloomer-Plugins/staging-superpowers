@@ -57,6 +57,7 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 * A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
 * Adds noindex, nofollow to every page.
+* Turns off page caching, so you always see your latest changes and visitors are never shown a saved page instead of being redirected. Works with WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Cache Enabler, SiteGround, Breeze, Hummingbird, WP-Optimize and host caches that respect no-cache headers. Existing saved pages are emptied once. Cache plugin settings are not changed.
 
 **Changelog**
 

@@ -69,6 +69,45 @@ function sspw_activate() {
 function sspw_arm() {
 	update_option( 'sspw_armed_for', sspw_site_fingerprint(), false );
 	update_option( 'sspw_armed_at', time(), false );
+
+	if ( 'no' !== get_option( 'sspw_no_cache', 'yes' ) ) {
+		sspw_purge_page_caches();
+	}
+}
+
+/**
+ * Pages cached before the plugin was on would still be served (and skip the
+ * visitor redirect), so the known page caches are emptied once. Each call only
+ * runs if that cache plugin is active.
+ */
+function sspw_purge_page_caches() {
+	// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- each cache plugin's own purge hook.
+	if ( function_exists( 'rocket_clean_domain' ) ) {
+		rocket_clean_domain();
+	}
+	if ( function_exists( 'w3tc_flush_all' ) ) {
+		w3tc_flush_all();
+	}
+	if ( function_exists( 'wp_cache_clear_cache' ) ) {
+		wp_cache_clear_cache();
+	}
+	if ( function_exists( 'wpfc_clear_all_cache' ) ) {
+		wpfc_clear_all_cache( true );
+	}
+	if ( function_exists( 'sg_cachepress_purge_cache' ) ) {
+		sg_cachepress_purge_cache();
+	}
+	if ( function_exists( 'wpo_cache_flush' ) ) {
+		wpo_cache_flush();
+	}
+	if ( class_exists( 'WpeCommon' ) && method_exists( 'WpeCommon', 'purge_varnish_cache' ) ) {
+		WpeCommon::purge_varnish_cache();
+	}
+	do_action( 'litespeed_purge_all' );
+	do_action( 'cache_enabler_clear_complete_cache' );
+	do_action( 'breeze_clear_all_cache' );
+	do_action( 'wphb_clear_page_cache' );
+	// phpcs:enable
 }
 
 function sspw_guard_notice() {

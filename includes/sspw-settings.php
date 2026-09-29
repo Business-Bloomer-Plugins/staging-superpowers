@@ -53,6 +53,7 @@ function sspw_get( $key ) {
 		'sspw_look'           => 'yes',
 		'sspw_noindex'        => 'yes',
 		'sspw_visitors'       => 'redirect',
+		'sspw_no_cache'       => 'yes',
 		'sspw_live_url'       => '',
 	);
 
@@ -402,6 +403,14 @@ function sspw_settings_fields() {
 				sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers-for-woocommerce' ) )
 			),
 			'id'       => 'sspw_noindex',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Page caching', 'staging-superpowers-for-woocommerce' ),
+			'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers-for-woocommerce' ),
+			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of being sent to the live store. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers-for-woocommerce' ),
+			'id'       => 'sspw_no_cache',
 			'type'     => 'checkbox',
 			'default'  => 'yes',
 		),

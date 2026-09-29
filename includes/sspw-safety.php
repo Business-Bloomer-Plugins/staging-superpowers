@@ -191,6 +191,12 @@ function sspw_status_items() {
 			'url'   => $links['actions'],
 		),
 		array(
+			'on'    => 'yes' === sspw_get( 'sspw_no_cache' ),
+			'label' => __( 'Page cache off', 'staging-superpowers-for-woocommerce' ),
+			'tip'   => __( 'Pages are never served from a cache, so you always see your latest changes.', 'staging-superpowers-for-woocommerce' ),
+			'url'   => $links['settings'],
+		),
+		array(
 			'on'    => 'yes' === sspw_get( 'sspw_noindex' ),
 			'label' => __( 'Hidden from Google', 'staging-superpowers-for-woocommerce' ),
 			'tip'   => __( 'Search engines are asked not to list this site.', 'staging-superpowers-for-woocommerce' ),
