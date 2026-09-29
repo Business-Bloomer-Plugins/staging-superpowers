@@ -8,6 +8,8 @@ defined( 'ABSPATH' ) || exit;
 
 if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) ) {
 	add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
+	add_action( 'wp_login', 'sspw_remember_staff', 10, 2 );
+	add_action( 'admin_init', 'sspw_remember_staff_session' );
 	add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
 } elseif ( 'bar' === sspw_get( 'sspw_visitors' ) ) {
 	add_action( 'wp_head', 'sspw_visitor_bar_style' );
@@ -72,6 +74,13 @@ function sspw_visitor_bar() {
 function sspw_visitor_page() {
 	if ( sspw_can_see_store() ) {
 		return;
+	}
+
+	// A browser someone on the team has logged in with goes to the login page,
+	// not the live store, so an expired session never lands them on live.
+	if ( ! is_user_logged_in() && isset( $_COOKIE[ sspw_staff_cookie() ] ) ) {
+		wp_safe_redirect( wp_login_url( sspw_current_url() ), 302, 'Staging Superpowers' );
+		exit;
 	}
 
 	$name = get_bloginfo( 'name' );
@@ -153,4 +162,32 @@ function sspw_visitor_store_api( $result, $server, $request ) {
 	}
 
 	return $result;
+}
+
+/**
+ * Marks this browser as used by the team. It grants nothing: it only decides
+ * whether a logged-out visit goes to the login page or to the live store.
+ */
+function sspw_staff_cookie() {
+	return 'sspw_staff_' . COOKIEHASH;
+}
+
+function sspw_set_staff_cookie() {
+	setcookie( sspw_staff_cookie(), '1', time() + YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+}
+
+function sspw_remember_staff( $user_login, $user ) {
+	if ( user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_woocommerce' ) ) {
+		sspw_set_staff_cookie();
+	}
+}
+
+/**
+ * People already logged in when the plugin was turned on get the cookie on their
+ * next admin page, without logging in again.
+ */
+function sspw_remember_staff_session() {
+	if ( ! isset( $_COOKIE[ sspw_staff_cookie() ] ) && sspw_can_see_store() && ! wp_doing_ajax() && ! headers_sent() ) {
+		sspw_set_staff_cookie();
+	}
 }

@@ -46,7 +46,7 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 **Visitors**
 
 * Customers and logged-out visitors who find the staging copy (through Google or an old link) are sent to the same page on your live store, so nobody places orders that go nowhere.
-* You, and anyone who can edit the site, see the staging copy as normal once logged in. The login page is never redirected.
+* You, and anyone who can edit the site, see the staging copy as normal once logged in. The login page is never redirected. Browsers you have logged in with are remembered, so when your login expires you land on the staging login page, not on the live store.
 * Your live store address is filled in for you when it can be detected from your store data (you check it and save).
 * Prefer something else? Show visitors a "this is a staging site" page, or let them browse with a STAGING bar on every page. The checkout API, sitemap and feeds are blocked for them either way, and search engines are told not to index anything.
 

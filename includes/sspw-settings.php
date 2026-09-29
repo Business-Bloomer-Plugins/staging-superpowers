@@ -234,7 +234,7 @@ function sspw_visitors_description() {
 
 	$text = sprintf(
 		/* translators: %s: login page link */
-		__( 'For customers and logged-out visitors, so nobody browses this copy or places orders that never reach your live store. You, and anyone who can edit the site, see this copy as normal once logged in. To log in, go to %s: that page is never redirected.', 'staging-superpowers-for-woocommerce' ),
+		__( 'For customers and logged-out visitors, so nobody browses this copy or places orders that never reach your live store. You, and anyone who can edit the site, see this copy as normal once logged in. To log in, go to %s: that page is never redirected. Browsers you have logged in with here are remembered, so when you are logged out they go to the login page instead of the live store.', 'staging-superpowers-for-woocommerce' ),
 		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
 	);
 
