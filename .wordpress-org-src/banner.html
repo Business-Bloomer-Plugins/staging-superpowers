@@ -32,13 +32,13 @@ body { width: 1544px; height: 500px; overflow: hidden; font-family: Inter, sans-
 
 /* left column */
 .brand { position: absolute; left: 88px; top: 72px; display: flex; align-items: center; gap: 16px; }
-.brand svg { width: 64px; height: 64px; }
+.brand svg { width: 76px; height: 76px; }
 .brand .name { font-size: 30px; font-weight: 700; letter-spacing: -.01em; line-height: 1.05; }
-.brand .name small { display: block; font-size: 17px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+.brand .name small { display: block; font-size: 23px; font-weight: 600; color: var(--muted); letter-spacing: -.01em; margin-top: 5px; }
 
-.headline { position: absolute; left: 88px; top: 182px; font-size: 56px; font-weight: 800; letter-spacing: -.035em; line-height: 1.04; }
+.headline { position: absolute; left: 88px; top: 194px; font-size: 56px; font-weight: 800; letter-spacing: -.035em; line-height: 1.04; }
 .headline em { font-style: normal; color: var(--orange); }
-.sub { position: absolute; left: 90px; top: 326px; width: 560px; font-size: 21px; line-height: 1.45; color: var(--muted); }
+.sub { position: absolute; left: 90px; top: 336px; width: 600px; font-size: 21px; line-height: 1.45; color: var(--muted); }
 
 /* browser mockup */
 .browser { position: absolute; left: 880px; top: 62px; width: 610px; height: 470px; background: #fff; border-radius: 16px; box-shadow: 0 30px 70px rgba(17, 24, 39, .18), 0 0 0 1px rgba(17, 24, 39, .06); overflow: hidden; }
@@ -68,12 +68,14 @@ body { width: 1544px; height: 500px; overflow: hidden; font-family: Inter, sans-
 .check { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--green); color: #fff; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
 
 .c-email { left: 800px; top: 262px; width: 200px; }
-.c-pay { left: 1040px; top: 330px; width: 300px; }
+.c-pay { left: 1018px; top: 352px; width: 276px; }
 .c-pay .row { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 15px; font-weight: 700; }
 .c-actions { left: 1346px; top: 150px; width: 172px; }
-.c-visitors { left: 1362px; top: 420px; width: 200px; padding: 12px 16px; }
-.c-visitors .row { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
-.c-visitors .row span.arrow { color: var(--orange); font-weight: 800; }
+.c-trouble { left: 1306px; top: 312px; width: 212px; }
+.c-trouble .big { font-size: 24px; white-space: nowrap; }
+.c-more { left: 800px; top: 392px; padding: 11px 16px; white-space: nowrap; }
+.c-more .row { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+.c-more .row .plus { display: inline-flex; width: 20px; height: 20px; border-radius: 6px; background: var(--orange); color: #fff; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; }
 
 /* dark variant */
 body.dark #banner { background: radial-gradient(circle at 78% 20%, #3b1d5c 0%, transparent 45%), radial-gradient(circle at 92% 95%, #7c2d12 0%, transparent 40%), linear-gradient(120deg, #070b24 0%, #0b1033 55%, #131a4a 100%); color: #fff; }
@@ -103,7 +105,7 @@ body:not(.dark) .grid { display: none; }
 	</div>
 
 	<div class="headline">Test freely.<br><em>Customers never notice.</em></div>
-	<div class="sub">Emails, payments, webhooks and renewals stay locked on your staging copy, from the moment you activate it.</div>
+	<div class="sub">Emails, payments, webhooks and renewals stay locked on your staging copy. Plus troubleshooting, a changelog and more tools built in.</div>
 
 	<div class="browser">
 		<div class="chrome"><i></i><i></i><i></i><div class="url">staging.yourstore.com/wp-admin</div></div>
@@ -132,8 +134,14 @@ body:not(.dark) .grid { display: none; }
 		<div class="small">scheduled actions frozen</div>
 	</div>
 
-	<div class="card c-visitors">
-		<div class="row">Visitors <span class="arrow">&rarr;</span> live store</div>
+	<div class="card c-trouble">
+		<div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Troubleshooting</div>
+		<div class="big">36 plugins off</div>
+		<div class="small">back on in one click</div>
+	</div>
+
+	<div class="card c-more">
+		<div class="row"><span class="plus">+</span>more staging tools</div>
 	</div>
 </div>
 </body>
