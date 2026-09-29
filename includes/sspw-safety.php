@@ -11,10 +11,10 @@
 defined( 'ABSPATH' ) || exit;
 
 // Emails.
-if ( 'block' === sspw_get( 'sspw_email_mode' ) ) {
-	add_filter( 'pre_wp_mail', 'sspw_block_email', PHP_INT_MAX );
-} elseif ( 'redirect' === sspw_get( 'sspw_email_mode' ) ) {
+if ( 'redirect' === sspw_email_status() ) {
 	add_filter( 'wp_mail', 'sspw_redirect_email', PHP_INT_MAX );
+} elseif ( 'off' !== sspw_email_status() ) {
+	add_filter( 'pre_wp_mail', 'sspw_block_email', PHP_INT_MAX );
 }
 
 // Webhooks.
@@ -33,11 +33,15 @@ if ( 'yes' === sspw_get( 'sspw_http_firewall' ) ) {
 if ( 'yes' === sspw_get( 'sspw_freeze_actions' ) ) {
 	add_filter( 'action_scheduler_queue_runner_concurrent_batches', '__return_zero', PHP_INT_MAX );
 	add_filter( 'action_scheduler_allow_async_request_runner', '__return_false', PHP_INT_MAX );
+
+	// Actions piling up is the point while frozen, not a fault worth warning about.
+	add_filter( 'action_scheduler_check_pastdue_actions', '__return_false', PHP_INT_MAX );
 }
 
 // Look and feel.
 if ( 'yes' === sspw_get( 'sspw_look' ) ) {
 	add_action( 'admin_bar_menu', 'sspw_admin_bar_badge', 0 );
+	add_action( 'wp_after_admin_bar_render', 'sspw_status_bar' );
 	add_action( 'wp_enqueue_scripts', 'sspw_admin_bar_style' );
 	add_action( 'admin_enqueue_scripts', 'sspw_admin_bar_style' );
 	add_filter( 'admin_title', 'sspw_admin_title' );
@@ -59,12 +63,6 @@ function sspw_no_robots( $robots ) {
 	return $robots;
 }
 
-function sspw_email_recipient() {
-	$to = sanitize_email( sspw_get( 'sspw_email_to' ) );
-
-	return $to ? $to : get_option( 'admin_email' );
-}
-
 /**
  * Returning true tells wp_mail() the email was sent, so WooCommerce and other
  * plugins carry on as normal instead of logging failures.
@@ -76,7 +74,7 @@ function sspw_block_email() {
 function sspw_redirect_email( $atts ) {
 	$original = is_array( $atts['to'] ) ? implode( ', ', $atts['to'] ) : (string) $atts['to'];
 
-	$atts['to']      = sspw_email_recipient();
+	$atts['to']      = sanitize_email( sspw_get( 'sspw_email_to' ) );
 	$atts['subject'] = sprintf( '[STAGING to %s] %s', $original, $atts['subject'] );
 	$atts['headers'] = sspw_strip_cc_bcc( $atts['headers'] );
 
@@ -129,21 +127,154 @@ function sspw_admin_bar_badge( $wp_admin_bar ) {
 		array(
 			'id'    => 'sspw-staging',
 			'title' => esc_html__( 'STAGING', 'staging-superpowers-for-woocommerce' ),
-			'href'  => current_user_can( 'manage_woocommerce' ) ? admin_url( 'admin.php?page=wc-settings&tab=sspw' ) : false,
+			'href'  => current_user_can( 'manage_woocommerce' ) ? sspw_admin_links()['settings'] : false,
 		)
 	);
 }
 
+function sspw_can_see_status_bar() {
+	return is_admin_bar_showing() && current_user_can( 'manage_woocommerce' );
+}
+
+/**
+ * One entry per protection: is it on, what to call it, where to manage it.
+ */
+function sspw_status_items() {
+	$links = sspw_admin_links();
+	$email = sspw_email_status();
+
+	$email_labels = array(
+		'block'               => __( 'Emails blocked', 'staging-superpowers-for-woocommerce' ),
+		'redirect'            => __( 'Emails forwarded', 'staging-superpowers-for-woocommerce' ),
+		'redirect-no-address' => __( 'Email forwarding', 'staging-superpowers-for-woocommerce' ),
+		'off'                 => __( 'Emails going to real people', 'staging-superpowers-for-woocommerce' ),
+	);
+
+	$email_tips = array(
+		'block'               => __( 'No email leaves this site.', 'staging-superpowers-for-woocommerce' ),
+		/* translators: %s: forwarding email address */
+		'redirect'            => sprintf( __( 'Every email goes to %s.', 'staging-superpowers-for-woocommerce' ), sspw_get( 'sspw_email_to' ) ),
+		'redirect-no-address' => __( 'No forwarding address set yet, so emails are blocked for now.', 'staging-superpowers-for-woocommerce' ),
+		'off'                 => __( 'Emails are sent to real recipients.', 'staging-superpowers-for-woocommerce' ),
+	);
+
+	return array(
+		array(
+			'on'    => in_array( $email, array( 'block', 'redirect' ), true ),
+			'label' => $email_labels[ $email ],
+			'tip'   => $email_tips[ $email ],
+			'url'   => $links['settings'],
+		),
+		array(
+			'on'    => 'yes' === sspw_get( 'sspw_gateways' ),
+			'label' => __( 'Payments hidden', 'staging-superpowers-for-woocommerce' ),
+			'tip'   => __( 'Only the Staging Test Gateway shows at checkout.', 'staging-superpowers-for-woocommerce' ),
+			'url'   => $links['payments'],
+		),
+		array(
+			'on'    => 'yes' === sspw_get( 'sspw_webhooks' ),
+			'label' => __( 'Webhooks paused', 'staging-superpowers-for-woocommerce' ),
+			'tip'   => __( 'Other apps are not told about orders on this site.', 'staging-superpowers-for-woocommerce' ),
+			'url'   => $links['webhooks'],
+		),
+		array(
+			'on'    => 'yes' === sspw_get( 'sspw_http_firewall' ),
+			'label' => __( 'Services blocked', 'staging-superpowers-for-woocommerce' ),
+			'tip'   => __( 'Payment, marketing, shipping and tax services cannot be contacted.', 'staging-superpowers-for-woocommerce' ),
+			'url'   => $links['settings'],
+		),
+		array(
+			'on'    => 'yes' === sspw_get( 'sspw_freeze_actions' ),
+			'label' => __( 'Scheduled actions frozen', 'staging-superpowers-for-woocommerce' ),
+			'tip'   => __( 'Renewals, follow-ups and syncs do not run by themselves.', 'staging-superpowers-for-woocommerce' ),
+			'url'   => $links['actions'],
+		),
+		array(
+			'on'    => 'yes' === sspw_get( 'sspw_noindex' ),
+			'label' => __( 'Hidden from Google', 'staging-superpowers-for-woocommerce' ),
+			'tip'   => __( 'Search engines are asked not to list this site.', 'staging-superpowers-for-woocommerce' ),
+			'url'   => $links['settings'],
+		),
+	);
+}
+
+function sspw_status_bar() {
+	if ( ! sspw_can_see_status_bar() ) {
+		return;
+	}
+
+	echo '<div id="sspw-status-bar" role="status">';
+
+	foreach ( sspw_status_items() as $item ) {
+		printf(
+			'<a class="%1$s" href="%2$s" title="%3$s"><span class="sspw-mark" aria-hidden="true">%4$s</span> %5$s<span class="screen-reader-text"> (%6$s)</span></a>',
+			$item['on'] ? 'sspw-on' : 'sspw-off',
+			esc_url( $item['url'] ),
+			esc_attr( $item['tip'] ),
+			$item['on'] ? '&#10003;' : '&#10007;',
+			esc_html( $item['label'] ),
+			$item['on'] ? esc_html__( 'on', 'staging-superpowers-for-woocommerce' ) : esc_html__( 'off', 'staging-superpowers-for-woocommerce' )
+		);
+	}
+
+	printf(
+		'<a class="sspw-gear" href="%1$s" title="%2$s"><span class="dashicons dashicons-admin-generic" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span></a>',
+		esc_url( sspw_admin_links()['settings'] ),
+		esc_attr__( 'All settings', 'staging-superpowers-for-woocommerce' )
+	);
+
+	echo '</div>';
+
+	// On phones, core lets the admin bar scroll away but some screens (WooCommerce's
+	// own pages) keep it fixed, so the status bar copies whatever the admin bar does.
+	wp_print_inline_script_tag(
+		"( function () {
+			var adminBar = document.getElementById( 'wpadminbar' ), statusBar = document.getElementById( 'sspw-status-bar' );
+			function sspwFollowAdminBar() { statusBar.style.position = 'fixed' === getComputedStyle( adminBar ).position ? 'fixed' : 'absolute'; }
+			sspwFollowAdminBar();
+			window.addEventListener( 'resize', sspwFollowAdminBar );
+		} )();"
+	);
+}
+
+/**
+ * The status bar sits fixed under the admin bar, so the page is pushed down by
+ * its height too: html padding in the dashboard, html margin on the front end
+ * (both mirror how core makes room for the admin bar itself).
+ */
 function sspw_admin_bar_style() {
 	if ( ! is_admin_bar_showing() ) {
 		return;
 	}
 
-	wp_add_inline_style(
-		'admin-bar',
-		'html #wpadminbar{background:#c2410c}' .
-		'html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item{background:#7c2d12;color:#fff;font-weight:700;letter-spacing:.08em}'
-	);
+	$css = 'html #wpadminbar{background:#c2410c}' .
+		'html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item{background:#7c2d12;color:#fff;font-weight:700;letter-spacing:.08em}' .
+		'@media screen and (max-width:782px){html #wpadminbar li#wp-admin-bar-sspw-staging{display:block}html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item{font-size:14px;padding:0 10px}}';
+
+	if ( sspw_can_see_status_bar() ) {
+		$css .= '#sspw-status-bar{position:fixed;top:32px;left:0;right:0;z-index:99998;height:28px;display:flex;align-items:center;gap:2px;padding:0 8px;box-sizing:border-box;background:#7c2d12;font:13px/28px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;overflow-x:auto;white-space:nowrap}' .
+			'#sspw-status-bar a{color:#fff;text-decoration:none;padding:0 8px;border-radius:3px;box-shadow:none}' .
+			'#sspw-status-bar a:hover,#sspw-status-bar a:focus{background:rgba(255,255,255,.15);color:#fff}' .
+			'#sspw-status-bar .sspw-mark{font-weight:700}' .
+			'#sspw-status-bar .sspw-on .sspw-mark{color:#86efac}' .
+			'#sspw-status-bar .sspw-off{color:#fecaca}' .
+			'#sspw-status-bar .sspw-off .sspw-mark{color:#fca5a5}' .
+			'#sspw-status-bar .sspw-gear{margin-left:auto}' .
+			'#sspw-status-bar .dashicons{font-size:18px;width:18px;height:18px;line-height:28px;vertical-align:top}';
+
+		if ( is_admin() ) {
+			$css .= 'html.wp-toolbar{padding-top:60px}' .
+				'html.wp-toolbar .woocommerce-layout__header{top:60px}' .
+				'@media screen and (max-width:782px){#sspw-status-bar{top:46px}html.wp-toolbar{padding-top:74px}html.wp-toolbar .woocommerce-layout__header{top:74px}}' .
+				'@media screen and (max-width:600px){#sspw-status-bar{position:absolute}html.wp-toolbar{padding-top:0}#wpbody{padding-top:74px}}';
+		} else {
+			$css .= 'html:root{margin-top:60px !important}' .
+				'@media screen and (max-width:782px){#sspw-status-bar{top:46px}html:root{margin-top:74px !important}}' .
+				'@media screen and (max-width:600px){#sspw-status-bar{position:absolute}}';
+		}
+	}
+
+	wp_add_inline_style( 'admin-bar', $css );
 }
 
 function sspw_admin_title( $title ) {

@@ -18,8 +18,8 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 
 **Emails**
 
-* Send every outgoing email to one address (the site admin email by default), or block them all.
-* The original recipient is added to the subject line, for example "[STAGING to jane@example.com] Your order is complete".
+* Blocks every outgoing email by default.
+* Or forward them all to one address instead. The original recipient is added to the subject line, for example "[STAGING to jane@example.com] Your order is complete". Until you enter a forwarding address, emails stay blocked.
 * CC and BCC headers are removed, so nobody gets a copy by accident.
 * Works for WooCommerce emails and any other email sent through WordPress.
 
@@ -46,6 +46,7 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 **Staging look**
 
 * Orange admin bar with a STAGING badge, on the dashboard and on the front end.
+* A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
 * Adds noindex, nofollow to every page.
 
