@@ -54,7 +54,7 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 
 The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live store keeps sending emails and taking payments even if the plugin comes along by mistake.
 
-If the site sets WP_ENVIRONMENT_TYPE to "production", the plugin also stays off.
+If the site's configuration says it is the live store (WP_ENVIRONMENT_TYPE set to "production"), the plugin also stays off until an admin confirms the site is a copy. That confirmation only applies to the current URL, so the deploy guard still protects the live store.
 
 Nothing is changed in the database: gateway settings, webhook statuses and scheduled actions are left exactly as they were. Deactivate the plugin and the store behaves as before.
 
@@ -65,6 +65,10 @@ Settings are at WooCommerce > Settings > Staging.
 = I cloned my staging site to a new URL and the plugin says it is paused =
 
 That is the deploy guard. Click "This is a staging site: turn on for ..." in the admin notice to turn it on for the new URL.
+
+= I cloned my store by hand and the plugin says the site is the live store =
+
+A hand-made copy keeps the live store's wp-config.php, which may say the site is in production. If you are sure the site is a copy, click "This is a copy, not my live store" in the admin notice and confirm.
 
 = Does the HTTP firewall block every request a plugin makes? =
 
