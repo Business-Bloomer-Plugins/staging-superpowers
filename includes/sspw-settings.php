@@ -34,6 +34,19 @@ function sspw_default_blocked_hosts() {
 		'graph.facebook.com',
 		'www.google-analytics.com',
 		'region1.google-analytics.com',
+		// Where automation workflows send SMS, chat messages, sheets and webhooks.
+		'api.twilio.com',
+		'slack.com',
+		'hooks.zapier.com',
+		'make.com',
+		'integromat.com',
+		'api-us1.com',
+		'api.createsend.com',
+		'api.getdrip.com',
+		'api.sendgrid.com',
+		'mailgun.net',
+		'api.postmarkapp.com',
+		'sheets.googleapis.com',
 	);
 }
 
@@ -50,6 +63,7 @@ function sspw_get( $key ) {
 		'sspw_http_firewall'  => 'yes',
 		'sspw_blocked_hosts'  => implode( "\n", sspw_default_blocked_hosts() ),
 		'sspw_freeze_actions' => 'yes',
+		'sspw_freeze_cron'    => 'yes',
 		'sspw_look'           => 'yes',
 		'sspw_noindex'        => 'yes',
 		'sspw_visitors'       => 'redirect',
@@ -355,10 +369,18 @@ function sspw_settings_fields() {
 			'desc'     => __( 'Freeze scheduled actions', 'staging-superpowers-for-woocommerce' ),
 			'desc_tip' => sprintf(
 				/* translators: %s: link to pending scheduled actions */
-				__( 'WooCommerce and many plugins keep a list of jobs to run later, like subscription renewals, follow-up emails and syncs with other apps. The staging copy has the same list as your live store, so it would renew subscriptions and repeat those jobs a second time. This holds every job on the list. You can still run a single one by hand from the %s.', 'staging-superpowers-for-woocommerce' ),
+				__( 'WooCommerce and many plugins keep a list of jobs to run later, like subscription renewals, follow-up emails, automation workflows (AutomateWoo, for example) and syncs with other apps. The staging copy has the same list as your live store, so it would renew subscriptions and repeat those jobs a second time. This holds every job on the list. You can still run a single one by hand from the %s.', 'staging-superpowers-for-woocommerce' ),
 				sspw_link( 'actions', __( 'pending scheduled actions', 'staging-superpowers-for-woocommerce' ) )
 			),
 			'id'       => 'sspw_freeze_actions',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'WP-Cron', 'staging-superpowers-for-woocommerce' ),
+			'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers-for-woocommerce' ),
+			'desc_tip' => __( 'Some plugins, including older automation and follow-up tools, run their jobs with the WordPress scheduler (WP-Cron) instead. This holds those too, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers-for-woocommerce' ),
+			'id'       => 'sspw_freeze_cron',
 			'type'     => 'checkbox',
 			'default'  => 'yes',
 		),

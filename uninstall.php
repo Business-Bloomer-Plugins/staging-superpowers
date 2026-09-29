@@ -18,6 +18,7 @@ $sspw_options = array(
 	'sspw_http_firewall',
 	'sspw_blocked_hosts',
 	'sspw_freeze_actions',
+	'sspw_freeze_cron',
 	'sspw_visitors',
 	'sspw_look',
 	'sspw_noindex',

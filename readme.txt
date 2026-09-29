@@ -4,7 +4,7 @@ Tags: woocommerce, staging, emails, payment gateway, development
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,13 +35,14 @@ Install it on your staging site. When the site looks like staging (a staging. or
 
 **Connected services**
 
-* Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more).
+* Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more), plus the services automation workflows send to (Twilio SMS, Slack, Zapier, Make, ActiveCampaign, SendGrid, Mailgun, Postmark, Google Sheets and more).
 * Blocking payment APIs also stops a refund from the order screen reaching the real payment account.
 
-**Scheduled actions**
+**Automations**
 
-* Freezes the Action Scheduler queue, so subscription renewals, follow-up emails and sync jobs copied from the live site do not run. The status bar shows how many are waiting.
-* You can still run any single action by hand from Tools > Scheduled Actions.
+* Freezes the Action Scheduler queue, so subscription renewals, follow-up emails, automation workflows (AutomateWoo, for example) and sync jobs copied from the live site do not run. The status bar shows how many are waiting.
+* Freezes WP-Cron too, for plugins that run their jobs with the WordPress scheduler instead. Nothing is deleted: everything runs again once you turn it off.
+* You can still run any single scheduled action by hand from Tools > Scheduled Actions, or a single WP-Cron task with WP-CLI (wp cron event run).
 
 **Visitors**
 
@@ -122,7 +123,7 @@ It blocks requests made through the WordPress HTTP API, which is what almost eve
 
 = Some WooCommerce background tasks are not running =
 
-WooCommerce uses the Action Scheduler for its own background jobs too, for example analytics imports and order table syncs. Untick "Scheduled actions" in WooCommerce > Settings > Staging Superpowers if you need them, or run the ones you need by hand from Tools > Scheduled Actions.
+WooCommerce uses the Action Scheduler for its own background jobs too, for example analytics imports and order table syncs. Untick "Scheduled actions" (and "WP-Cron" for WordPress scheduled tasks) in WooCommerce > Settings > Staging Superpowers if you need them, or run the ones you need by hand from Tools > Scheduled Actions.
 
 = Can the Staging Test Gateway be used on my live store? =
 
@@ -138,6 +139,11 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 6. What visitors see if you choose the "this is a staging site" page instead of sending them to the live store.
 
 == Changelog ==
+
+= 1.1.0 =
+* New: freeze WP-Cron tasks as well as scheduled actions, so no automation runs by itself on staging.
+* New: block Twilio, Slack, Zapier, Make, ActiveCampaign, Campaign Monitor, Drip, SendGrid, Mailgun, Postmark and Google Sheets by default.
+* Status bar: one "Automations" entry, warnings shown first.
 
 = 1.0.0 =
 * First release.

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:          Staging Superpowers for WooCommerce
  * Description:          Make a WooCommerce staging copy safe to play with: redirect emails, swap payment gateways for a test gateway, pause webhooks, block outgoing API calls, freeze scheduled actions.
- * Version:              1.0.0
+ * Version:              1.1.0
  * Requires at least:    6.5
  * Requires PHP:         7.4
  * Requires Plugins:     woocommerce
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SSPW_VERSION', '1.0.0' );
+define( 'SSPW_VERSION', '1.1.0' );
 define( 'SSPW_PLUGIN_FILE', __FILE__ );
 define( 'SSPW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SSPW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

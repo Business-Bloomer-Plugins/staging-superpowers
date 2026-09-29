@@ -38,6 +38,12 @@ if ( 'yes' === sspw_get( 'sspw_freeze_actions' ) ) {
 	add_filter( 'action_scheduler_check_pastdue_actions', '__return_false', PHP_INT_MAX );
 }
 
+// WP-Cron: an empty list of due jobs means wp-cron.php runs nothing and never
+// spawns. `wp cron event run <hook>` reads the schedule directly, so it still works.
+if ( 'yes' === sspw_get( 'sspw_freeze_cron' ) ) {
+	add_filter( 'pre_get_ready_cron_jobs', '__return_empty_array', PHP_INT_MAX );
+}
+
 // Look and feel.
 if ( 'yes' === sspw_get( 'sspw_look' ) ) {
 	add_action( 'admin_bar_menu', 'sspw_admin_bar_badge', 0 );
@@ -184,12 +190,7 @@ function sspw_status_items() {
 			'tip'   => __( 'Payment, marketing, shipping and tax services cannot be contacted.', 'staging-superpowers-for-woocommerce' ),
 			'url'   => $links['settings'],
 		),
-		array(
-			'on'    => 'yes' === sspw_get( 'sspw_freeze_actions' ),
-			'label' => sspw_frozen_actions_label(),
-			'tip'   => __( 'Renewals, follow-ups and syncs do not run by themselves.', 'staging-superpowers-for-woocommerce' ),
-			'url'   => $links['actions'],
-		),
+		sspw_automations_item( $links['actions'] ),
 		array(
 			'on'    => 'yes' === sspw_get( 'sspw_no_cache' ),
 			'label' => __( 'Page cache off', 'staging-superpowers-for-woocommerce' ),
@@ -233,9 +234,18 @@ function sspw_status_bar() {
 		return;
 	}
 
-	echo '<div id="sspw-status-bar" role="status">';
+	echo '<div id="sspw-status-bar" role="status"><div class="sspw-items">';
 
-	foreach ( sspw_status_items() as $item ) {
+	// Warnings first, so they stay visible when a narrow screen cuts the bar short.
+	$items = sspw_status_items();
+	usort(
+		$items,
+		function ( $a, $b ) {
+			return (int) ! empty( $b['warn'] ) - (int) ! empty( $a['warn'] );
+		}
+	);
+
+	foreach ( $items as $item ) {
 		if ( ! empty( $item['warn'] ) ) {
 			printf(
 				'<a class="sspw-warn" href="%1$s" title="%2$s"><span class="sspw-mark" aria-hidden="true">&#9888;</span> %3$s</a>',
@@ -256,6 +266,8 @@ function sspw_status_bar() {
 			$item['on'] ? esc_html__( 'on', 'staging-superpowers-for-woocommerce' ) : esc_html__( 'off', 'staging-superpowers-for-woocommerce' )
 		);
 	}
+
+	echo '</div>';
 
 	printf(
 		'<a class="sspw-gear" href="%1$s" title="%2$s"><span class="dashicons dashicons-admin-generic" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span></a>',
@@ -292,7 +304,9 @@ function sspw_admin_bar_style() {
 		'@media screen and (max-width:782px){html #wpadminbar li#wp-admin-bar-sspw-staging{display:block}html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item{font-size:14px;padding:0 10px}}';
 
 	if ( sspw_can_see_status_bar() ) {
-		$css .= '#sspw-status-bar{position:fixed;top:32px;left:0;right:0;z-index:99998;height:28px;display:flex;align-items:center;gap:2px;padding:0 8px;box-sizing:border-box;background:#7c2d12;font:13px/28px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;overflow-x:auto;white-space:nowrap}' .
+		$css .= '#sspw-status-bar{position:fixed;top:32px;left:0;right:0;z-index:99998;height:28px;display:flex;align-items:center;gap:2px;padding:0 8px;box-sizing:border-box;background:#7c2d12;font:13px/28px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;white-space:nowrap}' .
+			'#sspw-status-bar .sspw-items{display:flex;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}' .
+			'#sspw-status-bar .sspw-items::-webkit-scrollbar{display:none}' .
 			'#sspw-status-bar a{color:#fff;text-decoration:none;padding:0 8px;border-radius:3px;box-shadow:none}' .
 			'#sspw-status-bar a:hover,#sspw-status-bar a:focus{background:rgba(255,255,255,.15);color:#fff}' .
 			'#sspw-status-bar .sspw-mark{font-weight:700}' .
@@ -301,7 +315,7 @@ function sspw_admin_bar_style() {
 			'#sspw-status-bar .sspw-off .sspw-mark{color:#fca5a5}' .
 			'#sspw-status-bar .sspw-warn{background:#fde68a;color:#7c2d12;font-weight:600;margin-left:6px}' .
 			'#sspw-status-bar .sspw-warn:hover,#sspw-status-bar .sspw-warn:focus{background:#fcd34d;color:#7c2d12}' .
-			'#sspw-status-bar .sspw-gear{margin-left:auto}' .
+			'#sspw-status-bar .sspw-gear{flex-shrink:0;margin-left:4px}' .
 			'#sspw-status-bar .dashicons{font-size:18px;width:18px;height:18px;line-height:28px;vertical-align:top}';
 
 		if ( is_admin() ) {
@@ -324,12 +338,41 @@ function sspw_admin_title( $title ) {
 }
 
 /**
+ * One entry for everything that runs by itself (Action Scheduler and WP-Cron),
+ * so the bar stays on one line.
+ */
+function sspw_automations_item( $url ) {
+	$actions = 'yes' === sspw_get( 'sspw_freeze_actions' );
+	$cron    = 'yes' === sspw_get( 'sspw_freeze_cron' );
+
+	if ( $actions && $cron ) {
+		$label   = __( 'Automations frozen', 'staging-superpowers-for-woocommerce' );
+		$waiting = sspw_pending_actions_count();
+		if ( $waiting ) {
+			/* translators: %s: number of waiting scheduled actions */
+			$label = sprintf( __( 'Automations frozen (%s)', 'staging-superpowers-for-woocommerce' ), number_format_i18n( $waiting ) );
+		}
+	} elseif ( $actions || $cron ) {
+		$label = __( 'Automations partly running', 'staging-superpowers-for-woocommerce' );
+	} else {
+		$label = __( 'Automations running', 'staging-superpowers-for-woocommerce' );
+	}
+
+	return array(
+		'on'    => $actions && $cron,
+		'label' => $label,
+		'tip'   => __( 'Scheduled actions and WP-Cron tasks (renewals, follow-ups, automation workflows, syncs) do not run by themselves. The number is how many scheduled actions are waiting.', 'staging-superpowers-for-woocommerce' ),
+		'url'   => $url,
+	);
+}
+
+/**
  * Counting pending actions is one indexed query, cached briefly because the
  * status bar shows on every admin page.
  */
-function sspw_frozen_actions_label() {
-	if ( 'yes' !== sspw_get( 'sspw_freeze_actions' ) || ! class_exists( 'ActionScheduler' ) ) {
-		return __( 'Scheduled actions frozen', 'staging-superpowers-for-woocommerce' );
+function sspw_pending_actions_count() {
+	if ( ! class_exists( 'ActionScheduler' ) ) {
+		return 0;
 	}
 
 	$waiting = get_transient( 'sspw_pending_actions' );
@@ -338,12 +381,7 @@ function sspw_frozen_actions_label() {
 		set_transient( 'sspw_pending_actions', $waiting, MINUTE_IN_SECONDS );
 	}
 
-	if ( ! $waiting ) {
-		return __( 'Scheduled actions frozen', 'staging-superpowers-for-woocommerce' );
-	}
-
-	/* translators: %s: number of pending scheduled actions */
-	return sprintf( __( 'Scheduled actions frozen (%s waiting)', 'staging-superpowers-for-woocommerce' ), number_format_i18n( $waiting ) );
+	return (int) $waiting;
 }
 
 /**
