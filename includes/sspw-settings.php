@@ -52,6 +52,8 @@ function sspw_get( $key ) {
 		'sspw_freeze_actions' => 'yes',
 		'sspw_look'           => 'yes',
 		'sspw_noindex'        => 'yes',
+		'sspw_visitors'       => 'lock',
+		'sspw_live_url'       => '',
 	);
 
 	return get_option( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
@@ -69,6 +71,49 @@ function sspw_email_status() {
 	}
 
 	return 'off' === $mode ? 'off' : 'block';
+}
+
+/**
+ * The live store's address, or '' if unset, invalid, or pointing at this site.
+ */
+function sspw_live_url() {
+	$url  = untrailingslashit( esc_url_raw( trim( (string) sspw_get( 'sspw_live_url' ) ) ) );
+	$host = wp_parse_url( $url, PHP_URL_HOST );
+
+	if ( ! $host || strtolower( $host ) === strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
+		return '';
+	}
+
+	return $url;
+}
+
+/**
+ * Who gets past the visitor page: anyone who works on the site, not shoppers.
+ */
+/**
+ * The URL being viewed. REQUEST_URI already includes any subfolder the site
+ * lives in, so only the scheme, host and port come from the site address.
+ */
+function sspw_current_url() {
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
+	$home = wp_parse_url( home_url() );
+	$port = isset( $home['port'] ) ? ':' . $home['port'] : '';
+
+	return $home['scheme'] . '://' . $home['host'] . $port . $uri;
+}
+
+/**
+ * The path after the site address, so the same screen can be opened on another copy.
+ */
+function sspw_current_path() {
+	$home = (string) wp_parse_url( home_url(), PHP_URL_PATH );
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
+
+	return ( '' !== $home && 0 === strpos( $uri, $home ) ) ? substr( $uri, strlen( untrailingslashit( $home ) ) ) : $uri;
+}
+
+function sspw_can_see_store() {
+	return current_user_can( 'edit_posts' ) || current_user_can( 'manage_woocommerce' );
 }
 
 function sspw_add_settings_tab( $tabs ) {
@@ -220,6 +265,37 @@ function sspw_settings_fields() {
 		),
 
 		array(
+			'title' => __( 'Visitors', 'staging-superpowers-for-woocommerce' ),
+			'type'  => 'title',
+			'desc'  => __( 'If a customer finds this copy (for example through Google or an old link), they could browse it and place orders that never reach your live store.', 'staging-superpowers-for-woocommerce' ),
+			'id'    => 'sspw_visitors_section',
+		),
+		array(
+			'title'   => __( 'What visitors see', 'staging-superpowers-for-woocommerce' ),
+			'desc'    => __( 'Store managers and anyone who can edit content always see the full site after logging in. Customers and logged-out visitors get the choice below.', 'staging-superpowers-for-woocommerce' ),
+			'id'      => 'sspw_visitors',
+			'type'    => 'select',
+			'default' => 'lock',
+			'options' => array(
+				'lock' => __( 'A "this is a staging site" page (recommended)', 'staging-superpowers-for-woocommerce' ),
+				'bar'  => __( 'The site, with a STAGING bar on every page', 'staging-superpowers-for-woocommerce' ),
+				'off'  => __( 'The site as normal (not safe)', 'staging-superpowers-for-woocommerce' ),
+			),
+		),
+		array(
+			'title'       => __( 'Live store address', 'staging-superpowers-for-woocommerce' ),
+			'desc'        => __( 'Optional. Visitors get a button to your live store, and admin screens get a link to open the same screen on the live store.', 'staging-superpowers-for-woocommerce' ),
+			'id'          => 'sspw_live_url',
+			'type'        => 'url',
+			'default'     => '',
+			'placeholder' => 'https://www.example.com',
+		),
+		array(
+			'type' => 'sectionend',
+			'id'   => 'sspw_visitors_section',
+		),
+
+		array(
 			'title' => __( 'Look and feel', 'staging-superpowers-for-woocommerce' ),
 			'type'  => 'title',
 			'id'    => 'sspw_look_section',
@@ -227,7 +303,7 @@ function sspw_settings_fields() {
 		array(
 			'title'    => __( 'Staging look', 'staging-superpowers-for-woocommerce' ),
 			'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => __( 'Turns the admin bar orange with a STAGING badge, adds a status bar under it showing which protections are on, and puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart.', 'staging-superpowers-for-woocommerce' ),
+			'desc_tip' => __( 'Turns the admin bar orange with a STAGING badge, adds a status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit products, pages, coupons, menus or WooCommerce settings, so changes meant for the live store are not made here by mistake.', 'staging-superpowers-for-woocommerce' ),
 			'id'       => 'sspw_look',
 			'type'     => 'checkbox',
 			'default'  => 'yes',

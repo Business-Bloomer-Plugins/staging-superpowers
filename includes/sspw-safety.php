@@ -45,6 +45,7 @@ if ( 'yes' === sspw_get( 'sspw_look' ) ) {
 	add_action( 'wp_enqueue_scripts', 'sspw_admin_bar_style' );
 	add_action( 'admin_enqueue_scripts', 'sspw_admin_bar_style' );
 	add_filter( 'admin_title', 'sspw_admin_title' );
+	add_action( 'admin_notices', 'sspw_editing_staging_notice' );
 }
 
 if ( 'yes' === sspw_get( 'sspw_noindex' ) ) {
@@ -185,7 +186,7 @@ function sspw_status_items() {
 		),
 		array(
 			'on'    => 'yes' === sspw_get( 'sspw_freeze_actions' ),
-			'label' => __( 'Scheduled actions frozen', 'staging-superpowers-for-woocommerce' ),
+			'label' => sspw_frozen_actions_label(),
 			'tip'   => __( 'Renewals, follow-ups and syncs do not run by themselves.', 'staging-superpowers-for-woocommerce' ),
 			'url'   => $links['actions'],
 		),
@@ -314,4 +315,67 @@ function sspw_admin_bar_style() {
 
 function sspw_admin_title( $title ) {
 	return '[STAGING] ' . $title;
+}
+
+/**
+ * Counting pending actions is one indexed query, cached briefly because the
+ * status bar shows on every admin page.
+ */
+function sspw_frozen_actions_label() {
+	if ( 'yes' !== sspw_get( 'sspw_freeze_actions' ) || ! class_exists( 'ActionScheduler' ) ) {
+		return __( 'Scheduled actions frozen', 'staging-superpowers-for-woocommerce' );
+	}
+
+	$waiting = get_transient( 'sspw_pending_actions' );
+	if ( false === $waiting ) {
+		$waiting = (int) ActionScheduler::store()->query_actions( array( 'status' => ActionScheduler_Store::STATUS_PENDING ), 'count' );
+		set_transient( 'sspw_pending_actions', $waiting, MINUTE_IN_SECONDS );
+	}
+
+	if ( ! $waiting ) {
+		return __( 'Scheduled actions frozen', 'staging-superpowers-for-woocommerce' );
+	}
+
+	/* translators: %s: number of pending scheduled actions */
+	return sprintf( __( 'Scheduled actions frozen (%s waiting)', 'staging-superpowers-for-woocommerce' ), number_format_i18n( $waiting ) );
+}
+
+/**
+ * Screens where people change what customers see. On staging those changes are
+ * easy to make by mistake and then lose, so each one gets a reminder.
+ */
+function sspw_is_merchandising_screen( $screen ) {
+	if ( ! $screen ) {
+		return false;
+	}
+
+	if ( in_array( $screen->base, array( 'post', 'edit', 'term', 'edit-tags' ), true ) && in_array( $screen->post_type, array( 'product', 'page', 'post', 'shop_coupon' ), true ) ) {
+		return true;
+	}
+
+	if ( in_array( $screen->id, array( 'nav-menus', 'widgets', 'customize', 'site-editor', 'appearance_page_gutenberg-edit-site' ), true ) ) {
+		return true;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check of which settings tab is open.
+	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+
+	return 'woocommerce_page_wc-settings' === $screen->id && 'sspw' !== $tab;
+}
+
+function sspw_editing_staging_notice() {
+	if ( ! sspw_is_merchandising_screen( get_current_screen() ) ) {
+		return;
+	}
+
+	$live = sspw_live_url();
+
+	echo '<div class="notice notice-warning sspw-editing-notice"><p><strong>' . esc_html__( 'You are editing the STAGING site.', 'staging-superpowers-for-woocommerce' ) . '</strong> ';
+	esc_html_e( 'Changes made here do not reach your live store.', 'staging-superpowers-for-woocommerce' );
+
+	if ( $live ) {
+		printf( ' <a href="%1$s">%2$s</a>', esc_url( $live . sspw_current_path() ), esc_html__( 'Open this screen on the live store', 'staging-superpowers-for-woocommerce' ) );
+	}
+
+	echo '</p></div>';
 }

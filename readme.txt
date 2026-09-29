@@ -40,12 +40,20 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 
 **Scheduled actions**
 
-* Freezes the Action Scheduler queue, so subscription renewals, follow-up emails and sync jobs copied from the live site do not run.
+* Freezes the Action Scheduler queue, so subscription renewals, follow-up emails and sync jobs copied from the live site do not run. The status bar shows how many are waiting.
 * You can still run any single action by hand from Tools > Scheduled Actions.
+
+**Visitors**
+
+* Customers who find the staging copy (through Google or an old link) see a "This is a staging site" page with a button to your live store, instead of a shop where they could place orders that go nowhere.
+* The page tells search engines the site is temporarily unavailable, and the sitemap, feeds and the checkout API are blocked too.
+* Store managers and editors see the full site after logging in.
+* Or let visitors browse, with a STAGING bar on every page.
 
 **Staging look**
 
 * Orange admin bar with a STAGING badge, on the dashboard and on the front end.
+* A reminder on product, page, coupon, menu and WooCommerce settings screens, so changes meant for the live store are not made here by mistake. Add your live store address and it links to the same screen on the live store.
 * A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
 * Adds noindex, nofollow to every page.
