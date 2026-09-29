@@ -1,7 +1,7 @@
-"""Render banner.html to the WP.org banner sizes.
+"""Render banner.html and icon.html to the WP.org asset sizes.
 
 Usage: python3 render-banner.py [light|dark] [out-dir]
-Writes banner-1544x500.png and banner-772x250.png.
+Writes banner-1544x500.png, banner-772x250.png, icon-256x256.png, icon-128x128.png.
 """
 import pathlib
 import sys
@@ -24,7 +24,11 @@ with sync_playwright() as p:
     page.wait_for_timeout(300)
     big = out / 'banner-1544x500.png'
     page.locator('#banner').screenshot(path=str(big))
+    icon = browser.new_page(viewport={'width': 256, 'height': 256})
+    icon.goto((here / 'icon.html').as_uri())
+    icon.screenshot(path=str(out / 'icon-256x256.png'))
     browser.close()
 
 Image.open(big).resize((772, 250), Image.LANCZOS).save(out / 'banner-772x250.png', optimize=True)
-print('wrote', big, 'and banner-772x250.png')
+Image.open(out / 'icon-256x256.png').resize((128, 128), Image.LANCZOS).save(out / 'icon-128x128.png', optimize=True)
+print('wrote banners and icons to', out)
