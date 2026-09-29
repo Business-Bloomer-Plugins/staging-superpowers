@@ -136,7 +136,7 @@ function sspw_output_troubleshooting() {
 	sspw_output_more_tools();
 
 	// WooCommerce warns about unsaved changes when a checkbox is ticked; these buttons submit on purpose.
-	wc_enqueue_js( "jQuery( '.sspw-do' ).on( 'click', function () { window.onbeforeunload = null; jQuery( window ).off( 'beforeunload' ); } );" );
+	sspw_inline_script( "jQuery( '.sspw-do' ).on( 'click', function () { window.onbeforeunload = null; jQuery( window ).off( 'beforeunload' ); } );" );
 }
 
 function sspw_button( $action, $task, $label, $confirm = '', $primary = false ) {

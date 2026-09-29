@@ -471,7 +471,7 @@ function sspw_output_settings() {
 
 	woocommerce_admin_fields( sspw_settings_fields() );
 
-	wc_enqueue_js(
+	sspw_inline_script(
 		"var sspwMode = jQuery( '#sspw_email_mode' ), sspwTo = jQuery( '#sspw_email_to' ).closest( 'tr' );
 		function sspwToggleTo() { sspwTo.toggle( 'redirect' === sspwMode.val() ); }
 		sspwMode.on( 'change', sspwToggleTo );
@@ -498,4 +498,17 @@ function sspw_plugin_action_links( $links ) {
 	);
 
 	return $links;
+}
+
+/**
+ * Inline script printed in the admin footer (wc_enqueue_js() is deprecated
+ * since WooCommerce 10.4). Safe to call while the page body renders.
+ */
+function sspw_inline_script( $js ) {
+	if ( ! wp_script_is( 'sspw-inline', 'registered' ) ) {
+		wp_register_script( 'sspw-inline', false, array( 'jquery' ), SSPW_VERSION, true );
+	}
+
+	wp_enqueue_script( 'sspw-inline' );
+	wp_add_inline_script( 'sspw-inline', 'jQuery( function () { ' . $js . ' } );' );
 }
