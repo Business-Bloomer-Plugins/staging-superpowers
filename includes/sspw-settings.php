@@ -178,7 +178,12 @@ function sspw_current_path() {
 }
 
 function sspw_can_see_store() {
-	return current_user_can( 'edit_posts' ) || current_user_can( 'manage_woocommerce' );
+	/**
+	 * Whether the current visitor sees this staging copy instead of the visitor protection.
+	 *
+	 * @param bool $can Staff (can edit content or manage the store) always can.
+	 */
+	return (bool) apply_filters( 'sspw_can_see_store', current_user_can( 'edit_posts' ) || current_user_can( 'manage_woocommerce' ) );
 }
 
 function sspw_add_settings_tab( $tabs ) {
