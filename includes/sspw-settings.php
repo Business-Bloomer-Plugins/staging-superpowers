@@ -182,7 +182,7 @@ function sspw_can_see_store() {
 }
 
 function sspw_add_settings_tab( $tabs ) {
-	$tabs['sspw'] = __( 'Staging Superpowers', 'staging-superpowers-for-woocommerce' );
+	$tabs['sspw'] = apply_filters( 'sspw_tab_label', __( 'Staging Superpowers', 'staging-superpowers-for-woocommerce' ) );
 
 	return $tabs;
 }
@@ -456,6 +456,16 @@ function sspw_output_settings() {
 
 	if ( 'changelog' === $current_section ) {
 		sspw_output_changelog();
+		return;
+	}
+
+	if ( '' !== (string) $current_section ) {
+		$GLOBALS['hide_save_button'] = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WooCommerce's own flag for hiding the Save button.
+
+		/**
+		 * Output for a sub-page added through sspw_settings_sections.
+		 */
+		do_action( 'sspw_output_section_' . sanitize_key( $current_section ) );
 		return;
 	}
 

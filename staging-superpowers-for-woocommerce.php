@@ -17,46 +17,20 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// Business Bloomer WooCommerce Staging Toolkit ships this same code. Whichever
+// plugin loads first runs it, the other steps aside, so both active never clash.
+if ( defined( 'SSPW_PLUGIN_FILE' ) ) {
+	return;
+}
+
 define( 'SSPW_VERSION', '1.1.0' );
 define( 'SSPW_PLUGIN_FILE', __FILE__ );
 define( 'SSPW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SSPW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-add_action(
-	'before_woocommerce_init',
-	function () {
-		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
-			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
-		}
-	}
-);
-
+require_once SSPW_PLUGIN_DIR . 'includes/sspw-init.php';
 require_once SSPW_PLUGIN_DIR . 'includes/sspw-guard.php';
 
-register_activation_hook( __FILE__, 'sspw_activate' );
-
+add_action( 'before_woocommerce_init', 'sspw_declare_compatibility' );
 add_action( 'plugins_loaded', 'sspw_init' );
-
-/**
- * The guard (loaded above) runs even without WooCommerce so the deploy notice
- * always shows; everything else needs WooCommerce.
- */
-function sspw_init() {
-	if ( ! class_exists( 'WooCommerce' ) ) {
-		return;
-	}
-
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-settings.php';
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-troubleshoot.php';
-
-	if ( ! sspw_is_armed() ) {
-		return;
-	}
-
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-safety.php';
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-gateways.php';
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-visitors.php';
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog.php';
-	require_once SSPW_PLUGIN_DIR . 'includes/sspw-cache.php';
-}
+register_activation_hook( __FILE__, 'sspw_activate' );

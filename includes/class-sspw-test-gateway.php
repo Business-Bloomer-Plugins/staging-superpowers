@@ -70,7 +70,13 @@ class SSPW_Test_Gateway extends WC_Payment_Gateway {
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		switch ( $this->get_option( 'outcome', 'paid' ) ) {
+		/**
+		 * The simulated payment result for this order: paid, on-hold or failed.
+		 *
+		 * @param string   $outcome Result picked in the gateway settings.
+		 * @param WC_Order $order   The order being paid.
+		 */
+		switch ( apply_filters( 'sspw_test_gateway_outcome', $this->get_option( 'outcome', 'paid' ), $order ) ) {
 			case 'failed':
 				$order->update_status( 'failed', __( 'Staging Test Gateway: simulated declined payment.', 'staging-superpowers-for-woocommerce' ) );
 				wc_add_notice( __( 'Staging Test Gateway: payment declined (simulated).', 'staging-superpowers-for-woocommerce' ), 'error' );

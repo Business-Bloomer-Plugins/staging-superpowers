@@ -16,10 +16,18 @@ add_action( 'admin_post_sspw_troubleshoot', 'sspw_handle_troubleshoot' );
 function sspw_output_sections() {
 	global $current_section;
 
-	$sections = array(
-		''                => __( 'Protection', 'staging-superpowers-for-woocommerce' ),
-		'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers-for-woocommerce' ),
-		'changelog'       => __( 'Changelog', 'staging-superpowers-for-woocommerce' ),
+	/**
+	 * Sub-pages of the settings tab.
+	 *
+	 * @param array $sections Section id => label.
+	 */
+	$sections = apply_filters(
+		'sspw_settings_sections',
+		array(
+			''                => __( 'Protection', 'staging-superpowers-for-woocommerce' ),
+			'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers-for-woocommerce' ),
+			'changelog'       => __( 'Changelog', 'staging-superpowers-for-woocommerce' ),
+		)
 	);
 
 	echo '<ul class="subsubsub">';
