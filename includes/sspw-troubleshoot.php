@@ -19,6 +19,7 @@ function sspw_output_sections() {
 	$sections = array(
 		''                => __( 'Protection', 'staging-superpowers-for-woocommerce' ),
 		'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers-for-woocommerce' ),
+		'changelog'       => __( 'Changelog', 'staging-superpowers-for-woocommerce' ),
 	);
 
 	echo '<ul class="subsubsub">';
@@ -338,6 +339,11 @@ function sspw_handle_troubleshoot() {
 
 			deactivate_plugins( $off, true );
 
+			if ( function_exists( 'sspw_log' ) && $off ) {
+				/* translators: %s: list of plugin names */
+				sspw_log( sprintf( __( 'Troubleshooting: plugins switched off: %s', 'staging-superpowers-for-woocommerce' ), implode( ', ', array_map( 'sspw_plugin_name', $off ) ) ) );
+			}
+
 			// Several rounds add up, so "switch these back on" restores everything.
 			update_option( 'sspw_disabled_plugins', array_values( array_unique( array_merge( sspw_disabled_plugins(), $off ) ) ), false );
 
@@ -348,6 +354,11 @@ function sspw_handle_troubleshoot() {
 		case 'restore_plugins':
 			$back   = array_values( array_intersect( sspw_disabled_plugins(), array_keys( get_plugins() ) ) );
 			$failed = sspw_activate_plugins( $back, $back );
+
+			if ( function_exists( 'sspw_log' ) && $back ) {
+				/* translators: %s: list of plugin names */
+				sspw_log( sprintf( __( 'Troubleshooting: plugins switched back on: %s', 'staging-superpowers-for-woocommerce' ), implode( ', ', array_map( 'sspw_plugin_name', array_diff( $back, $failed ) ) ) ) );
+			}
 
 			// Anything that could not come back stays listed, so it is not forgotten.
 			if ( $failed ) {
@@ -364,6 +375,11 @@ function sspw_handle_troubleshoot() {
 			// get a normal activation, so they can create their tables and defaults.
 			$inactive = array_values( array_diff( array_keys( get_plugins() ), (array) get_option( 'active_plugins', array() ) ) );
 			$failed   = sspw_activate_plugins( $inactive, sspw_disabled_plugins() );
+
+			if ( function_exists( 'sspw_log' ) && $inactive ) {
+				/* translators: %s: list of plugin names */
+				sspw_log( sprintf( __( 'Troubleshooting: all installed plugins switched on: %s', 'staging-superpowers-for-woocommerce' ), implode( ', ', array_map( 'sspw_plugin_name', array_diff( $inactive, $failed ) ) ) ) );
+			}
 
 			delete_option( 'sspw_disabled_plugins' );
 
@@ -405,4 +421,45 @@ function sspw_handle_troubleshoot() {
 
 	wp_safe_redirect( sspw_troubleshoot_url() );
 	exit;
+}
+
+function sspw_output_changelog() {
+	$GLOBALS['hide_save_button'] = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WooCommerce's own flag for hiding the Save button.
+
+	echo '<h2>' . esc_html__( 'Changelog', 'staging-superpowers-for-woocommerce' ) . '</h2>';
+	echo '<p>' . esc_html__( 'Everything changed on this staging copy is written to the WooCommerce logs, so you have a list of what to redo on your live store instead of copying this database over it (which would wipe every order placed on the live store since the copy was made).', 'staging-superpowers-for-woocommerce' ) . '</p>';
+	echo '<p>' . esc_html__( 'Recorded: WooCommerce settings (with the old and new value), theme and plugin changes and updates, the cart or checkout switching between blocks and classic, and products, pages, posts, coupons, categories, tags and menus created, edited or deleted.', 'staging-superpowers-for-woocommerce' ) . '</p>';
+
+	if ( ! sspw_is_armed() ) {
+		echo '<p>' . esc_html__( 'Nothing is recorded while Staging Superpowers is paused.', 'staging-superpowers-for-woocommerce' ) . '</p>';
+	} elseif ( 'no' === get_option( 'woocommerce_logs_logging_enabled', 'yes' ) ) {
+		echo '<div class="notice notice-warning inline"><p>' . wp_kses_post(
+			sprintf(
+				/* translators: %s: link to the WooCommerce logs settings */
+				__( 'WooCommerce logging is turned off, so nothing can be recorded. Turn it on in %s.', 'staging-superpowers-for-woocommerce' ),
+				'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=advanced&section=logs' ) ) . '">' . esc_html__( 'WooCommerce > Settings > Advanced > Logs', 'staging-superpowers-for-woocommerce' ) . '</a>'
+			)
+		) . '</p></div>';
+	} elseif ( get_option( 'sspw_armed_at' ) ) {
+		/* translators: %s: date */
+		echo '<p><strong>' . esc_html( sprintf( __( 'Recording since %s.', 'staging-superpowers-for-woocommerce' ), wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) get_option( 'sspw_armed_at' ) ) ) ) . '</strong></p>';
+	}
+
+	printf( '<p><a class="button button-primary" href="%1$s">%2$s</a></p>', esc_url( sspw_changelog_url() ), esc_html__( 'View the changelog', 'staging-superpowers-for-woocommerce' ) );
+
+	echo '<p class="description">' . wp_kses_post(
+		sprintf(
+			/* translators: 1: number of days, 2: link to the WooCommerce logs settings */
+			__( 'Entries are deleted after %1$d days, like all WooCommerce logs. You can change this in %2$s.', 'staging-superpowers-for-woocommerce' ),
+			(int) get_option( 'woocommerce_logs_retention_period_days', 30 ),
+			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=advanced&section=logs' ) ) . '">' . esc_html__( 'WooCommerce > Settings > Advanced > Logs', 'staging-superpowers-for-woocommerce' ) . '</a>'
+		)
+	) . '</p>';
+}
+
+/**
+ * The log viewer link works whether or not the changelog module is loaded.
+ */
+function sspw_changelog_url() {
+	return admin_url( 'admin.php?page=wc-status&tab=logs&source=staging-superpowers' );
 }

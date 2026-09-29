@@ -45,6 +45,7 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 
 **Visitors**
 
+* Your live store address is filled in for you when it can be detected from your store data (you check it and save).
 * Customers who find the staging copy (through Google or an old link) see a "This is a staging site" page with a button to your live store, instead of a shop where they could place orders that go nowhere.
 * The page tells search engines the site is temporarily unavailable, and the sitemap, feeds and the checkout API are blocked too.
 * Store managers and editors see the full site after logging in.
@@ -57,6 +58,17 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 * A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
 * Adds noindex, nofollow to every page.
+
+**Changelog**
+
+Copying a staging database over your live store wipes every order placed since the copy was made. So instead, the plugin writes everything you change on staging to the WooCommerce logs, as a list of what to redo on the live store:
+
+* WooCommerce settings, with the old and new value, for example: Settings > Products: "Enable AJAX add to cart buttons on archives" changed from on to off.
+* Theme switched, plugins switched on or off, plugin, theme and WordPress updates.
+* Cart or checkout switched between blocks and classic.
+* Products, pages, posts, coupons, categories, tags and menus created, edited or deleted.
+
+Find it at WooCommerce > Settings > Staging > Changelog. Entries follow the WooCommerce log retention setting (30 days by default).
 
 **Troubleshooting**
 

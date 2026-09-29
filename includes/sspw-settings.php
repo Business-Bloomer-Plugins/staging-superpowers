@@ -88,6 +88,56 @@ function sspw_live_url() {
 }
 
 /**
+ * A best guess at the live store's address, from traces that survive cloning:
+ * WooCommerce Subscriptions stores it scrambled so search and replace cannot
+ * rewrite it, and migration tools leave post GUIDs untouched. Only ever shown as
+ * a suggestion; nothing uses it until an admin saves it.
+ */
+function sspw_detect_live_url() {
+	$here       = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+	$candidates = array();
+
+	$wcs = (string) get_option( 'wc_subscriptions_siteurl', '' );
+	if ( '' !== $wcs ) {
+		$candidates[] = str_replace( '_[wc_subscriptions_siteurl]_', '', $wcs );
+	}
+
+	$hosts = array();
+	$posts = get_posts(
+		array(
+			'post_type'   => array( 'post', 'page', 'product' ),
+			'post_status' => 'publish',
+			'numberposts' => 50,
+			'orderby'     => 'ID',
+			'order'       => 'DESC',
+		)
+	);
+	foreach ( $posts as $post ) {
+		// Only default GUIDs (?p=123) reliably hold the site address they were created on.
+		if ( preg_match( '#^https?://([^/?]+)(/[^?]*)?\?(p|page_id|post_type)=#i', $post->guid, $m ) && strtolower( $m[1] ) !== $here ) {
+			$base           = 'https://' . strtolower( $m[1] ) . ( isset( $m[2] ) ? untrailingslashit( $m[2] ) : '' );
+			$hosts[ $base ] = isset( $hosts[ $base ] ) ? $hosts[ $base ] + 1 : 1;
+		}
+	}
+	if ( $hosts ) {
+		arsort( $hosts );
+		$candidates[] = key( $hosts );
+	}
+
+	$candidates[] = (string) get_option( 'milo_subscriptions_production_url', '' );
+
+	foreach ( $candidates as $url ) {
+		$url  = untrailingslashit( esc_url_raw( trim( $url ) ) );
+		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		if ( $host && $host !== $here ) {
+			return $url;
+		}
+	}
+
+	return '';
+}
+
+/**
  * Who gets past the visitor page: anyone who works on the site, not shoppers.
  */
 /**
@@ -153,6 +203,31 @@ function sspw_link( $key, $text ) {
 	return sprintf( '<a href="%s">%s</a>', esc_url( $links[ $key ] ), esc_html( $text ) );
 }
 
+/**
+ * Pre-filled with the detected address until one is saved, so the admin only has
+ * to check it and save.
+ */
+function sspw_live_url_field() {
+	$field = array(
+		'title'       => __( 'Live store address', 'staging-superpowers-for-woocommerce' ),
+		'desc'        => __( 'Where your real store is. Visitors to this copy get a button to it, and admin screens get a link to open the same screen there.', 'staging-superpowers-for-woocommerce' ),
+		'id'          => 'sspw_live_url',
+		'type'        => 'url',
+		'default'     => '',
+		'placeholder' => 'https://www.example.com',
+	);
+
+	if ( false === get_option( 'sspw_live_url', false ) ) {
+		$detected = sspw_detect_live_url();
+		if ( $detected ) {
+			$field['default'] = $detected;
+			$field['desc']   .= ' <strong>' . esc_html__( 'We filled this in from your store data. Check it is right, then click Save changes to use it.', 'staging-superpowers-for-woocommerce' ) . '</strong>';
+		}
+	}
+
+	return $field;
+}
+
 function sspw_settings_fields() {
 	return array(
 		array(
@@ -164,6 +239,17 @@ function sspw_settings_fields() {
 		array(
 			'type' => 'sectionend',
 			'id'   => 'sspw_status',
+		),
+
+		array(
+			'title' => __( 'Your live store', 'staging-superpowers-for-woocommerce' ),
+			'type'  => 'title',
+			'id'    => 'sspw_live_section',
+		),
+		sspw_live_url_field(),
+		array(
+			'type' => 'sectionend',
+			'id'   => 'sspw_live_section',
 		),
 
 		array(
@@ -283,14 +369,6 @@ function sspw_settings_fields() {
 			),
 		),
 		array(
-			'title'       => __( 'Live store address', 'staging-superpowers-for-woocommerce' ),
-			'desc'        => __( 'Optional. Visitors get a button to your live store, and admin screens get a link to open the same screen on the live store.', 'staging-superpowers-for-woocommerce' ),
-			'id'          => 'sspw_live_url',
-			'type'        => 'url',
-			'default'     => '',
-			'placeholder' => 'https://www.example.com',
-		),
-		array(
 			'type' => 'sectionend',
 			'id'   => 'sspw_visitors_section',
 		),
@@ -335,6 +413,11 @@ function sspw_output_settings() {
 
 	if ( 'troubleshooting' === $current_section ) {
 		sspw_output_troubleshooting();
+		return;
+	}
+
+	if ( 'changelog' === $current_section ) {
+		sspw_output_changelog();
 		return;
 	}
 

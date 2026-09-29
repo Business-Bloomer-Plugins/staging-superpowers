@@ -60,7 +60,15 @@ function sspw_activate() {
 		return;
 	}
 
+	sspw_arm();
+}
+
+/**
+ * The time is kept so the changelog can say since when it has been recording.
+ */
+function sspw_arm() {
 	update_option( 'sspw_armed_for', sspw_site_fingerprint(), false );
+	update_option( 'sspw_armed_at', time(), false );
 }
 
 function sspw_guard_notice() {
@@ -115,7 +123,7 @@ function sspw_handle_arm() {
 
 	check_admin_referer( 'sspw_arm' );
 
-	update_option( 'sspw_armed_for', sspw_site_fingerprint(), false );
+	sspw_arm();
 
 	if ( sspw_is_production_declared() ) {
 		update_option( 'sspw_production_override', sspw_site_fingerprint(), false );
