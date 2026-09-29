@@ -48,6 +48,7 @@ function sspw_init() {
 	}
 
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-settings.php';
+	require_once SSPW_PLUGIN_DIR . 'includes/sspw-troubleshoot.php';
 
 	if ( ! sspw_is_armed() ) {
 		return;

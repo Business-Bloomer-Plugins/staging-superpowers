@@ -91,13 +91,14 @@ function sspw_status_text() {
  */
 function sspw_admin_links() {
 	return array(
-		'settings' => admin_url( 'admin.php?page=wc-settings&tab=sspw' ),
-		'payments' => admin_url( 'admin.php?page=wc-settings&tab=checkout' ),
-		'gateway'  => admin_url( 'admin.php?page=wc-settings&tab=checkout&section=sspw_test' ),
-		'webhooks' => admin_url( 'admin.php?page=wc-settings&tab=advanced&section=webhooks' ),
-		'actions'  => admin_url( 'admin.php?page=wc-status&tab=action-scheduler&status=pending' ),
-		'emails'   => admin_url( 'admin.php?page=wc-settings&tab=email' ),
-		'reading'  => admin_url( 'options-reading.php' ),
+		'settings'        => admin_url( 'admin.php?page=wc-settings&tab=sspw' ),
+		'payments'        => admin_url( 'admin.php?page=wc-settings&tab=checkout' ),
+		'gateway'         => admin_url( 'admin.php?page=wc-settings&tab=checkout&section=sspw_test' ),
+		'webhooks'        => admin_url( 'admin.php?page=wc-settings&tab=advanced&section=webhooks' ),
+		'actions'         => admin_url( 'admin.php?page=wc-status&tab=action-scheduler&status=pending' ),
+		'emails'          => admin_url( 'admin.php?page=wc-settings&tab=email' ),
+		'reading'         => admin_url( 'options-reading.php' ),
+		'troubleshooting' => admin_url( 'admin.php?page=wc-settings&tab=sspw&section=troubleshooting' ),
 	);
 }
 
@@ -254,6 +255,13 @@ function sspw_settings_fields() {
  * The forwarding address only matters in "Forward all" mode, so it is hidden otherwise.
  */
 function sspw_output_settings() {
+	global $current_section;
+
+	if ( 'troubleshooting' === $current_section ) {
+		sspw_output_troubleshooting();
+		return;
+	}
+
 	woocommerce_admin_fields( sspw_settings_fields() );
 
 	wc_enqueue_js(
@@ -265,7 +273,11 @@ function sspw_output_settings() {
 }
 
 function sspw_save_settings() {
-	woocommerce_update_options( sspw_settings_fields() );
+	global $current_section;
+
+	if ( '' === $current_section ) {
+		woocommerce_update_options( sspw_settings_fields() );
+	}
 }
 
 function sspw_plugin_action_links( $links ) {

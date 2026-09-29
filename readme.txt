@@ -50,6 +50,16 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
 * Adds noindex, nofollow to every page.
 
+**Troubleshooting**
+
+Find out if a problem is caused by another plugin or by the theme, from WooCommerce > Settings > Staging > Troubleshooting.
+
+* Switch off every plugin except WooCommerce and the ones you choose. Plugins that a kept plugin needs stay on automatically.
+* Switch the same plugins back on with one click, or switch on every installed plugin.
+* Switch to the parent theme or to a default theme, then back to your theme.
+* While plugins or the theme are switched, the status bar shows a reminder so nothing is forgotten.
+* Only available while the plugin is on for the current URL, so a live store can never be switched off from here.
+
 **Deploy guard**
 
 The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live store keeps sending emails and taking payments even if the plugin comes along by mistake.
