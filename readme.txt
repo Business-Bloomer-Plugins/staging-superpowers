@@ -8,13 +8,13 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Make a WooCommerce staging copy safe to test on. Redirects emails, swaps payment gateways for a test gateway, pauses webhooks and more.
+Make a WooCommerce staging copy safe to test on: blocks emails and payments, pauses webhooks and renewals, sends visitors to your live store.
 
 == Description ==
 
 A staging copy of a live WooCommerce store is dangerous. It has real customer emails, live payment keys, active webhooks and pending subscription renewals, all ready to fire the moment someone places a test order or WP-Cron runs.
 
-Install this plugin on the staging site and it is safe as soon as you activate it.
+Install it on your staging site. When the site looks like staging (a staging. or dev. address, a .local site, a hosting company's staging domain such as WP Engine, Kinsta or Cloudways, or WP_ENVIRONMENT_TYPE set to staging), it turns itself on the moment you activate it. Anywhere else it waits for you to confirm with one click, so installing it on your live store by mistake changes nothing.
 
 **Emails**
 
@@ -33,7 +33,7 @@ Install this plugin on the staging site and it is safe as soon as you activate i
 
 * Stops every WooCommerce webhook from being delivered, so your ERP, fulfillment or accounting tools never receive staging orders.
 
-**HTTP firewall**
+**Connected services**
 
 * Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more).
 * Blocking payment APIs also stops a refund from the order screen reaching the real payment account.
@@ -82,7 +82,7 @@ Find out if a problem is caused by another plugin or by the theme, from WooComme
 
 **Deploy guard**
 
-The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live store keeps sending emails and taking payments even if the plugin comes along by mistake.
+The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live store keeps sending emails and taking payments even if the plugin comes along by mistake. If the new URL also looks like staging (say you refreshed staging into staging2.), the plugin turns itself back on.
 
 If the site's configuration says it is the live store (WP_ENVIRONMENT_TYPE set to "production"), the plugin also stays off until an admin confirms the site is a copy. That confirmation only applies to the current URL, so the deploy guard still protects the live store.
 
@@ -90,17 +90,33 @@ Nothing is changed in the database: gateway settings, webhook statuses and sched
 
 Settings are at WooCommerce > Settings > Staging Superpowers.
 
+== Installation ==
+
+1. On your staging site, go to Plugins > Add New, search for "Staging Superpowers" and click Install Now, then Activate.
+2. If the site looks like staging, the plugin turns itself on and the admin bar turns orange. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
+3. Go to WooCommerce > Settings > Staging Superpowers, check your live store address, and review the settings. Every protection is on by default.
+
+Do not install it on your live store. If you do by mistake, it stays off unless someone confirms the site is a copy.
+
 == Frequently Asked Questions ==
 
-= I cloned my staging site to a new URL and the plugin says it is paused =
+= Will it turn itself on if I install it on my live store? =
 
-That is the deploy guard. Click "This is a staging site: turn on for ..." in the admin notice to turn it on for the new URL.
+No. It only turns itself on when the site address or environment clearly says staging. On any other address it shows a notice and waits for an admin to confirm, with a warning, that the site is a copy.
+
+= I visit my staging site and end up on my live store =
+
+That is the visitor protection: logged-out visitors are sent to the live store so customers never shop on staging. Log in at your staging address followed by /wp-login.php (that page is never redirected) and you will see the staging site as normal. After that, your browser is remembered and goes to the login page instead.
+
+= I cloned my staging site to a new URL and the plugin says it is not turned on =
+
+That is the deploy guard. If the new address looks like staging, the plugin turns itself back on by itself. Otherwise click "This is a staging site: turn on for ..." in the admin notice.
 
 = I cloned my store by hand and the plugin says the site is the live store =
 
 A hand-made copy keeps the live store's wp-config.php, which may say the site is in production. If you are sure the site is a copy, click "This is a copy, not my live store" in the admin notice and confirm.
 
-= Does the HTTP firewall block every request a plugin makes? =
+= Does blocking connected services stop every request a plugin makes? =
 
 It blocks requests made through the WordPress HTTP API, which is what almost every WordPress plugin uses. A plugin that bypasses it with its own cURL calls will not be blocked.
 
@@ -111,6 +127,15 @@ WooCommerce uses the Action Scheduler for its own background jobs too, for examp
 = Can the Staging Test Gateway be used on my live store? =
 
 No. It only exists while the plugin is turned on for the current URL, and the deploy guard switches the plugin off on any other URL.
+
+== Screenshots ==
+
+1. The status bar shows every protection at a glance, with links to manage each one.
+2. Settings, with a plain-English explanation for every protection.
+3. At checkout, the Staging Test Gateway is the only payment method, so no real money moves.
+4. Troubleshooting: switch plugins and the theme off, then back on with one click.
+5. The changelog in the WooCommerce logs: a list of what to redo on your live store.
+6. What visitors see if you choose the "this is a staging site" page instead of sending them to the live store.
 
 == Changelog ==
 

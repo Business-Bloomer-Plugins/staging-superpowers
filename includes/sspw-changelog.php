@@ -103,11 +103,12 @@ function sspw_log_settings_end() {
 		}
 
 		$field = isset( $fields[ $option ] ) ? $fields[ $option ] : array();
+		// Checkboxes are named by their own label; the title is only the group heading.
 		$label = $option;
-		if ( ! empty( $field['title'] ) ) {
+		if ( isset( $field['type'] ) && 'checkbox' === $field['type'] && ! empty( $field['desc'] ) ) {
+			$label = ! empty( $field['title'] ) ? $field['title'] . ': ' . $field['desc'] : $field['desc'];
+		} elseif ( ! empty( $field['title'] ) ) {
 			$label = $field['title'];
-		} elseif ( ! empty( $field['desc'] ) && isset( $field['type'] ) && 'checkbox' === $field['type'] ) {
-			$label = $field['desc'];
 		}
 
 		if ( is_array( $change[1] ) && ! $field ) {
