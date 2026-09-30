@@ -47,6 +47,15 @@ function sspw_default_blocked_hosts() {
 		'mailgun.net',
 		'api.postmarkapp.com',
 		'sheets.googleapis.com',
+		// Email sending services that plugins may call directly.
+		'api.sparkpost.com',
+		'mandrillapp.com',
+		'bridge.mailpoet.com',
+		'api.mailjet.com',
+		'api.resend.com',
+		'api.mailersend.com',
+		'api.smtp2go.com',
+		'api.elasticemail.com',
 	);
 }
 
@@ -317,6 +326,12 @@ function sspw_settings_fields() {
 			'type'        => 'email',
 			'default'     => '',
 			'placeholder' => 'you@example.com',
+		),
+		array(
+			'title' => __( 'Other email plugins', 'staging-superpowers-for-woocommerce' ),
+			'type'  => 'info',
+			'text'  => sspw_email_check_html(),
+			'id'    => 'sspw_email_check',
 		),
 		array(
 			'type' => 'sectionend',

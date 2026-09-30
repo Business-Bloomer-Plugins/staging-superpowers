@@ -17,6 +17,22 @@ if ( 'redirect' === sspw_email_status() ) {
 	add_filter( 'pre_wp_mail', 'sspw_block_email', PHP_INT_MAX );
 }
 
+// Safety net for plugins that replace wp_mail() but still hand the email to
+// WordPress's mailer: whatever gets that far is readdressed before sending.
+if ( 'off' !== sspw_email_status() ) {
+	add_action( 'phpmailer_init', 'sspw_phpmailer_safety_net', PHP_INT_MAX );
+}
+
+/**
+ * A .invalid address can never be delivered (RFC 2606), so a blocked email
+ * goes nowhere without throwing errors in plugins that do not expect them.
+ */
+function sspw_phpmailer_safety_net( $phpmailer ) {
+	$phpmailer->clearAllRecipients();
+	$phpmailer->clearReplyTos();
+	$phpmailer->addAddress( 'redirect' === sspw_email_status() ? sanitize_email( sspw_get( 'sspw_email_to' ) ) : 'blocked@staging-superpowers.invalid' );
+}
+
 // Webhooks.
 if ( 'yes' === sspw_get( 'sspw_webhooks' ) ) {
 	add_filter( 'woocommerce_webhook_should_deliver', '__return_false', PHP_INT_MAX );
@@ -204,6 +220,18 @@ function sspw_status_items() {
 			'url'   => $links['settings'],
 		),
 	);
+
+	// An email plugin replacing wp_mail() can send around the block.
+	$mail_owner = 'off' !== sspw_email_status() ? sspw_wp_mail_owner() : '';
+	if ( $mail_owner ) {
+		$items[] = array(
+			'warn'  => true,
+			'label' => __( 'Email bypass risk', 'staging-superpowers-for-woocommerce' ),
+			/* translators: %s: plugin name */
+			'tip'   => sprintf( __( '%s replaces the WordPress email function. See the Emails settings.', 'staging-superpowers-for-woocommerce' ), $mail_owner ),
+			'url'   => $links['settings'],
+		);
+	}
 
 	// Troubleshooting leftovers are easy to forget, so they stay visible until undone.
 	$disabled = count( sspw_disabled_plugins() );

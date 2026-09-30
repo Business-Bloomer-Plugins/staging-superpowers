@@ -21,7 +21,8 @@ Install it on your staging site. When the site looks like staging (a staging. or
 * Blocks every outgoing email by default.
 * Or forward them all to one address instead. The original recipient is added to the subject line, for example "[STAGING to jane@example.com] Your order is complete". Until you enter a forwarding address, emails stay blocked.
 * CC and BCC headers are removed, so nobody gets a copy by accident.
-* Works for WooCommerce emails and any other email sent through WordPress.
+* Works for WooCommerce emails and any other email sent through WordPress, including SMTP plugins like WP Mail SMTP, FluentSMTP and Post SMTP: the block runs before any mailer.
+* Checks for plugins that replace the WordPress email function (some Mailgun, SendGrid, SparkPost and Mandrill versions do) and warns you in the status bar. Their sending services are blocked too, and anything that still reaches the WordPress mailer is readdressed to nowhere.
 
 **Payments**
 
@@ -148,6 +149,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 == Changelog ==
 
 = 1.1.0 =
+* New: email check. Warns when a plugin replaces the WordPress email function, lists active email plugins and whether they are covered, blocks more email sending services, and readdresses anything that still reaches the WordPress mailer.
 * New: lock subscriptions copied from the live store (and their orders and customers) against deletion and edits, so a staging clean-up cannot remove saved cards the live store needs for renewals.
 * New: freeze WP-Cron tasks as well as scheduled actions, so no automation runs by itself on staging.
 * New: block Twilio, Slack, Zapier, Make, ActiveCampaign, Campaign Monitor, Drip, SendGrid, Mailgun, Postmark and Google Sheets by default.
