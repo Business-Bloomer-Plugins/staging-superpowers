@@ -34,8 +34,8 @@ function sspw_default_blocked_hosts() {
 		'api.taxjar.com',
 		'rest.avatax.com',
 		'graph.facebook.com',
-		'www.google-analytics.com',
-		'region1.google-analytics.com',
+		// Covers www. and region1. (GA4 Measurement Protocol) and the older ssl. address.
+		'google-analytics.com',
 		// Where automation workflows send SMS, chat messages, sheets and webhooks.
 		'api.twilio.com',
 		'slack.com',
@@ -58,6 +58,20 @@ function sspw_default_blocked_hosts() {
 		'api.mailersend.com',
 		'api.smtp2go.com',
 		'api.elasticemail.com',
+		// Social sharing and push notifications.
+		'api.twitter.com',
+		'api.linkedin.com',
+		'developer.blog2social.com',
+		'blog2social-wordpress-api.adenion.de',
+		'onesignal.com',
+		'api.pushengage.com',
+		'rpc.pingomatic.com',
+		// Shared live services and automation platforms.
+		'api.cloudflare.com',
+		'api.automatorplugin.com',
+		// Image optimization credits.
+		'api.shortpixel.com',
+		'smushpro.wpmudev.com',
 	);
 }
 
@@ -78,6 +92,7 @@ function sspw_get( $key ) {
 		'sspw_lock_subscriptions' => 'yes',
 		'sspw_look'               => 'yes',
 		'sspw_noindex'            => 'yes',
+		'sspw_no_analytics'       => 'yes',
 		'sspw_visitors'           => 'redirect',
 		'sspw_no_cache'           => 'yes',
 		'sspw_live_url'           => '',
@@ -421,7 +436,7 @@ function sspw_settings_fields() {
 			'placeholder' => 'you@example.com',
 		),
 		array(
-			'title' => __( 'Other email plugins', 'staging-superpowers' ),
+			'title' => __( 'Email check', 'staging-superpowers' ),
 			'type'  => 'info',
 			'text'  => sspw_email_check_html(),
 			'id'    => 'sspw_email_check',
@@ -444,7 +459,7 @@ function sspw_settings_fields() {
 	$fields[] = array(
 		'title'    => __( 'Connected services', 'staging-superpowers' ),
 		'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
-		'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or send fake data to your other apps. This stops the site from connecting to those services. Everything else keeps working.', 'staging-superpowers' ),
+		'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP and Paid Memberships Pro. Everything else keeps working.', 'staging-superpowers' ),
 		'id'       => 'sspw_http_firewall',
 		'type'     => 'checkbox',
 		'default'  => 'yes',
@@ -474,6 +489,14 @@ function sspw_settings_fields() {
 		);
 	}
 
+	$fields[] = array(
+		'title'    => __( 'Analytics', 'staging-superpowers' ),
+		'desc'     => __( 'Stop analytics on staging', 'staging-superpowers' ),
+		'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel\'s Conversions API, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
+		'id'       => 'sspw_no_analytics',
+		'type'     => 'checkbox',
+		'default'  => 'yes',
+	);
 	$fields[] = array(
 		'title'    => __( 'WP-Cron', 'staging-superpowers' ),
 		'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
@@ -540,6 +563,23 @@ function sspw_settings_fields() {
 			array(
 				'type' => 'sectionend',
 				'id'   => 'sspw_look_section',
+			),
+
+			array(
+				'title' => __( 'Plugin check', 'staging-superpowers' ),
+				'type'  => 'title',
+				'desc'  => __( 'Active plugins that talk to live services, and whether Staging Superpowers covers them or there is something to do yourself.', 'staging-superpowers' ),
+				'id'    => 'sspw_plugin_check_section',
+			),
+			array(
+				'title' => __( 'Your plugins', 'staging-superpowers' ),
+				'type'  => 'info',
+				'text'  => sspw_plugin_check_html(),
+				'id'    => 'sspw_plugin_check',
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'sspw_plugin_check_section',
 			),
 		)
 	);

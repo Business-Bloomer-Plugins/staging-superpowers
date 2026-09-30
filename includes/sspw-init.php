@@ -31,6 +31,7 @@ function sspw_has_action_scheduler() {
 function sspw_init() {
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-settings.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-email-check.php';
+	require_once SSPW_PLUGIN_DIR . 'includes/sspw-plugin-check.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-troubleshoot.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog-page.php';
 
@@ -39,6 +40,7 @@ function sspw_init() {
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-visitors.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-cache.php';
+		require_once SSPW_PLUGIN_DIR . 'includes/sspw-integrations.php';
 
 		if ( sspw_has_woocommerce() ) {
 			require_once SSPW_PLUGIN_DIR . 'includes/sspw-woocommerce.php';

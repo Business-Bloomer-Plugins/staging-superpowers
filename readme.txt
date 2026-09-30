@@ -29,7 +29,20 @@ It works on any WordPress site. On a WooCommerce store it also hides your paymen
 **Connected services**
 
 * Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more), plus the services automation workflows send to (Twilio SMS, Slack, Zapier, Make, ActiveCampaign, SendGrid, Mailgun, Postmark, Google Sheets and more).
+* Also blocked by default: social sharing and push notification services (X, LinkedIn, Blog2Social, OneSignal, PushEngage), the Cloudflare API, the Uncanny Automator API, Google Analytics (including GA4 server events) and the ShortPixel and Smush image APIs.
 * Blocking payment APIs also stops a refund from an admin screen reaching the real payment account.
+* Stops pingbacks, trackbacks and update-service pings (Ping-O-Matic) when you publish, so other sites are not told about test posts.
+
+**Popular plugins**
+
+Some plugins reach live services in their own way, so they get their own switch while the site is protected:
+
+* Jetpack is put in safe mode, so it stops syncing to WordPress.com and Jetpack Social does not share new posts.
+* UpdraftPlus scheduled backups do not run, so they cannot upload to or prune your live backup storage. Backups you start by hand still work.
+* Easy Digital Downloads and GiveWP run in test mode, and Paid Memberships Pro uses its sandbox gateway environment.
+* Analytics are off (you can turn this off): Site Kit by Google does not add its Analytics, Tag Manager, Ads and AdSense tags, MonsterInsights tracking is skipped, GTM4WP leaves out its container, and the Meta pixel's Conversions API sends nothing.
+
+The Plugin check on the settings page lists the active plugins it knows, with "Covered" or "Check" and what to do. For example, WP Offload Media, Imagify and WP Search with Algolia talk to their services with their own code, which cannot be blocked, so it tells you to switch them off or change their settings on staging.
 
 **Automations**
 
@@ -97,7 +110,7 @@ Settings are at Settings > Staging Superpowers.
 
 This plugin does not connect to any external service and does not send data anywhere.
 
-The web addresses listed in its settings (such as api.stripe.com, api.mailchimp.com or graph.facebook.com) are services the plugin blocks. When "Connected services" is on, the plugin stops the staging site from contacting them, so a staging copy cannot reach your live accounts. The plugin never sends requests to them itself.
+The web addresses listed in its settings are services the plugin blocks. The default list is: api.stripe.com, api.paypal.com, api-m.paypal.com, api.braintreegateway.com, connect.squareup.com, api.mollie.com, api.authorize.net, api.mailchimp.com, a.klaviyo.com, api.brevo.com, api.sendinblue.com, connect.mailerlite.com, api.omnisend.com, api.kit.com, api.convertkit.com, api.hubapi.com, ssapi.shipstation.com, api.taxjar.com, rest.avatax.com, graph.facebook.com, google-analytics.com, api.twilio.com, slack.com, hooks.zapier.com, make.com, integromat.com, api-us1.com, api.createsend.com, api.getdrip.com, api.sendgrid.com, mailgun.net, api.postmarkapp.com, sheets.googleapis.com, api.sparkpost.com, mandrillapp.com, bridge.mailpoet.com, api.mailjet.com, api.resend.com, api.mailersend.com, api.smtp2go.com, api.elasticemail.com, api.twitter.com, api.linkedin.com, developer.blog2social.com, blog2social-wordpress-api.adenion.de, onesignal.com, api.pushengage.com, rpc.pingomatic.com, api.cloudflare.com, api.automatorplugin.com, api.shortpixel.com and smushpro.wpmudev.com. When "Connected services" is on, the plugin stops the staging site from contacting them, so a staging copy cannot reach your live accounts. The plugin never sends requests to them itself.
 
 == Installation ==
 
@@ -155,6 +168,10 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.
 * Settings moved to Settings > Staging Superpowers.
+* New: Plugin check lists active plugins that talk to live services, with Covered or Check and what to do. It replaces the email plugin list.
+* New: Jetpack safe mode, no scheduled UpdraftPlus backups, test mode for Easy Digital Downloads, GiveWP and Paid Memberships Pro, and no pingbacks, trackbacks or update-service pings.
+* New: "Stop analytics on staging" setting (on by default) for Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel's Conversions API.
+* New: block social sharing, push notification, Cloudflare, Uncanny Automator, Ping-O-Matic, ShortPixel and Smush services by default, and every Google Analytics address.
 * Without WooCommerce, the changelog keeps its latest 500 entries and shows them on its own page.
 * New: email check. Warns when a plugin replaces the WordPress email function, lists active email plugins and whether they are covered, blocks more email sending services, and readdresses anything that still reaches the WordPress mailer.
 * New: lock subscriptions copied from the live store (and their orders and customers) against deletion and edits, so a staging clean-up cannot remove saved cards the live store needs for renewals.
