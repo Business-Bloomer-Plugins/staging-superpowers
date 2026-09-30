@@ -28,6 +28,7 @@ Install it on your staging site. When the site looks like staging (a staging. or
 * Hides every payment gateway at checkout, so live Stripe, PayPal or WooPayments keys are never used.
 * Adds a Staging Test Gateway instead. Choose whether test payments succeed, go on hold or fail. Refunds are simulated too.
 * Works with the classic checkout and the Checkout block.
+* Locks subscriptions copied from the live store, their orders and the customers who own them, so nobody can delete them on staging. Deleting them could make your payment plugin remove the customer's saved card at Stripe (or PayPal, Square...), which would stop renewals on the live store. Subscriptions you create on staging for testing are not locked.
 
 **Webhooks**
 
@@ -147,6 +148,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 == Changelog ==
 
 = 1.1.0 =
+* New: lock subscriptions copied from the live store (and their orders and customers) against deletion and edits, so a staging clean-up cannot remove saved cards the live store needs for renewals.
 * New: freeze WP-Cron tasks as well as scheduled actions, so no automation runs by itself on staging.
 * New: block Twilio, Slack, Zapier, Make, ActiveCampaign, Campaign Monitor, Drip, SendGrid, Mailgun, Postmark and Google Sheets by default.
 * Status bar: one "Automations" entry, warnings shown first.

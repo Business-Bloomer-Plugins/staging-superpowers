@@ -30,6 +30,7 @@ function sspw_init() {
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-visitors.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-cache.php';
+		require_once SSPW_PLUGIN_DIR . 'includes/sspw-lock.php';
 	}
 
 	/**

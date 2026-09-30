@@ -56,19 +56,20 @@ function sspw_default_blocked_hosts() {
  */
 function sspw_get( $key ) {
 	$defaults = array(
-		'sspw_email_mode'     => 'block',
-		'sspw_email_to'       => '',
-		'sspw_gateways'       => 'yes',
-		'sspw_webhooks'       => 'yes',
-		'sspw_http_firewall'  => 'yes',
-		'sspw_blocked_hosts'  => implode( "\n", sspw_default_blocked_hosts() ),
-		'sspw_freeze_actions' => 'yes',
-		'sspw_freeze_cron'    => 'yes',
-		'sspw_look'           => 'yes',
-		'sspw_noindex'        => 'yes',
-		'sspw_visitors'       => 'redirect',
-		'sspw_no_cache'       => 'yes',
-		'sspw_live_url'       => '',
+		'sspw_email_mode'         => 'block',
+		'sspw_email_to'           => '',
+		'sspw_gateways'           => 'yes',
+		'sspw_webhooks'           => 'yes',
+		'sspw_http_firewall'      => 'yes',
+		'sspw_blocked_hosts'      => implode( "\n", sspw_default_blocked_hosts() ),
+		'sspw_freeze_actions'     => 'yes',
+		'sspw_freeze_cron'        => 'yes',
+		'sspw_lock_subscriptions' => 'yes',
+		'sspw_look'               => 'yes',
+		'sspw_noindex'            => 'yes',
+		'sspw_visitors'           => 'redirect',
+		'sspw_no_cache'           => 'yes',
+		'sspw_live_url'           => '',
 	);
 
 	return get_option( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
@@ -337,6 +338,14 @@ function sspw_settings_fields() {
 				sspw_link( 'gateway', __( 'Staging Test Gateway settings', 'staging-superpowers-for-woocommerce' ) )
 			),
 			'id'       => 'sspw_gateways',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Subscriptions', 'staging-superpowers-for-woocommerce' ),
+			'desc'     => __( 'Lock subscriptions copied from the live store', 'staging-superpowers-for-woocommerce' ),
+			'desc_tip' => __( 'Deleting a subscription or a customer on staging can make your payment plugin tell Stripe (or PayPal, Square...) to remove the customer\'s saved card. The live store uses that same card for renewals, so they would start failing. With this on, subscriptions and their orders copied from the live store cannot be deleted, trashed or changed here, and neither can the customers who own them. Subscriptions you create on this staging site for testing are not locked.', 'staging-superpowers-for-woocommerce' ),
+			'id'       => 'sspw_lock_subscriptions',
 			'type'     => 'checkbox',
 			'default'  => 'yes',
 		),
