@@ -2,7 +2,7 @@
 /**
  * Deploy guard: the plugin only does anything on the exact site URL it was armed on.
  * It arms itself only where the site clearly looks like staging; anywhere else
- * (a mistaken install on a live store, or staging copied over live) it stays off
+ * (a mistaken install on a live site, or staging copied over live) it stays off
  * until an admin confirms the site is a copy.
  */
 
@@ -59,7 +59,7 @@ function sspw_is_armed() {
 
 /**
  * Signals that only a staging, development or local copy would have. A live
- * store matches none of them, so installing there by mistake changes nothing.
+ * site matches none of them, so installing there by mistake changes nothing.
  */
 function sspw_looks_like_staging() {
 	$host  = strtolower( (string) wp_parse_url( (string) get_option( 'home' ), PHP_URL_HOST ) );
@@ -169,30 +169,30 @@ function sspw_guard_notice() {
 	$stored  = sspw_armed_for();
 	$current = sspw_site_fingerprint();
 
-	$confirm = ' onclick="return confirm( ' . esc_attr( wp_json_encode( __( 'Only continue if this is NOT your live store. Emails will be blocked and customers will not be able to pay. Turn Staging Superpowers on?', 'staging-superpowers-for-woocommerce' ) ) ) . ' );"';
+	$confirm = ' onclick="return confirm( ' . esc_attr( wp_json_encode( __( 'Only continue if this is NOT your live site. Emails will be blocked, outside services cut off and visitors sent away. Turn Staging Superpowers on?', 'staging-superpowers' ) ) ) . ' );"';
 
-	echo '<div class="notice notice-' . ( '' === $stored ? 'warning' : 'error' ) . '"><p><strong>' . esc_html__( 'Staging Superpowers is not turned on.', 'staging-superpowers-for-woocommerce' ) . '</strong> ';
+	echo '<div class="notice notice-' . ( '' === $stored ? 'warning' : 'error' ) . '"><p><strong>' . esc_html__( 'Staging Superpowers is not turned on.', 'staging-superpowers' ) . '</strong> ';
 
 	if ( sspw_is_production_declared() && ! sspw_production_overridden() ) {
-		esc_html_e( 'This site\'s configuration says it is the live store, so emails, payments, webhooks and scheduled actions run normally. If it really is your live store, deactivate the plugin. If it is a copy of your store (for example one you cloned by hand, which keeps the live configuration), you can turn the plugin on anyway.', 'staging-superpowers-for-woocommerce' );
+		esc_html_e( 'This site\'s configuration says it is the live site, so emails, outside services and scheduled tasks run normally. If it really is your live site, deactivate the plugin. If it is a copy of your site (for example one you cloned by hand, which keeps the live configuration), you can turn the plugin on anyway.', 'staging-superpowers' );
 		echo '</p><p>';
 		printf(
 			'<a class="button button-primary" href="%1$s"%2$s>%3$s</a>',
 			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=sspw_arm' ), 'sspw_arm' ) ),
 			$confirm, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped when built above.
 			/* translators: %s: current site URL */
-			esc_html( sprintf( __( 'This is a copy, not my live store: turn on for %s', 'staging-superpowers-for-woocommerce' ), $current ) )
+			esc_html( sprintf( __( 'This is a copy, not my live site: turn on for %s', 'staging-superpowers' ), $current ) )
 		);
 		echo '</p></div>';
 		return;
 	}
 
 	if ( '' === $stored ) {
-		esc_html_e( 'This site\'s address does not look like a staging site, so the plugin has not turned itself on and your store runs normally. If this is your live store, deactivate the plugin. If it is a staging copy, turn it on below.', 'staging-superpowers-for-woocommerce' );
+		esc_html_e( 'This site\'s address does not look like a staging site, so the plugin has not turned itself on and your site runs normally. If this is your live site, deactivate the plugin. If it is a staging copy, turn it on below.', 'staging-superpowers' );
 	} else {
 		printf(
 			/* translators: 1: site URL the plugin was armed on, 2: current site URL */
-			esc_html__( 'It was turned on for %1$s but this site is now %2$s, so emails, payments, webhooks and scheduled actions run normally. If this is your live store, deactivate the plugin.', 'staging-superpowers-for-woocommerce' ),
+			esc_html__( 'It was turned on for %1$s but this site is now %2$s, so emails, outside services and scheduled tasks run normally. If this is your live site, deactivate the plugin.', 'staging-superpowers' ),
 			'<code>' . esc_html( $stored ) . '</code>',
 			'<code>' . esc_html( $current ) . '</code>'
 		);
@@ -204,7 +204,7 @@ function sspw_guard_notice() {
 		esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=sspw_arm' ), 'sspw_arm' ) ),
 		$confirm, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped when built above.
 		/* translators: %s: current site URL */
-		esc_html( sprintf( __( 'This is a staging site: turn on for %s', 'staging-superpowers-for-woocommerce' ), $current ) )
+		esc_html( sprintf( __( 'This is a staging site: turn on for %s', 'staging-superpowers' ), $current ) )
 	);
 	echo '</p></div>';
 }
@@ -220,15 +220,12 @@ function sspw_is_notice_screen() {
 		return false;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check of which settings tab is open.
-	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
-
-	return in_array( $screen->id, array( 'dashboard', 'plugins' ), true ) || ( 'woocommerce_page_wc-settings' === $screen->id && 'sspw' === $tab );
+	return in_array( $screen->id, array( 'dashboard', 'plugins', 'settings_page_staging-superpowers' ), true );
 }
 
 function sspw_handle_arm() {
 	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'Sorry, you are not allowed to do that.', 'staging-superpowers-for-woocommerce' ) );
+		wp_die( esc_html__( 'Sorry, you are not allowed to do that.', 'staging-superpowers' ) );
 	}
 
 	check_admin_referer( 'sspw_arm' );

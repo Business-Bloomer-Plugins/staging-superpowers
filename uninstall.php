@@ -1,7 +1,7 @@
 <?php
 /**
  * Removes the plugin's settings when it is deleted from the Plugins screen.
- * The changelog stays in the WooCommerce logs and expires with them.
+ * A changelog kept in the WooCommerce logs stays there and expires with them.
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
@@ -26,6 +26,7 @@ $sspw_options = array(
 	'sspw_no_cache',
 	'sspw_disabled_plugins',
 	'sspw_previous_theme',
+	'sspw_changelog',
 	'woocommerce_sspw_test_settings',
 );
 

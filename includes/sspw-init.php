@@ -12,26 +12,39 @@ function sspw_declare_compatibility() {
 	}
 }
 
+function sspw_has_woocommerce() {
+	return class_exists( 'WooCommerce' );
+}
+
 /**
- * The guard runs even without WooCommerce so the deploy notice always shows;
- * everything else needs WooCommerce.
+ * Action Scheduler ships with WooCommerce and with many other plugins
+ * (email marketing, backups, SEO), so it is checked on its own.
+ */
+function sspw_has_action_scheduler() {
+	return class_exists( 'ActionScheduler' );
+}
+
+/**
+ * The guard is loaded by the main file so the deploy notice always shows.
+ * WooCommerce parts only load when WooCommerce is active.
  */
 function sspw_init() {
-	if ( ! class_exists( 'WooCommerce' ) ) {
-		return;
-	}
-
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-settings.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-email-check.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-troubleshoot.php';
+	require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog-page.php';
 
 	if ( sspw_is_armed() ) {
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-safety.php';
-		require_once SSPW_PLUGIN_DIR . 'includes/sspw-gateways.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-visitors.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog.php';
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-cache.php';
-		require_once SSPW_PLUGIN_DIR . 'includes/sspw-lock.php';
+
+		if ( sspw_has_woocommerce() ) {
+			require_once SSPW_PLUGIN_DIR . 'includes/sspw-woocommerce.php';
+			require_once SSPW_PLUGIN_DIR . 'includes/sspw-gateways.php';
+			require_once SSPW_PLUGIN_DIR . 'includes/sspw-lock.php';
+		}
 	}
 
 	/**

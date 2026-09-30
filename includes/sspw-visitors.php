@@ -1,7 +1,8 @@
 <?php
 /**
- * What shoppers and logged-out visitors see: a "this is a staging site" page,
- * or the normal site with a STAGING bar. Only loaded when the site is armed.
+ * What logged-out visitors and non-staff accounts see: the same page on the
+ * live site, a "this is a staging site" page, or the normal site with a
+ * STAGING bar. Only loaded when the site is armed.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -10,7 +11,6 @@ if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) 
 	add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
 	add_action( 'wp_login', 'sspw_remember_staff', 10, 2 );
 	add_action( 'admin_init', 'sspw_remember_staff_session' );
-	add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
 } elseif ( 'bar' === sspw_get( 'sspw_visitors' ) ) {
 	add_action( 'wp_enqueue_scripts', 'sspw_visitor_bar_style' );
 	add_action( 'wp_footer', 'sspw_visitor_bar' );
@@ -18,20 +18,20 @@ if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) 
 
 /**
  * The same bar on the visitor page and on the site, looking like the admin bar
- * so it reads as "not the real store" at a glance.
+ * so it reads as "not the real site" at a glance.
  */
 function sspw_visitor_bar_html() {
 	$live = sspw_live_url();
 
 	$html  = '<div id="sspw-visitor-bar" role="note">';
-	$html .= '<span class="sspw-badge">' . esc_html__( 'STAGING', 'staging-superpowers-for-woocommerce' ) . '</span>';
-	$html .= '<span class="sspw-text">' . esc_html__( 'This is a test copy of the store. Orders and payments are not real.', 'staging-superpowers-for-woocommerce' ) . '</span>';
+	$html .= '<span class="sspw-badge">' . esc_html__( 'STAGING', 'staging-superpowers' ) . '</span>';
+	$html .= '<span class="sspw-text">' . esc_html__( 'This is a test copy of the site. Nothing here is real.', 'staging-superpowers' ) . '</span>';
 	$html .= '<span class="sspw-links">';
 	if ( $live ) {
-		$html .= '<a href="' . esc_url( $live ) . '">' . esc_html__( 'Go to the live store', 'staging-superpowers-for-woocommerce' ) . '</a>';
+		$html .= '<a href="' . esc_url( $live ) . '">' . esc_html__( 'Go to the live site', 'staging-superpowers' ) . '</a>';
 	}
 	if ( ! is_user_logged_in() ) {
-		$html .= '<a href="' . esc_url( wp_login_url( sspw_current_url() ) ) . '">' . esc_html__( 'Log in', 'staging-superpowers-for-woocommerce' ) . '</a>';
+		$html .= '<a href="' . esc_url( wp_login_url( sspw_current_url() ) ) . '">' . esc_html__( 'Log in', 'staging-superpowers' ) . '</a>';
 	}
 	$html .= '</span></div>';
 
@@ -69,9 +69,9 @@ function sspw_visitor_bar() {
 }
 
 /**
- * Runs before WooCommerce and themes touch the request, so shoppers never reach the
- * shop, cart or checkout. 503 tells search engines the page is temporarily
- * unavailable, which keeps it out of their index.
+ * Runs before plugins and themes build the page, so visitors never reach any of
+ * it (a shop, a checkout, a members area, a form). 503 tells search engines the
+ * page is temporarily unavailable, which keeps it out of their index.
  */
 function sspw_visitor_page() {
 	if ( sspw_can_see_store() ) {
@@ -79,7 +79,7 @@ function sspw_visitor_page() {
 	}
 
 	// A browser someone on the team has logged in with goes to the login page,
-	// not the live store, so an expired session never lands them on live.
+	// not the live site, so an expired session never lands them on live.
 	if ( ! is_user_logged_in() && isset( $_COOKIE[ sspw_staff_cookie() ] ) ) {
 		wp_safe_redirect( wp_login_url( sspw_current_url() ), 302, 'Staging Superpowers' );
 		exit;
@@ -89,10 +89,10 @@ function sspw_visitor_page() {
 	$live = sspw_live_url();
 
 	// 302, not 301: browsers remember a 301, and would keep sending the admin
-	// to the live store even after logging in here.
+	// to the live site even after logging in here.
 	if ( 'redirect' === sspw_get( 'sspw_visitors' ) && $live ) {
 		header( 'X-Robots-Tag: noindex, nofollow', true );
-		wp_redirect( $live . sspw_current_path(), 302, 'Staging Superpowers' ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- the admin-saved live store is on another host by design.
+		wp_redirect( $live . sspw_current_path(), 302, 'Staging Superpowers' ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- the admin-saved live site is on another host by design.
 		exit;
 	}
 
@@ -125,32 +125,32 @@ function sspw_visitor_page() {
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title><?php echo esc_html( sprintf( /* translators: %s: site name */ __( 'Staging site: %s', 'staging-superpowers-for-woocommerce' ), $name ) ); ?></title>
+<title><?php echo esc_html( sprintf( /* translators: %s: site name */ __( 'Staging site: %s', 'staging-superpowers' ), $name ) ); ?></title>
 	<?php wp_print_styles( 'sspw-visitor-page' ); ?>
 </head>
 <body>
 	<?php echo sspw_visitor_bar_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped when built. ?>
 <main class="sspw-card">
-	<h1><?php esc_html_e( 'This is a staging site', 'staging-superpowers-for-woocommerce' ); ?></h1>
+	<h1><?php esc_html_e( 'This is a staging site', 'staging-superpowers' ); ?></h1>
 	<p>
 	<?php
 	/* translators: %s: site name */
-	echo esc_html( sprintf( __( 'You found a private test copy of %s. It is used to try out changes safely, so nothing here is real: orders are not shipped and payments do not go through.', 'staging-superpowers-for-woocommerce' ), $name ) );
+	echo esc_html( sprintf( __( 'You found a private test copy of %s. It is used to try out changes safely, so nothing here is real and nothing you do here reaches the real site.', 'staging-superpowers' ), $name ) );
 	?>
 	</p>
 	<?php if ( $live ) : ?>
-		<p><a class="sspw-button" href="<?php echo esc_url( $live ); ?>"><?php esc_html_e( 'Go to the live store', 'staging-superpowers-for-woocommerce' ); ?></a></p>
+		<p><a class="sspw-button" href="<?php echo esc_url( $live ); ?>"><?php esc_html_e( 'Go to the live site', 'staging-superpowers' ); ?></a></p>
 	<?php endif; ?>
 	<p class="sspw-small">
 	<?php if ( is_user_logged_in() ) : ?>
 		<?php
 		/* translators: %s: user display name */
-		echo esc_html( sprintf( __( 'You are logged in as %s, but this account cannot see the staging site.', 'staging-superpowers-for-woocommerce' ), wp_get_current_user()->display_name ) );
+		echo esc_html( sprintf( __( 'You are logged in as %s, but this account cannot see the staging site.', 'staging-superpowers' ), wp_get_current_user()->display_name ) );
 		?>
-		<a href="<?php echo esc_url( wp_logout_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log out', 'staging-superpowers-for-woocommerce' ); ?></a>
+		<a href="<?php echo esc_url( wp_logout_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log out', 'staging-superpowers' ); ?></a>
 	<?php else : ?>
-		<?php esc_html_e( 'Work on this site?', 'staging-superpowers-for-woocommerce' ); ?>
-		<a href="<?php echo esc_url( wp_login_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log in', 'staging-superpowers-for-woocommerce' ); ?></a>
+		<?php esc_html_e( 'Work on this site?', 'staging-superpowers' ); ?>
+		<a href="<?php echo esc_url( wp_login_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log in', 'staging-superpowers' ); ?></a>
 	<?php endif; ?>
 	</p>
 </main>
@@ -161,20 +161,8 @@ function sspw_visitor_page() {
 }
 
 /**
- * The cart and checkout blocks talk to the Store API directly, so the visitor
- * page alone would not stop a determined shopper (or bot) from ordering.
- */
-function sspw_visitor_store_api( $result, $server, $request ) {
-	if ( 0 === strpos( $request->get_route(), '/wc/store' ) && ! sspw_can_see_store() ) {
-		return new WP_Error( 'sspw_staging_site', __( 'This is a staging site. Orders are not accepted.', 'staging-superpowers-for-woocommerce' ), array( 'status' => 503 ) );
-	}
-
-	return $result;
-}
-
-/**
  * Marks this browser as used by the team. It grants nothing: it only decides
- * whether a logged-out visit goes to the login page or to the live store.
+ * whether a logged-out visit goes to the login page or to the live site.
  */
 function sspw_staff_cookie() {
 	return 'sspw_staff_' . COOKIEHASH;
@@ -185,7 +173,7 @@ function sspw_set_staff_cookie() {
 }
 
 function sspw_remember_staff( $user_login, $user ) {
-	if ( user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_woocommerce' ) ) {
+	if ( user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_options' ) || user_can( $user, 'manage_woocommerce' ) ) {
 		sspw_set_staff_cookie();
 	}
 }

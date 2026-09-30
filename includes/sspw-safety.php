@@ -5,7 +5,7 @@
  *
  * Every feature is a runtime filter: nothing in the database (webhook status,
  * gateway settings, scheduled actions) is changed, so disarming restores the
- * store exactly as it was.
+ * site exactly as it was.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -33,11 +33,6 @@ function sspw_phpmailer_safety_net( $phpmailer ) {
 	$phpmailer->addAddress( 'redirect' === sspw_email_status() ? sanitize_email( sspw_get( 'sspw_email_to' ) ) : 'blocked@staging-superpowers.invalid' );
 }
 
-// Webhooks.
-if ( 'yes' === sspw_get( 'sspw_webhooks' ) ) {
-	add_filter( 'woocommerce_webhook_should_deliver', '__return_false', PHP_INT_MAX );
-}
-
 // HTTP firewall.
 if ( 'yes' === sspw_get( 'sspw_http_firewall' ) ) {
 	add_filter( 'pre_http_request', 'sspw_http_firewall', PHP_INT_MAX, 3 );
@@ -46,7 +41,7 @@ if ( 'yes' === sspw_get( 'sspw_http_firewall' ) ) {
 // Action Scheduler: zero allowed batches means every queue run (WP-Cron, async
 // loopback, WP-CLI runner) exits before claiming anything. Running a single
 // action from Tools > Scheduled Actions bypasses the queue, so it still works.
-if ( 'yes' === sspw_get( 'sspw_freeze_actions' ) ) {
+if ( sspw_has_action_scheduler() && 'yes' === sspw_get( 'sspw_freeze_actions' ) ) {
 	add_filter( 'action_scheduler_queue_runner_concurrent_batches', '__return_zero', PHP_INT_MAX );
 	add_filter( 'action_scheduler_allow_async_request_runner', '__return_false', PHP_INT_MAX );
 
@@ -138,7 +133,7 @@ function sspw_http_firewall( $pre, $args, $url ) {
 	foreach ( sspw_blocked_hosts() as $blocked ) {
 		if ( $host === $blocked || str_ends_with( $host, '.' . $blocked ) ) {
 			/* translators: %s: blocked host name */
-			return new WP_Error( 'sspw_blocked', sprintf( __( 'Request to %s blocked by Staging Superpowers.', 'staging-superpowers-for-woocommerce' ), $host ) );
+			return new WP_Error( 'sspw_blocked', sprintf( __( 'Request to %s blocked by Staging Superpowers.', 'staging-superpowers' ), $host ) );
 		}
 	}
 
@@ -149,14 +144,14 @@ function sspw_admin_bar_badge( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'sspw-staging',
-			'title' => esc_html__( 'STAGING', 'staging-superpowers-for-woocommerce' ),
-			'href'  => current_user_can( 'manage_woocommerce' ) ? sspw_admin_links()['settings'] : false,
+			'title' => esc_html__( 'STAGING', 'staging-superpowers' ),
+			'href'  => current_user_can( 'manage_options' ) ? sspw_admin_links()['settings'] : false,
 		)
 	);
 }
 
 function sspw_can_see_status_bar() {
-	return is_admin_bar_showing() && current_user_can( 'manage_woocommerce' );
+	return is_admin_bar_showing() && current_user_can( 'manage_options' );
 }
 
 /**
@@ -167,18 +162,18 @@ function sspw_status_items() {
 	$email = sspw_email_status();
 
 	$email_labels = array(
-		'block'               => __( 'Emails blocked', 'staging-superpowers-for-woocommerce' ),
-		'redirect'            => __( 'Emails forwarded', 'staging-superpowers-for-woocommerce' ),
-		'redirect-no-address' => __( 'Email forwarding', 'staging-superpowers-for-woocommerce' ),
-		'off'                 => __( 'Emails going to real people', 'staging-superpowers-for-woocommerce' ),
+		'block'               => __( 'Emails blocked', 'staging-superpowers' ),
+		'redirect'            => __( 'Emails forwarded', 'staging-superpowers' ),
+		'redirect-no-address' => __( 'Email forwarding', 'staging-superpowers' ),
+		'off'                 => __( 'Emails going to real people', 'staging-superpowers' ),
 	);
 
 	$email_tips = array(
-		'block'               => __( 'No email leaves this site.', 'staging-superpowers-for-woocommerce' ),
+		'block'               => __( 'No email leaves this site.', 'staging-superpowers' ),
 		/* translators: %s: forwarding email address */
-		'redirect'            => sprintf( __( 'Every email goes to %s.', 'staging-superpowers-for-woocommerce' ), sspw_get( 'sspw_email_to' ) ),
-		'redirect-no-address' => __( 'No forwarding address set yet, so emails are blocked for now.', 'staging-superpowers-for-woocommerce' ),
-		'off'                 => __( 'Emails are sent to real recipients.', 'staging-superpowers-for-woocommerce' ),
+		'redirect'            => sprintf( __( 'Every email goes to %s.', 'staging-superpowers' ), sspw_get( 'sspw_email_to' ) ),
+		'redirect-no-address' => __( 'No forwarding address set yet, so emails are blocked for now.', 'staging-superpowers' ),
+		'off'                 => __( 'Emails are sent to real recipients.', 'staging-superpowers' ),
 	);
 
 	$items = array(
@@ -188,37 +183,46 @@ function sspw_status_items() {
 			'tip'   => $email_tips[ $email ],
 			'url'   => $links['settings'],
 		),
-		array(
+	);
+
+	if ( sspw_has_woocommerce() ) {
+		$items[] = array(
 			'on'    => 'yes' === sspw_get( 'sspw_gateways' ),
-			'label' => __( 'Payments hidden', 'staging-superpowers-for-woocommerce' ),
-			'tip'   => __( 'Only the Staging Test Gateway shows at checkout.', 'staging-superpowers-for-woocommerce' ),
+			'label' => __( 'Payments hidden', 'staging-superpowers' ),
+			'tip'   => __( 'Only the Staging Test Gateway shows at checkout.', 'staging-superpowers' ),
 			'url'   => $links['payments'],
-		),
-		array(
+		);
+		$items[] = array(
 			'on'    => 'yes' === sspw_get( 'sspw_webhooks' ),
-			'label' => __( 'Webhooks paused', 'staging-superpowers-for-woocommerce' ),
-			'tip'   => __( 'Other apps are not told about orders on this site.', 'staging-superpowers-for-woocommerce' ),
+			'label' => __( 'Webhooks paused', 'staging-superpowers' ),
+			'tip'   => __( 'Other apps are not told about orders on this site.', 'staging-superpowers' ),
 			'url'   => $links['webhooks'],
-		),
+		);
+	}
+
+	$items = array_merge(
+		$items,
 		array(
-			'on'    => 'yes' === sspw_get( 'sspw_http_firewall' ),
-			'label' => __( 'Services blocked', 'staging-superpowers-for-woocommerce' ),
-			'tip'   => __( 'Payment, marketing, shipping and tax services cannot be contacted.', 'staging-superpowers-for-woocommerce' ),
-			'url'   => $links['settings'],
-		),
-		sspw_automations_item( $links['actions'] ),
-		array(
-			'on'    => 'yes' === sspw_get( 'sspw_no_cache' ),
-			'label' => __( 'Page cache off', 'staging-superpowers-for-woocommerce' ),
-			'tip'   => __( 'Pages are never served from a cache, so you always see your latest changes.', 'staging-superpowers-for-woocommerce' ),
-			'url'   => $links['settings'],
-		),
-		array(
-			'on'    => 'yes' === sspw_get( 'sspw_noindex' ),
-			'label' => __( 'Hidden from Google', 'staging-superpowers-for-woocommerce' ),
-			'tip'   => __( 'Search engines are asked not to list this site.', 'staging-superpowers-for-woocommerce' ),
-			'url'   => $links['settings'],
-		),
+			array(
+				'on'    => 'yes' === sspw_get( 'sspw_http_firewall' ),
+				'label' => __( 'Services blocked', 'staging-superpowers' ),
+				'tip'   => __( 'Payment, email, marketing, shipping and tax services cannot be contacted.', 'staging-superpowers' ),
+				'url'   => $links['settings'],
+			),
+			sspw_automations_item( $links['actions'] ),
+			array(
+				'on'    => 'yes' === sspw_get( 'sspw_no_cache' ),
+				'label' => __( 'Page cache off', 'staging-superpowers' ),
+				'tip'   => __( 'Pages are never served from a cache, so you always see your latest changes.', 'staging-superpowers' ),
+				'url'   => $links['settings'],
+			),
+			array(
+				'on'    => 'yes' === sspw_get( 'sspw_noindex' ),
+				'label' => __( 'Hidden from Google', 'staging-superpowers' ),
+				'tip'   => __( 'Search engines are asked not to list this site.', 'staging-superpowers' ),
+				'url'   => $links['settings'],
+			),
+		)
 	);
 
 	// An email plugin replacing wp_mail() can send around the block.
@@ -226,9 +230,9 @@ function sspw_status_items() {
 	if ( $mail_owner ) {
 		$items[] = array(
 			'warn'  => true,
-			'label' => __( 'Email bypass risk', 'staging-superpowers-for-woocommerce' ),
+			'label' => __( 'Email bypass risk', 'staging-superpowers' ),
 			/* translators: %s: plugin name */
-			'tip'   => sprintf( __( '%s replaces the WordPress email function. See the Emails settings.', 'staging-superpowers-for-woocommerce' ), $mail_owner ),
+			'tip'   => sprintf( __( '%s replaces the WordPress email function. See the Emails settings.', 'staging-superpowers' ), $mail_owner ),
 			'url'   => $links['settings'],
 		);
 	}
@@ -239,8 +243,8 @@ function sspw_status_items() {
 		$items[] = array(
 			'warn'  => true,
 			/* translators: %d: number of plugins */
-			'label' => sprintf( _n( '%d plugin switched off', '%d plugins switched off', $disabled, 'staging-superpowers-for-woocommerce' ), $disabled ),
-			'tip'   => __( 'Switched off for troubleshooting. Click to switch them back on.', 'staging-superpowers-for-woocommerce' ),
+			'label' => sprintf( _n( '%d plugin switched off', '%d plugins switched off', $disabled, 'staging-superpowers' ), $disabled ),
+			'tip'   => __( 'Switched off for troubleshooting. Click to switch them back on.', 'staging-superpowers' ),
 			'url'   => $links['troubleshooting'],
 		);
 	}
@@ -248,8 +252,8 @@ function sspw_status_items() {
 	if ( sspw_previous_theme() && sspw_previous_theme() !== get_stylesheet() ) {
 		$items[] = array(
 			'warn'  => true,
-			'label' => __( 'Theme switched', 'staging-superpowers-for-woocommerce' ),
-			'tip'   => __( 'Switched for troubleshooting. Click to switch back.', 'staging-superpowers-for-woocommerce' ),
+			'label' => __( 'Theme switched', 'staging-superpowers' ),
+			'tip'   => __( 'Switched for troubleshooting. Click to switch back.', 'staging-superpowers' ),
 			'url'   => $links['troubleshooting'],
 		);
 	}
@@ -291,7 +295,7 @@ function sspw_status_bar() {
 			esc_attr( $item['tip'] ),
 			$item['on'] ? '&#10003;' : '&#10007;',
 			esc_html( $item['label'] ),
-			$item['on'] ? esc_html__( 'on', 'staging-superpowers-for-woocommerce' ) : esc_html__( 'off', 'staging-superpowers-for-woocommerce' )
+			$item['on'] ? esc_html__( 'on', 'staging-superpowers' ) : esc_html__( 'off', 'staging-superpowers' )
 		);
 	}
 
@@ -300,7 +304,7 @@ function sspw_status_bar() {
 	printf(
 		'<a class="sspw-gear" href="%1$s" title="%2$s"><span class="dashicons dashicons-admin-generic" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span></a>',
 		esc_url( sspw_admin_links()['settings'] ),
-		esc_attr__( 'All settings', 'staging-superpowers-for-woocommerce' )
+		esc_attr__( 'All settings', 'staging-superpowers' )
 	);
 
 	echo '</div>';
@@ -383,29 +387,29 @@ function sspw_admin_title( $title ) {
 
 /**
  * One entry for everything that runs by itself (Action Scheduler and WP-Cron),
- * so the bar stays on one line.
+ * so the bar stays on one line. Without Action Scheduler, only WP-Cron counts.
  */
 function sspw_automations_item( $url ) {
-	$actions = 'yes' === sspw_get( 'sspw_freeze_actions' );
+	$actions = ! sspw_has_action_scheduler() || 'yes' === sspw_get( 'sspw_freeze_actions' );
 	$cron    = 'yes' === sspw_get( 'sspw_freeze_cron' );
 
 	if ( $actions && $cron ) {
-		$label   = __( 'Automations frozen', 'staging-superpowers-for-woocommerce' );
+		$label   = __( 'Automations frozen', 'staging-superpowers' );
 		$waiting = sspw_pending_actions_count();
 		if ( $waiting ) {
 			/* translators: %s: number of waiting scheduled actions */
-			$label = sprintf( __( 'Automations frozen (%s)', 'staging-superpowers-for-woocommerce' ), number_format_i18n( $waiting ) );
+			$label = sprintf( __( 'Automations frozen (%s)', 'staging-superpowers' ), number_format_i18n( $waiting ) );
 		}
 	} elseif ( $actions || $cron ) {
-		$label = __( 'Automations partly running', 'staging-superpowers-for-woocommerce' );
+		$label = __( 'Automations partly running', 'staging-superpowers' );
 	} else {
-		$label = __( 'Automations running', 'staging-superpowers-for-woocommerce' );
+		$label = __( 'Automations running', 'staging-superpowers' );
 	}
 
 	return array(
 		'on'    => $actions && $cron,
 		'label' => $label,
-		'tip'   => __( 'Scheduled actions and WP-Cron tasks (renewals, follow-ups, automation workflows, syncs) do not run by themselves. The number is how many scheduled actions are waiting.', 'staging-superpowers-for-woocommerce' ),
+		'tip'   => __( 'Scheduled tasks (follow-up emails, automation workflows, syncs, backups, renewals) do not run by themselves. The number is how many scheduled actions are waiting.', 'staging-superpowers' ),
 		'url'   => $url,
 	);
 }
@@ -415,7 +419,7 @@ function sspw_automations_item( $url ) {
  * status bar shows on every admin page.
  */
 function sspw_pending_actions_count() {
-	if ( ! class_exists( 'ActionScheduler' ) ) {
+	if ( ! sspw_has_action_scheduler() ) {
 		return 0;
 	}
 
@@ -445,10 +449,7 @@ function sspw_is_merchandising_screen( $screen ) {
 		return true;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check of which settings tab is open.
-	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
-
-	return 'woocommerce_page_wc-settings' === $screen->id && 'sspw' !== $tab;
+	return 'woocommerce_page_wc-settings' === $screen->id;
 }
 
 function sspw_editing_staging_notice() {
@@ -458,11 +459,11 @@ function sspw_editing_staging_notice() {
 
 	$live = sspw_live_url();
 
-	echo '<div class="notice notice-warning sspw-editing-notice"><p><strong>' . esc_html__( 'You are editing the STAGING site.', 'staging-superpowers-for-woocommerce' ) . '</strong> ';
-	esc_html_e( 'Changes made here do not reach your live store.', 'staging-superpowers-for-woocommerce' );
+	echo '<div class="notice notice-warning sspw-editing-notice"><p><strong>' . esc_html__( 'You are editing the STAGING site.', 'staging-superpowers' ) . '</strong> ';
+	esc_html_e( 'Changes made here do not reach your live site.', 'staging-superpowers' );
 
 	if ( $live ) {
-		printf( ' <a href="%1$s">%2$s</a>', esc_url( $live . sspw_current_path() ), esc_html__( 'Open this screen on the live store', 'staging-superpowers-for-woocommerce' ) );
+		printf( ' <a href="%1$s">%2$s</a>', esc_url( $live . sspw_current_path() ), esc_html__( 'Open this screen on the live site', 'staging-superpowers' ) );
 	}
 
 	echo '</p></div>';

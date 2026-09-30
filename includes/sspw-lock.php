@@ -145,14 +145,14 @@ function sspw_lock_block_save() {
 }
 
 function sspw_lock_message() {
-	return __( 'This subscription (or its order) was copied from your live store, so Staging Superpowers locks it: deleting or changing it here could make your payment provider remove the customer\'s saved card and stop renewals on the live store. Subscriptions you create on this staging site are not locked.', 'staging-superpowers-for-woocommerce' );
+	return __( 'This subscription (or its order) was copied from your live store, so Staging Superpowers locks it: deleting or changing it here could make your payment provider remove the customer\'s saved card and stop renewals on the live store. Subscriptions you create on this staging site are not locked.', 'staging-superpowers' );
 }
 
 function sspw_lock_notices() {
 	$blocked = get_transient( 'sspw_lock_blocked_' . get_current_user_id() );
 	if ( $blocked ) {
 		delete_transient( 'sspw_lock_blocked_' . get_current_user_id() );
-		echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__( 'Nothing was changed.', 'staging-superpowers-for-woocommerce' ) . '</strong> ' . esc_html( sspw_lock_message() ) . '</p></div>';
+		echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__( 'Nothing was changed.', 'staging-superpowers' ) . '</strong> ' . esc_html( sspw_lock_message() ) . '</p></div>';
 		return;
 	}
 
@@ -160,6 +160,6 @@ function sspw_lock_notices() {
 	$order  = $screen && in_array( $screen->base, array( 'post', 'woocommerce_page_wc-orders', 'woocommerce_page_wc-orders--shop_subscription' ), true ) ? sspw_lock_current_order() : false;
 
 	if ( $order && sspw_is_locked_order( $order ) ) {
-		echo '<div class="notice notice-warning"><p><strong>' . esc_html__( 'Locked:', 'staging-superpowers-for-woocommerce' ) . '</strong> ' . esc_html( sspw_lock_message() ) . ' ' . esc_html__( 'You can look, but changes here are not saved.', 'staging-superpowers-for-woocommerce' ) . '</p></div>';
+		echo '<div class="notice notice-warning"><p><strong>' . esc_html__( 'Locked:', 'staging-superpowers' ) . '</strong> ' . esc_html( sspw_lock_message() ) . ' ' . esc_html__( 'You can look, but changes here are not saved.', 'staging-superpowers' ) . '</p></div>';
 	}
 }

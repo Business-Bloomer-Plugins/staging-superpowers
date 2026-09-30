@@ -37,8 +37,8 @@ class SSPW_Test_Gateway_Blocks extends AbstractPaymentMethodType {
 
 	public function get_payment_method_data() {
 		return array(
-			'title'       => $this->get_setting( 'title', __( 'Staging Test Gateway', 'staging-superpowers-for-woocommerce' ) ),
-			'description' => $this->get_setting( 'description', __( 'Test payment. No money will be taken.', 'staging-superpowers-for-woocommerce' ) ),
+			'title'       => $this->get_setting( 'title', __( 'Staging Test Gateway', 'staging-superpowers' ) ),
+			'description' => $this->get_setting( 'description', __( 'Test payment. No money will be taken.', 'staging-superpowers' ) ),
 			'supports'    => array( 'products', 'refunds' ),
 		);
 	}

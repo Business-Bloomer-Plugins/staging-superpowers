@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Staging Superpowers for WooCommerce">
-	<description>WordPress Coding Standards for Staging Superpowers for WooCommerce.</description>
+<ruleset name="Staging Superpowers">
+	<description>WordPress Coding Standards for Staging Superpowers.</description>
 
 	<arg name="extensions" value="php"/>
 	<arg value="sp"/>

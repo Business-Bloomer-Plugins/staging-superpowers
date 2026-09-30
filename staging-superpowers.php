@@ -1,18 +1,17 @@
 <?php
 /**
- * Plugin Name:          Staging Superpowers for WooCommerce
- * Description:          Make a WooCommerce staging copy safe to play with: redirect emails, swap payment gateways for a test gateway, pause webhooks, block outgoing API calls, freeze scheduled actions.
+ * Plugin Name:          Staging Superpowers
+ * Description:          Make a staging copy of your site safe to test on: block emails, block outside services, freeze scheduled tasks and send visitors to your live site. With WooCommerce, it also swaps payment methods for a test gateway and pauses webhooks.
  * Version:              1.1.0
  * Requires at least:    6.5
  * Requires PHP:         7.4
- * Requires Plugins:     woocommerce
  * WC requires at least: 8.0
  * WC tested up to:      11.1.2
  * Author:               Rodolfo Melogli
  * Author URI:           https://businessbloomer.com/
  * License:              GPL v2 or later
  * License URI:          https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:          staging-superpowers-for-woocommerce
+ * Text Domain:          staging-superpowers
  */
 
 defined( 'ABSPATH' ) || exit;

@@ -39,7 +39,7 @@ function sspw_wp_mail_owner() {
 	}
 
 	/* translators: %s: file name */
-	return sprintf( __( 'a must-use plugin or custom code (%s)', 'staging-superpowers-for-woocommerce' ), basename( $file ) );
+	return sprintf( __( 'a must-use plugin or custom code (%s)', 'staging-superpowers' ), basename( $file ) );
 }
 
 /**
@@ -47,8 +47,8 @@ function sspw_wp_mail_owner() {
  * handles them; "check" means they can send some emails their own way.
  */
 function sspw_known_email_plugins() {
-	$through_wp_mail = __( 'Covered: it sends through WordPress, where the block stops every email first.', 'staging-superpowers-for-woocommerce' );
-	$api_blocked     = __( 'Covered: its sending service is on the blocked services list, and the check above warns you if it replaces WordPress\'s email function.', 'staging-superpowers-for-woocommerce' );
+	$through_wp_mail = __( 'Covered: it sends through WordPress, where the block stops every email first.', 'staging-superpowers' );
+	$api_blocked     = __( 'Covered: its sending service is on the blocked services list, and the check above warns you if it replaces WordPress\'s email function.', 'staging-superpowers' );
 
 	return array(
 		'wp-mail-smtp'                       => array( 'covered', $through_wp_mail ),
@@ -61,10 +61,10 @@ function sspw_known_email_plugins() {
 		'sendgrid-email-delivery-simplified' => array( 'covered', $api_blocked ),
 		'sparkpost'                          => array( 'covered', $api_blocked ),
 		'wpmandrill'                         => array( 'covered', $api_blocked ),
-		'mailpoet'                           => array( 'check', __( 'Check: MailPoet sends newsletters from its own queue. That queue stays frozen while scheduled actions and WP-Cron are frozen, and the MailPoet Sending Service is blocked. If MailPoet sends through your own SMTP server, keep both freezes on.', 'staging-superpowers-for-woocommerce' ) ),
-		'wp-ses'                             => array( 'check', __( 'Check: it sends through Amazon SES directly. Add your SES address (for example email.eu-west-1.amazonaws.com) to the blocked services.', 'staging-superpowers-for-woocommerce' ) ),
-		'wp-offload-ses'                     => array( 'check', __( 'Check: it sends through Amazon SES directly. Add your SES address (for example email.eu-west-1.amazonaws.com) to the blocked services.', 'staging-superpowers-for-woocommerce' ) ),
-		'wp-offload-ses-lite'                => array( 'check', __( 'Check: it sends through Amazon SES directly. Add your SES address (for example email.eu-west-1.amazonaws.com) to the blocked services.', 'staging-superpowers-for-woocommerce' ) ),
+		'mailpoet'                           => array( 'check', __( 'Check: MailPoet sends newsletters from its own queue. That queue stays frozen while scheduled actions and WP-Cron are frozen, and the MailPoet Sending Service is blocked. If MailPoet sends through your own SMTP server, keep both freezes on.', 'staging-superpowers' ) ),
+		'wp-ses'                             => array( 'check', __( 'Check: it sends through Amazon SES directly. Add your SES address (for example email.eu-west-1.amazonaws.com) to the blocked services.', 'staging-superpowers' ) ),
+		'wp-offload-ses'                     => array( 'check', __( 'Check: it sends through Amazon SES directly. Add your SES address (for example email.eu-west-1.amazonaws.com) to the blocked services.', 'staging-superpowers' ) ),
+		'wp-offload-ses-lite'                => array( 'check', __( 'Check: it sends through Amazon SES directly. Add your SES address (for example email.eu-west-1.amazonaws.com) to the blocked services.', 'staging-superpowers' ) ),
 	);
 }
 
@@ -96,13 +96,13 @@ function sspw_email_check_html() {
 	$owner  = sspw_wp_mail_owner();
 	$active = sspw_active_email_plugins();
 
-	$html = '<strong>' . esc_html__( 'Email check:', 'staging-superpowers-for-woocommerce' ) . '</strong> ';
+	$html = '<strong>' . esc_html__( 'Email check:', 'staging-superpowers' ) . '</strong> ';
 
 	if ( $owner ) {
 		/* translators: %s: plugin name */
-		$html .= '<span style="color:#b32d2e">&#9888; ' . esc_html( sprintf( __( '%s replaces the WordPress email function, so the block above cannot see its emails. Its sending service may already be blocked (see below); otherwise switch that plugin off on staging.', 'staging-superpowers-for-woocommerce' ), $owner ) ) . '</span>';
+		$html .= '<span style="color:#b32d2e">&#9888; ' . esc_html( sprintf( __( '%s replaces the WordPress email function, so the block above cannot see its emails. Its sending service may already be blocked (see below); otherwise switch that plugin off on staging.', 'staging-superpowers' ), $owner ) ) . '</span>';
 	} else {
-		$html .= esc_html__( 'every email goes through the WordPress email function, where it is blocked.', 'staging-superpowers-for-woocommerce' );
+		$html .= esc_html__( 'every email goes through the WordPress email function, where it is blocked.', 'staging-superpowers' );
 	}
 
 	if ( $active ) {

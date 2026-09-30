@@ -10,8 +10,8 @@ class SSPW_Test_Gateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 		$this->id                 = 'sspw_test';
-		$this->method_title       = __( 'Staging Test Gateway', 'staging-superpowers-for-woocommerce' );
-		$this->method_description = __( 'Fake payments for staging sites. Only available while Staging Superpowers is active on this URL.', 'staging-superpowers-for-woocommerce' );
+		$this->method_title       = __( 'Staging Test Gateway', 'staging-superpowers' );
+		$this->method_description = __( 'Fake payments for staging sites. Only available while Staging Superpowers is active on this URL.', 'staging-superpowers' );
 		$this->has_fields         = false;
 		$this->supports           = array( 'products', 'refunds' );
 
@@ -27,29 +27,29 @@ class SSPW_Test_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 		$this->form_fields = array(
 			'enabled'     => array(
-				'title'   => __( 'Enable/Disable', 'staging-superpowers-for-woocommerce' ),
+				'title'   => __( 'Enable/Disable', 'staging-superpowers' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable the Staging Test Gateway', 'staging-superpowers-for-woocommerce' ),
+				'label'   => __( 'Enable the Staging Test Gateway', 'staging-superpowers' ),
 				'default' => 'yes',
 			),
 			'title'       => array(
-				'title'   => __( 'Title', 'staging-superpowers-for-woocommerce' ),
+				'title'   => __( 'Title', 'staging-superpowers' ),
 				'type'    => 'text',
-				'default' => __( 'Staging Test Gateway', 'staging-superpowers-for-woocommerce' ),
+				'default' => __( 'Staging Test Gateway', 'staging-superpowers' ),
 			),
 			'description' => array(
-				'title'   => __( 'Description', 'staging-superpowers-for-woocommerce' ),
+				'title'   => __( 'Description', 'staging-superpowers' ),
 				'type'    => 'textarea',
-				'default' => __( 'Test payment. No money will be taken.', 'staging-superpowers-for-woocommerce' ),
+				'default' => __( 'Test payment. No money will be taken.', 'staging-superpowers' ),
 			),
 			'outcome'     => array(
-				'title'   => __( 'Payment result', 'staging-superpowers-for-woocommerce' ),
+				'title'   => __( 'Payment result', 'staging-superpowers' ),
 				'type'    => 'select',
 				'default' => 'paid',
 				'options' => array(
-					'paid'    => __( 'Paid (order goes to Processing or Completed)', 'staging-superpowers-for-woocommerce' ),
-					'on-hold' => __( 'On hold (awaiting payment)', 'staging-superpowers-for-woocommerce' ),
-					'failed'  => __( 'Failed (payment declined)', 'staging-superpowers-for-woocommerce' ),
+					'paid'    => __( 'Paid (order goes to Processing or Completed)', 'staging-superpowers' ),
+					'on-hold' => __( 'On hold (awaiting payment)', 'staging-superpowers' ),
+					'failed'  => __( 'Failed (payment declined)', 'staging-superpowers' ),
 				),
 			),
 		);
@@ -78,13 +78,13 @@ class SSPW_Test_Gateway extends WC_Payment_Gateway {
 		 */
 		switch ( apply_filters( 'sspw_test_gateway_outcome', $this->get_option( 'outcome', 'paid' ), $order ) ) {
 			case 'failed':
-				$order->update_status( 'failed', __( 'Staging Test Gateway: simulated declined payment.', 'staging-superpowers-for-woocommerce' ) );
-				wc_add_notice( __( 'Staging Test Gateway: payment declined (simulated).', 'staging-superpowers-for-woocommerce' ), 'error' );
+				$order->update_status( 'failed', __( 'Staging Test Gateway: simulated declined payment.', 'staging-superpowers' ) );
+				wc_add_notice( __( 'Staging Test Gateway: payment declined (simulated).', 'staging-superpowers' ), 'error' );
 
 				return array( 'result' => 'failure' );
 
 			case 'on-hold':
-				$order->update_status( 'on-hold', __( 'Staging Test Gateway: simulated pending payment.', 'staging-superpowers-for-woocommerce' ) );
+				$order->update_status( 'on-hold', __( 'Staging Test Gateway: simulated pending payment.', 'staging-superpowers' ) );
 				wc_maybe_reduce_stock_levels( $order_id );
 				break;
 

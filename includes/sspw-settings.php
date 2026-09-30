@@ -1,13 +1,15 @@
 <?php
 /**
- * Settings tab at WooCommerce > Settings > Staging Superpowers.
+ * Settings page at Settings > Staging Superpowers, with sub-pages for
+ * troubleshooting, the changelog and anything an add-on adds.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-add_filter( 'woocommerce_settings_tabs_array', 'sspw_add_settings_tab', 50 );
-add_action( 'woocommerce_settings_tabs_sspw', 'sspw_output_settings' );
-add_action( 'woocommerce_update_options_sspw', 'sspw_save_settings' );
+define( 'SSPW_SETTINGS_PAGE', 'staging-superpowers' );
+
+add_action( 'admin_menu', 'sspw_add_settings_page' );
+add_action( 'admin_init', 'sspw_save_settings' );
 add_filter( 'plugin_action_links_' . plugin_basename( SSPW_PLUGIN_FILE ), 'sspw_plugin_action_links' );
 
 function sspw_default_blocked_hosts() {
@@ -99,7 +101,7 @@ function sspw_email_status() {
 }
 
 /**
- * The live store's address, or '' if unset, invalid, or pointing at this site.
+ * The live site's address, or '' if unset, invalid, or pointing at this site.
  */
 function sspw_live_url() {
 	$url  = untrailingslashit( esc_url_raw( trim( (string) sspw_get( 'sspw_live_url' ) ) ) );
@@ -113,7 +115,7 @@ function sspw_live_url() {
 }
 
 /**
- * A best guess at the live store's address, from traces that survive cloning:
+ * A best guess at the live site's address, from traces that survive cloning:
  * WooCommerce Subscriptions stores it scrambled so search and replace cannot
  * rewrite it, and migration tools leave post GUIDs untouched. Only ever shown as
  * a suggestion; nothing uses it until an admin saves it.
@@ -163,9 +165,6 @@ function sspw_detect_live_url() {
 }
 
 /**
- * Who gets past the visitor page: anyone who works on the site, not shoppers.
- */
-/**
  * The URL being viewed. REQUEST_URI already includes any subfolder the site
  * lives in, so only the scheme, host and port come from the site address.
  */
@@ -187,44 +186,86 @@ function sspw_current_path() {
 	return ( '' !== $home && 0 === strpos( $uri, $home ) ) ? substr( $uri, strlen( untrailingslashit( $home ) ) ) : $uri;
 }
 
+/**
+ * Who gets past the visitor protection: anyone who works on the site, not
+ * customers, members or subscribers.
+ */
 function sspw_can_see_store() {
+	$staff = current_user_can( 'edit_posts' ) || current_user_can( 'manage_options' ) || ( sspw_has_woocommerce() && current_user_can( 'manage_woocommerce' ) );
+
 	/**
 	 * Whether the current visitor sees this staging copy instead of the visitor protection.
 	 *
-	 * @param bool $can Staff (can edit content or manage the store) always can.
+	 * @param bool $can Staff (can edit content or manage the site or store) always can.
 	 */
-	return (bool) apply_filters( 'sspw_can_see_store', current_user_can( 'edit_posts' ) || current_user_can( 'manage_woocommerce' ) );
+	return (bool) apply_filters( 'sspw_can_see_store', $staff );
 }
 
-function sspw_add_settings_tab( $tabs ) {
-	$tabs['sspw'] = apply_filters( 'sspw_tab_label', __( 'Staging Superpowers', 'staging-superpowers-for-woocommerce' ) );
+function sspw_settings_label() {
+	/**
+	 * Name of the settings page, in the Settings menu and as its heading.
+	 *
+	 * @param string $label Default "Staging Superpowers".
+	 */
+	return apply_filters( 'sspw_tab_label', __( 'Staging Superpowers', 'staging-superpowers' ) );
+}
 
-	return $tabs;
+function sspw_settings_url( $section = '' ) {
+	return admin_url( 'options-general.php?page=' . SSPW_SETTINGS_PAGE . ( '' !== $section ? '&section=' . $section : '' ) );
+}
+
+/**
+ * The sub-page being viewed: '' for the main settings.
+ */
+function sspw_current_section() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check of which sub-page is open.
+	return isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
+}
+
+/**
+ * Whether the settings page is open, optionally on one sub-page. Works before
+ * the admin screen is set up, so add-ons can use it to enqueue their assets.
+ */
+function sspw_is_settings_page( $section = null ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check of which admin page is open.
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+	return is_admin() && SSPW_SETTINGS_PAGE === $page && ( null === $section || sspw_current_section() === $section );
 }
 
 function sspw_status_text() {
 	if ( sspw_is_armed() ) {
 		/* translators: %s: site URL */
-		return sprintf( __( 'Active on %s. Everything below applies to this site only; if the database is moved to another URL, the plugin pauses itself.', 'staging-superpowers-for-woocommerce' ), '<code>' . esc_html( sspw_site_fingerprint() ) . '</code>' );
+		return sprintf( __( 'Active on %s. Everything below applies to this site only; if the database is moved to another URL, the plugin pauses itself.', 'staging-superpowers' ), '<code>' . esc_html( sspw_site_fingerprint() ) . '</code>' );
 	}
 
-	return __( 'Paused. See the notice at the top of the page. These settings do nothing until the plugin is turned on for this URL.', 'staging-superpowers-for-woocommerce' );
+	return __( 'Paused. See the notice at the top of the page. These settings do nothing until the plugin is turned on for this URL.', 'staging-superpowers' );
 }
 
 /**
- * Admin screens the settings and the status bar link to.
+ * Admin screens the settings and the status bar link to. The WooCommerce ones
+ * are only there when WooCommerce is active.
  */
 function sspw_admin_links() {
-	return array(
-		'settings'        => admin_url( 'admin.php?page=wc-settings&tab=sspw' ),
-		'payments'        => admin_url( 'admin.php?page=wc-settings&tab=checkout' ),
-		'gateway'         => admin_url( 'admin.php?page=wc-settings&tab=checkout&section=sspw_test' ),
-		'webhooks'        => admin_url( 'admin.php?page=wc-settings&tab=advanced&section=webhooks' ),
-		'actions'         => admin_url( 'admin.php?page=wc-status&tab=action-scheduler&status=pending' ),
-		'emails'          => admin_url( 'admin.php?page=wc-settings&tab=email' ),
+	$links = array(
+		'settings'        => sspw_settings_url(),
+		'troubleshooting' => sspw_settings_url( 'troubleshooting' ),
+		'changelog'       => sspw_settings_url( 'changelog' ),
 		'reading'         => admin_url( 'options-reading.php' ),
-		'troubleshooting' => admin_url( 'admin.php?page=wc-settings&tab=sspw&section=troubleshooting' ),
+		'actions'         => sspw_settings_url(),
 	);
+
+	if ( sspw_has_woocommerce() ) {
+		$links['payments'] = admin_url( 'admin.php?page=wc-settings&tab=checkout' );
+		$links['gateway']  = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=sspw_test' );
+		$links['webhooks'] = admin_url( 'admin.php?page=wc-settings&tab=advanced&section=webhooks' );
+		$links['emails']   = admin_url( 'admin.php?page=wc-settings&tab=email' );
+		$links['actions']  = admin_url( 'admin.php?page=wc-status&tab=action-scheduler&status=pending' );
+	} elseif ( sspw_has_action_scheduler() ) {
+		$links['actions'] = admin_url( 'tools.php?page=action-scheduler&status=pending' );
+	}
+
+	return $links;
 }
 
 function sspw_link( $key, $text ) {
@@ -239,8 +280,8 @@ function sspw_link( $key, $text ) {
  */
 function sspw_live_url_field() {
 	$field = array(
-		'title'       => __( 'Live store address', 'staging-superpowers-for-woocommerce' ),
-		'desc'        => __( 'Where your real store is. Visitors to this copy get a button to it, and admin screens get a link to open the same screen there.', 'staging-superpowers-for-woocommerce' ),
+		'title'       => __( 'Live site address', 'staging-superpowers' ),
+		'desc'        => __( 'Where your real site is. Visitors to this copy are sent there, and admin screens get a link to open the same screen there.', 'staging-superpowers' ),
 		'id'          => 'sspw_live_url',
 		'type'        => 'url',
 		'default'     => '',
@@ -251,7 +292,7 @@ function sspw_live_url_field() {
 		$detected = sspw_detect_live_url();
 		if ( $detected ) {
 			$field['default'] = $detected;
-			$field['desc']   .= ' <strong>' . esc_html__( 'We filled this in from your store data. Check it is right, then click Save changes to use it.', 'staging-superpowers-for-woocommerce' ) . '</strong>';
+			$field['desc']   .= ' <strong>' . esc_html__( 'We filled this in from your site data. Check it is right, then click Save Changes to use it.', 'staging-superpowers' ) . '</strong>';
 		}
 	}
 
@@ -263,21 +304,77 @@ function sspw_visitors_description() {
 
 	$text = sprintf(
 		/* translators: %s: login page link */
-		__( 'For customers and logged-out visitors, so nobody browses this copy or places orders that never reach your live store. You, and anyone who can edit the site, see this copy as normal once logged in. To log in, go to %s: that page is never redirected. Browsers you have logged in with here are remembered, so when you are logged out they go to the login page instead of the live store.', 'staging-superpowers-for-woocommerce' ),
+		__( 'For logged-out visitors and for accounts that cannot edit the site (customers, members, subscribers), so nobody uses this copy by mistake. You, and anyone who can edit the site, see this copy as normal once logged in. To log in, go to %s: that page is never redirected. Browsers you have logged in with here are remembered, so when you are logged out they go to the login page instead of the live site.', 'staging-superpowers' ),
 		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
 	);
 
 	if ( '' === sspw_live_url() ) {
-		$text .= ' <strong>' . esc_html__( 'Save your live store address above to send visitors there. Until then, they see the "this is a staging site" page instead.', 'staging-superpowers-for-woocommerce' ) . '</strong>';
+		$text .= ' <strong>' . esc_html__( 'Save your live site address above to send visitors there. Until then, they see the "this is a staging site" page instead.', 'staging-superpowers' ) . '</strong>';
 	}
 
 	return $text;
 }
 
-function sspw_settings_fields() {
+function sspw_woocommerce_settings_fields() {
 	return array(
 		array(
-			'title' => __( 'Status', 'staging-superpowers-for-woocommerce' ),
+			'title' => __( 'WooCommerce', 'staging-superpowers' ),
+			'type'  => 'title',
+			'id'    => 'sspw_woocommerce',
+		),
+		array(
+			'title'    => __( 'Payment methods', 'staging-superpowers' ),
+			'desc'     => __( 'Hide every payment method at checkout and show the Staging Test Gateway instead', 'staging-superpowers' ),
+			'desc_tip' => sprintf(
+				/* translators: 1: link to payment methods, 2: link to the test gateway settings */
+				__( 'Your staging copy still has your live Stripe, PayPal or WooPayments keys, so a test order could charge a real card. With this on, only the Staging Test Gateway shows at checkout: it pretends to take the payment and never touches real money. Your %1$s settings are not changed. You can choose whether test payments succeed, wait or fail in the %2$s.', 'staging-superpowers' ),
+				sspw_link( 'payments', __( 'payment methods', 'staging-superpowers' ) ),
+				sspw_link( 'gateway', __( 'Staging Test Gateway settings', 'staging-superpowers' ) )
+			),
+			'id'       => 'sspw_gateways',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Subscriptions', 'staging-superpowers' ),
+			'desc'     => __( 'Lock subscriptions copied from the live store', 'staging-superpowers' ),
+			'desc_tip' => __( 'Deleting a subscription or a customer on staging can make your payment plugin tell Stripe (or PayPal, Square...) to remove the customer\'s saved card. The live store uses that same card for renewals, so they would start failing. With this on, subscriptions and their orders copied from the live store cannot be deleted, trashed or changed here, and neither can the customers who own them. Subscriptions you create on this staging site for testing are not locked.', 'staging-superpowers' ),
+			'id'       => 'sspw_lock_subscriptions',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Webhooks', 'staging-superpowers' ),
+			'desc'     => __( 'Pause all webhooks', 'staging-superpowers' ),
+			'desc_tip' => sprintf(
+				/* translators: %s: link to the webhooks list */
+				__( 'A webhook is an automatic message your store sends to another app when something happens, for example "new order received" to your fulfillment, accounting or CRM software. The staging copy has the same webhooks as your live store, so test orders would show up in those apps as if they were real. This stops the messages without changing or deleting your %s.', 'staging-superpowers' ),
+				sspw_link( 'webhooks', __( 'webhooks', 'staging-superpowers' ) )
+			),
+			'id'       => 'sspw_webhooks',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'type' => 'sectionend',
+			'id'   => 'sspw_woocommerce',
+		),
+	);
+}
+
+function sspw_settings_fields() {
+	$emails = __( 'Your staging copy has the real email addresses of your customers, members and users. This stops password resets, notifications, order updates, newsletters and any other email from reaching them. It covers every email the site sends. Anyone copied in (CC or BCC) is removed too.', 'staging-superpowers' );
+	if ( sspw_has_woocommerce() ) {
+		$emails .= ' ' . sprintf(
+			/* translators: %s: link to the WooCommerce emails settings */
+			__( 'That includes the %s.', 'staging-superpowers' ),
+			sspw_link( 'emails', __( 'WooCommerce emails', 'staging-superpowers' ) )
+		);
+	}
+
+	$fields = array(
+		array(
+			'title' => __( 'Status', 'staging-superpowers' ),
 			'type'  => 'title',
 			'desc'  => sspw_status_text(),
 			'id'    => 'sspw_status',
@@ -288,7 +385,7 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Your live store', 'staging-superpowers-for-woocommerce' ),
+			'title' => __( 'Your live site', 'staging-superpowers' ),
 			'type'  => 'title',
 			'id'    => 'sspw_live_section',
 		),
@@ -299,36 +396,32 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Emails', 'staging-superpowers-for-woocommerce' ),
+			'title' => __( 'Emails', 'staging-superpowers' ),
 			'type'  => 'title',
-			'desc'  => sprintf(
-				/* translators: %s: link to the WooCommerce emails settings */
-				__( 'Your staging copy has real customer email addresses on every order and account. This stops order updates, password resets, newsletters and any other email from reaching them. It covers every email the site sends, including the %s. Anyone copied in (CC or BCC) is removed too.', 'staging-superpowers-for-woocommerce' ),
-				sspw_link( 'emails', __( 'WooCommerce emails', 'staging-superpowers-for-woocommerce' ) )
-			),
+			'desc'  => $emails,
 			'id'    => 'sspw_emails',
 		),
 		array(
-			'title'   => __( 'Outgoing emails', 'staging-superpowers-for-woocommerce' ),
+			'title'   => __( 'Outgoing emails', 'staging-superpowers' ),
 			'id'      => 'sspw_email_mode',
 			'type'    => 'select',
 			'default' => 'block',
 			'options' => array(
-				'block'    => __( 'Block all (recommended)', 'staging-superpowers-for-woocommerce' ),
-				'redirect' => __( 'Forward all to one address', 'staging-superpowers-for-woocommerce' ),
-				'off'      => __( 'Send normally (not safe)', 'staging-superpowers-for-woocommerce' ),
+				'block'    => __( 'Block all (recommended)', 'staging-superpowers' ),
+				'redirect' => __( 'Forward all to one address', 'staging-superpowers' ),
+				'off'      => __( 'Send normally (not safe)', 'staging-superpowers' ),
 			),
 		),
 		array(
-			'title'       => __( 'Forward to', 'staging-superpowers-for-woocommerce' ),
-			'desc'        => __( 'Every email goes to this address instead, with the original recipient added to the subject line. Until you enter an address, emails stay blocked.', 'staging-superpowers-for-woocommerce' ),
+			'title'       => __( 'Forward to', 'staging-superpowers' ),
+			'desc'        => __( 'Every email goes to this address instead, with the original recipient added to the subject line. Until you enter an address, emails stay blocked.', 'staging-superpowers' ),
 			'id'          => 'sspw_email_to',
 			'type'        => 'email',
 			'default'     => '',
 			'placeholder' => 'you@example.com',
 		),
 		array(
-			'title' => __( 'Other email plugins', 'staging-superpowers-for-woocommerce' ),
+			'title' => __( 'Other email plugins', 'staging-superpowers' ),
 			'type'  => 'info',
 			'text'  => sspw_email_check_html(),
 			'id'    => 'sspw_email_check',
@@ -337,183 +430,350 @@ function sspw_settings_fields() {
 			'type' => 'sectionend',
 			'id'   => 'sspw_emails',
 		),
+	);
 
-		array(
-			'title' => __( 'Payments and connected services', 'staging-superpowers-for-woocommerce' ),
-			'type'  => 'title',
-			'id'    => 'sspw_integrations',
-		),
-		array(
-			'title'    => __( 'Payment methods', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Hide every payment method at checkout and show the Staging Test Gateway instead', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => sprintf(
-				/* translators: 1: link to payment methods, 2: link to the test gateway settings */
-				__( 'Your staging copy still has your live Stripe, PayPal or WooPayments keys, so a test order could charge a real card. With this on, only the Staging Test Gateway shows at checkout: it pretends to take the payment and never touches real money. Your %1$s settings are not changed. You can choose whether test payments succeed, wait or fail in the %2$s.', 'staging-superpowers-for-woocommerce' ),
-				sspw_link( 'payments', __( 'payment methods', 'staging-superpowers-for-woocommerce' ) ),
-				sspw_link( 'gateway', __( 'Staging Test Gateway settings', 'staging-superpowers-for-woocommerce' ) )
-			),
-			'id'       => 'sspw_gateways',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Subscriptions', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Lock subscriptions copied from the live store', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => __( 'Deleting a subscription or a customer on staging can make your payment plugin tell Stripe (or PayPal, Square...) to remove the customer\'s saved card. The live store uses that same card for renewals, so they would start failing. With this on, subscriptions and their orders copied from the live store cannot be deleted, trashed or changed here, and neither can the customers who own them. Subscriptions you create on this staging site for testing are not locked.', 'staging-superpowers-for-woocommerce' ),
-			'id'       => 'sspw_lock_subscriptions',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Webhooks', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Pause all webhooks', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => sprintf(
-				/* translators: %s: link to the webhooks list */
-				__( 'A webhook is an automatic message your store sends to another app when something happens, for example "new order received" to your fulfillment, accounting or CRM software. The staging copy has the same webhooks as your live store, so test orders would show up in those apps as if they were real. This stops the messages without changing or deleting your %s.', 'staging-superpowers-for-woocommerce' ),
-				sspw_link( 'webhooks', __( 'webhooks', 'staging-superpowers-for-woocommerce' ) )
-			),
-			'id'       => 'sspw_webhooks',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Connected services', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment from the order screen, add a test customer to your mailing list, or send a fake order to your shipping software. This firewall stops the site from connecting to those services. Everything else keeps working.', 'staging-superpowers-for-woocommerce' ),
-			'id'       => 'sspw_http_firewall',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'             => __( 'Blocked services', 'staging-superpowers-for-woocommerce' ),
-			'desc'              => __( 'One web address per line. The list already covers common payment, email marketing, shipping, tax and tracking services. Add any other service your store is connected to. Entering api.mailchimp.com also blocks addresses ending in it, such as us1.api.mailchimp.com.', 'staging-superpowers-for-woocommerce' ),
-			'id'                => 'sspw_blocked_hosts',
-			'type'              => 'textarea',
-			'default'           => implode( "\n", sspw_default_blocked_hosts() ),
-			'css'               => 'min-width:400px;height:220px;font-family:monospace;',
-			'custom_attributes' => array( 'spellcheck' => 'false' ),
-		),
-		array(
-			'title'    => __( 'Scheduled actions', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Freeze scheduled actions', 'staging-superpowers-for-woocommerce' ),
+	if ( sspw_has_woocommerce() ) {
+		$fields = array_merge( $fields, sspw_woocommerce_settings_fields() );
+	}
+
+	$fields[] = array(
+		'title' => __( 'Connected services and automations', 'staging-superpowers' ),
+		'type'  => 'title',
+		'id'    => 'sspw_integrations',
+	);
+	$fields[] = array(
+		'title'    => __( 'Connected services', 'staging-superpowers' ),
+		'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
+		'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or send fake data to your other apps. This stops the site from connecting to those services. Everything else keeps working.', 'staging-superpowers' ),
+		'id'       => 'sspw_http_firewall',
+		'type'     => 'checkbox',
+		'default'  => 'yes',
+	);
+	$fields[] = array(
+		'title'             => __( 'Blocked services', 'staging-superpowers' ),
+		'desc'              => __( 'One web address per line. The list already covers common payment, email, marketing, shipping, tax and tracking services. Add any other service your site is connected to. Entering api.mailchimp.com also blocks addresses ending in it, such as us1.api.mailchimp.com.', 'staging-superpowers' ),
+		'id'                => 'sspw_blocked_hosts',
+		'type'              => 'textarea',
+		'default'           => implode( "\n", sspw_default_blocked_hosts() ),
+		'css'               => 'min-width:400px;height:220px;font-family:monospace;',
+		'custom_attributes' => array( 'spellcheck' => 'false' ),
+	);
+
+	if ( sspw_has_action_scheduler() ) {
+		$fields[] = array(
+			'title'    => __( 'Scheduled actions', 'staging-superpowers' ),
+			'desc'     => __( 'Freeze scheduled actions', 'staging-superpowers' ),
 			'desc_tip' => sprintf(
 				/* translators: %s: link to pending scheduled actions */
-				__( 'WooCommerce and many plugins keep a list of jobs to run later, like subscription renewals, follow-up emails, automation workflows (AutomateWoo, for example) and syncs with other apps. The staging copy has the same list as your live store, so it would renew subscriptions and repeat those jobs a second time. This holds every job on the list. You can still run a single one by hand from the %s.', 'staging-superpowers-for-woocommerce' ),
-				sspw_link( 'actions', __( 'pending scheduled actions', 'staging-superpowers-for-woocommerce' ) )
+				__( 'WooCommerce and many other plugins keep a list of jobs to run later, like subscription renewals, follow-up emails, automation workflows and syncs with other apps. The staging copy has the same list as your live site, so it would run those jobs a second time. This holds every job on the list. You can still run a single one by hand from the %s.', 'staging-superpowers' ),
+				sspw_link( 'actions', __( 'pending scheduled actions', 'staging-superpowers' ) )
 			),
 			'id'       => 'sspw_freeze_actions',
 			'type'     => 'checkbox',
 			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'WP-Cron', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => __( 'Some plugins, including older automation and follow-up tools, run their jobs with the WordPress scheduler (WP-Cron) instead. This holds those too, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers-for-woocommerce' ),
-			'id'       => 'sspw_freeze_cron',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'type' => 'sectionend',
-			'id'   => 'sspw_integrations',
-		),
+		);
+	}
 
-		array(
-			'title' => __( 'Look and feel', 'staging-superpowers-for-woocommerce' ),
-			'type'  => 'title',
-			'id'    => 'sspw_look_section',
-		),
-		array(
-			'title'   => __( 'Visitors', 'staging-superpowers-for-woocommerce' ),
-			'desc'    => sspw_visitors_description(),
-			'id'      => 'sspw_visitors',
-			'type'    => 'select',
-			'css'     => 'min-width:440px;',
-			'default' => 'redirect',
-			'options' => array(
-				'redirect' => __( 'Send them to the same page on the live store (recommended)', 'staging-superpowers-for-woocommerce' ),
-				'lock'     => __( 'Show a "this is a staging site" page', 'staging-superpowers-for-woocommerce' ),
-				'bar'      => __( 'Show the site, with a STAGING bar on every page', 'staging-superpowers-for-woocommerce' ),
-				'off'      => __( 'Show the site as normal (not safe)', 'staging-superpowers-for-woocommerce' ),
-			),
-		),
-		array(
-			'title'    => __( 'Staging look', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => __( 'Turns the admin bar orange with a STAGING badge, adds a status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit products, pages, coupons, menus or WooCommerce settings, so changes meant for the live store are not made here by mistake.', 'staging-superpowers-for-woocommerce' ),
-			'id'       => 'sspw_look',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Search engines', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Hide this site from search engines', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => sprintf(
-				/* translators: %s: link to Settings > Reading */
-				__( 'Tells Google and other search engines not to list any page of this copy, so it never competes with your live store. This works on its own, whatever is set in %s.', 'staging-superpowers-for-woocommerce' ),
-				sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers-for-woocommerce' ) )
-			),
-			'id'       => 'sspw_noindex',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Page caching', 'staging-superpowers-for-woocommerce' ),
-			'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers-for-woocommerce' ),
-			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of being sent to the live store. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers-for-woocommerce' ),
-			'id'       => 'sspw_no_cache',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'type' => 'sectionend',
-			'id'   => 'sspw_look_section',
-		),
+	$fields[] = array(
+		'title'    => __( 'WP-Cron', 'staging-superpowers' ),
+		'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
+		'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers' ),
+		'id'       => 'sspw_freeze_cron',
+		'type'     => 'checkbox',
+		'default'  => 'yes',
 	);
+	$fields[] = array(
+		'type' => 'sectionend',
+		'id'   => 'sspw_integrations',
+	);
+
+	return array_merge(
+		$fields,
+		array(
+			array(
+				'title' => __( 'Look and feel', 'staging-superpowers' ),
+				'type'  => 'title',
+				'id'    => 'sspw_look_section',
+			),
+			array(
+				'title'   => __( 'Visitors', 'staging-superpowers' ),
+				'desc'    => sspw_visitors_description(),
+				'id'      => 'sspw_visitors',
+				'type'    => 'select',
+				'css'     => 'min-width:440px;',
+				'default' => 'redirect',
+				'options' => array(
+					'redirect' => __( 'Send them to the same page on the live site (recommended)', 'staging-superpowers' ),
+					'lock'     => __( 'Show a "this is a staging site" page', 'staging-superpowers' ),
+					'bar'      => __( 'Show the site, with a STAGING bar on every page', 'staging-superpowers' ),
+					'off'      => __( 'Show the site as normal (not safe)', 'staging-superpowers' ),
+				),
+			),
+			array(
+				'title'    => __( 'Staging look', 'staging-superpowers' ),
+				'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers' ),
+				'desc_tip' => __( 'Turns the admin bar orange with a STAGING badge, adds a status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
+				'id'       => 'sspw_look',
+				'type'     => 'checkbox',
+				'default'  => 'yes',
+			),
+			array(
+				'title'    => __( 'Search engines', 'staging-superpowers' ),
+				'desc'     => __( 'Hide this site from search engines', 'staging-superpowers' ),
+				'desc_tip' => sprintf(
+					/* translators: %s: link to Settings > Reading */
+					__( 'Tells Google and other search engines not to list any page of this copy, so it never competes with your live site. This works on its own, whatever is set in %s.', 'staging-superpowers' ),
+					sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers' ) )
+				),
+				'id'       => 'sspw_noindex',
+				'type'     => 'checkbox',
+				'default'  => 'yes',
+			),
+			array(
+				'title'    => __( 'Page caching', 'staging-superpowers' ),
+				'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers' ),
+				'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of being sent to the live site. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
+				'id'       => 'sspw_no_cache',
+				'type'     => 'checkbox',
+				'default'  => 'yes',
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'sspw_look_section',
+			),
+		)
+	);
+}
+
+function sspw_add_settings_page() {
+	add_options_page( sspw_settings_label(), sspw_settings_label(), 'manage_options', SSPW_SETTINGS_PAGE, 'sspw_output_settings_page' );
 }
 
 /**
- * The forwarding address only matters in "Forward all" mode, so it is hidden otherwise.
+ * Sub-pages of the settings page.
  */
-function sspw_output_settings() {
-	global $current_section;
-
-	if ( 'troubleshooting' === $current_section ) {
-		sspw_output_troubleshooting();
-		return;
-	}
-
-	if ( 'changelog' === $current_section ) {
-		sspw_output_changelog();
-		return;
-	}
-
-	if ( '' !== (string) $current_section ) {
-		$GLOBALS['hide_save_button'] = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WooCommerce's own flag for hiding the Save button.
-
-		/**
-		 * Output for a sub-page added through sspw_settings_sections.
-		 */
-		do_action( 'sspw_output_section_' . sanitize_key( $current_section ) );
-		return;
-	}
-
-	woocommerce_admin_fields( sspw_settings_fields() );
-
-	sspw_inline_script(
-		"var sspwMode = jQuery( '#sspw_email_mode' ), sspwTo = jQuery( '#sspw_email_to' ).closest( 'tr' );
-		function sspwToggleTo() { sspwTo.toggle( 'redirect' === sspwMode.val() ); }
-		sspwMode.on( 'change', sspwToggleTo );
-		sspwToggleTo();"
+function sspw_settings_sections() {
+	/**
+	 * Sub-pages of the settings page.
+	 *
+	 * @param array $sections Section id => label.
+	 */
+	return apply_filters(
+		'sspw_settings_sections',
+		array(
+			''                => __( 'Protection', 'staging-superpowers' ),
+			'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers' ),
+			'changelog'       => __( 'Changelog', 'staging-superpowers' ),
+		)
 	);
 }
 
-function sspw_save_settings() {
-	global $current_section;
+function sspw_output_sections() {
+	$sections = sspw_settings_sections();
+	$current  = sspw_current_section();
 
-	if ( '' === $current_section ) {
-		woocommerce_update_options( sspw_settings_fields() );
+	echo '<ul class="subsubsub">';
+	$last = array_key_last( $sections );
+	foreach ( $sections as $id => $label ) {
+		printf(
+			'<li><a href="%1$s" class="%2$s">%3$s</a>%4$s</li>',
+			esc_url( sspw_settings_url( (string) $id ) ),
+			$current === (string) $id ? 'current' : '',
+			esc_html( $label ),
+			$last === $id ? '' : ' | '
+		);
 	}
+	echo '</ul><br class="clear" />';
+}
+
+/**
+ * Every sub-page sits inside one form, so tools can post with formaction
+ * buttons. Only the main settings have a Save button.
+ */
+function sspw_output_settings_page() {
+	$section = sspw_current_section();
+
+	echo '<div class="wrap"><h1>' . esc_html( sspw_settings_label() ) . '</h1>';
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only shows the "saved" message after the redirect.
+	if ( isset( $_GET['sspw-saved'] ) && '' === $section ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'staging-superpowers' ) . '</p></div>';
+	}
+
+	sspw_output_sections();
+
+	echo '<form method="post" id="mainform" action="" enctype="multipart/form-data">';
+
+	if ( 'troubleshooting' === $section ) {
+		sspw_output_troubleshooting();
+	} elseif ( 'changelog' === $section ) {
+		sspw_output_changelog();
+	} elseif ( '' !== $section ) {
+		/**
+		 * Output for a sub-page added through sspw_settings_sections.
+		 */
+		do_action( 'sspw_output_section_' . $section );
+	} else {
+		wp_nonce_field( 'sspw_settings', 'sspw_settings_nonce' );
+		sspw_render_fields( sspw_settings_fields() );
+		submit_button( null, 'primary', 'sspw_save' );
+
+		// The forwarding address only matters in "Forward all" mode, so it is hidden otherwise.
+		sspw_inline_script(
+			"var sspwMode = jQuery( '#sspw_email_mode' ), sspwTo = jQuery( '#sspw_email_to' ).closest( 'tr' );
+			function sspwToggleTo() { sspwTo.toggle( 'redirect' === sspwMode.val() ); }
+			sspwMode.on( 'change', sspwToggleTo );
+			sspwToggleTo();"
+		);
+	}
+
+	echo '</form></div>';
+}
+
+/**
+ * Renders the field arrays above as a standard WordPress settings screen.
+ */
+function sspw_render_fields( $fields ) {
+	foreach ( $fields as $field ) {
+		$type = $field['type'];
+
+		if ( 'title' === $type ) {
+			echo '<h2>' . esc_html( $field['title'] ) . '</h2>';
+			if ( ! empty( $field['desc'] ) ) {
+				echo '<p>' . wp_kses_post( $field['desc'] ) . '</p>';
+			}
+			echo '<table class="form-table" role="presentation">';
+			continue;
+		}
+
+		if ( 'sectionend' === $type ) {
+			echo '</table>';
+			continue;
+		}
+
+		$id    = $field['id'];
+		$value = 'info' === $type ? '' : sspw_get( $id );
+		$value = false === get_option( $id, false ) && isset( $field['default'] ) ? $field['default'] : $value;
+
+		echo '<tr><th scope="row">';
+		if ( in_array( $type, array( 'info', 'checkbox' ), true ) ) {
+			echo esc_html( $field['title'] );
+		} else {
+			printf( '<label for="%1$s">%2$s</label>', esc_attr( $id ), esc_html( $field['title'] ) );
+		}
+		echo '</th><td>';
+
+		switch ( $type ) {
+			case 'info':
+				echo wp_kses_post( $field['text'] );
+				break;
+
+			case 'checkbox':
+				printf(
+					'<label for="%1$s"><input type="checkbox" name="%1$s" id="%1$s" value="1" %2$s /> %3$s</label>',
+					esc_attr( $id ),
+					checked( 'yes', $value, false ),
+					esc_html( $field['desc'] )
+				);
+				if ( ! empty( $field['desc_tip'] ) ) {
+					echo '<p class="description">' . wp_kses_post( $field['desc_tip'] ) . '</p>';
+				}
+				break;
+
+			case 'select':
+				printf( '<select name="%1$s" id="%1$s" style="%2$s">', esc_attr( $id ), esc_attr( isset( $field['css'] ) ? $field['css'] : '' ) );
+				foreach ( $field['options'] as $key => $label ) {
+					printf( '<option value="%1$s" %2$s>%3$s</option>', esc_attr( $key ), selected( $key, $value, false ), esc_html( $label ) );
+				}
+				echo '</select>';
+				break;
+
+			case 'textarea':
+				printf(
+					'<textarea name="%1$s" id="%1$s" style="%2$s" spellcheck="false">%3$s</textarea>',
+					esc_attr( $id ),
+					esc_attr( isset( $field['css'] ) ? $field['css'] : '' ),
+					esc_textarea( $value )
+				);
+				break;
+
+			default:
+				printf(
+					'<input type="%1$s" name="%2$s" id="%2$s" value="%3$s" placeholder="%4$s" class="regular-text" />',
+					esc_attr( $type ),
+					esc_attr( $id ),
+					esc_attr( $value ),
+					esc_attr( isset( $field['placeholder'] ) ? $field['placeholder'] : '' )
+				);
+		}
+
+		if ( ! in_array( $type, array( 'checkbox', 'info' ), true ) && ! empty( $field['desc'] ) ) {
+			echo '<p class="description">' . wp_kses_post( $field['desc'] ) . '</p>';
+		}
+
+		echo '</td></tr>';
+	}
+}
+
+function sspw_sanitize_field( $field, $raw ) {
+	switch ( $field['type'] ) {
+		case 'checkbox':
+			return null === $raw ? 'no' : 'yes';
+		case 'select':
+			return isset( $field['options'][ (string) $raw ] ) ? (string) $raw : $field['default'];
+		case 'textarea':
+			return sanitize_textarea_field( (string) $raw );
+		case 'email':
+			return sanitize_email( (string) $raw );
+		case 'url':
+			return esc_url_raw( trim( (string) $raw ) );
+		default:
+			return sanitize_text_field( (string) $raw );
+	}
+}
+
+/**
+ * Saves the main settings, records what changed in the changelog, and
+ * reloads the page so every protection runs with the new values.
+ */
+function sspw_save_settings() {
+	if ( ! isset( $_POST['sspw_save'] ) || ! sspw_is_settings_page( '' ) ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'Sorry, you are not allowed to do that.', 'staging-superpowers' ) );
+	}
+
+	check_admin_referer( 'sspw_settings', 'sspw_settings_nonce' );
+
+	$fields  = array();
+	$changes = array();
+
+	foreach ( sspw_settings_fields() as $field ) {
+		if ( empty( $field['id'] ) || in_array( $field['type'], array( 'title', 'sectionend', 'info' ), true ) ) {
+			continue;
+		}
+
+		$id  = $field['id'];
+		$raw = isset( $_POST[ $id ] ) ? wp_unslash( $_POST[ $id ] ) : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized by type in sspw_sanitize_field().
+		$old = sspw_get( $id );
+		$new = sspw_sanitize_field( $field, $raw );
+
+		update_option( $id, $new );
+
+		$fields[ $id ] = $field;
+		if ( $old !== $new ) {
+			$changes[ $id ] = array( $old, $new );
+		}
+	}
+
+	if ( function_exists( 'sspw_log_changes' ) ) {
+		sspw_log_changes( sspw_settings_label(), $changes, $fields );
+	}
+
+	wp_safe_redirect( add_query_arg( 'sspw-saved', '1', sspw_settings_url() ) );
+	exit;
 }
 
 function sspw_plugin_action_links( $links ) {
@@ -521,8 +781,8 @@ function sspw_plugin_action_links( $links ) {
 		$links,
 		sprintf(
 			'<a href="%s">%s</a>',
-			esc_url( admin_url( 'admin.php?page=wc-settings&tab=sspw' ) ),
-			esc_html__( 'Settings', 'staging-superpowers-for-woocommerce' )
+			esc_url( sspw_settings_url() ),
+			esc_html__( 'Settings', 'staging-superpowers' )
 		)
 	);
 
@@ -530,8 +790,7 @@ function sspw_plugin_action_links( $links ) {
 }
 
 /**
- * Inline script printed in the admin footer (wc_enqueue_js() is deprecated
- * since WooCommerce 10.4). Safe to call while the page body renders.
+ * Inline script printed in the admin footer. Safe to call while the page body renders.
  */
 function sspw_inline_script( $js ) {
 	if ( ! wp_script_is( 'sspw-inline', 'registered' ) ) {
