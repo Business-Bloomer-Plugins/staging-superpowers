@@ -176,6 +176,14 @@ function sspw_status_items() {
 		'off'                 => __( 'Emails are sent to real recipients.', 'staging-superpowers' ),
 	);
 
+	// An email plugin replacing wp_mail() can send around the block, so say so in the label.
+	$mail_owner = 'off' !== $email ? sspw_wp_mail_owner() : '';
+	if ( $mail_owner ) {
+		$email_labels[ $email ] = 'redirect' === $email ? __( 'Emails partially forwarded', 'staging-superpowers' ) : __( 'Emails partially blocked', 'staging-superpowers' );
+		/* translators: %s: plugin name */
+		$email_tips[ $email ] = sprintf( __( '%s replaces the WordPress email function, so its emails may still go out. See the Emails settings.', 'staging-superpowers' ), $mail_owner );
+	}
+
 	$items = array(
 		array(
 			'on'    => in_array( $email, array( 'block', 'redirect' ), true ),
@@ -224,18 +232,6 @@ function sspw_status_items() {
 			),
 		)
 	);
-
-	// An email plugin replacing wp_mail() can send around the block.
-	$mail_owner = 'off' !== sspw_email_status() ? sspw_wp_mail_owner() : '';
-	if ( $mail_owner ) {
-		$items[] = array(
-			'warn'  => true,
-			'label' => __( 'Email bypass risk', 'staging-superpowers' ),
-			/* translators: %s: plugin name */
-			'tip'   => sprintf( __( '%s replaces the WordPress email function. See the Emails settings.', 'staging-superpowers' ), $mail_owner ),
-			'url'   => $links['settings'],
-		);
-	}
 
 	// Troubleshooting leftovers are easy to forget, so they stay visible until undone.
 	$disabled = count( sspw_disabled_plugins() );

@@ -18,24 +18,24 @@ function sspw_wp_mail_owner() {
 		return '';
 	}
 
-	$file = wp_normalize_path( (string) ( new ReflectionFunction( 'wp_mail' ) )->getFileName() );
+	// realpath() throughout, so "./" in ABSPATH or symlinked folders still match.
+	$file = (string) realpath( (string) ( new ReflectionFunction( 'wp_mail' ) )->getFileName() );
 
-	if ( wp_normalize_path( ABSPATH . WPINC . '/pluggable.php' ) === $file ) {
+	if ( realpath( ABSPATH . WPINC . '/pluggable.php' ) === $file ) {
 		return '';
 	}
 
-	$plugins = wp_normalize_path( WP_PLUGIN_DIR ) . '/';
-	if ( 0 === strpos( $file, $plugins ) ) {
-		$folder = strtok( substr( $file, strlen( $plugins ) ), '/' );
-		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	if ( ! function_exists( 'get_plugins' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+	foreach ( get_plugins() as $plugin_file => $data ) {
+		$folder = realpath( WP_PLUGIN_DIR . '/' . dirname( $plugin_file ) );
+		if ( '.' !== dirname( $plugin_file ) && $folder && 0 === strpos( $file, $folder . DIRECTORY_SEPARATOR ) ) {
+			return $data['Name'];
 		}
-		foreach ( get_plugins() as $plugin_file => $data ) {
-			if ( 0 === strpos( $plugin_file, $folder . '/' ) || $plugin_file === $folder ) {
-				return $data['Name'];
-			}
+		if ( realpath( WP_PLUGIN_DIR . '/' . $plugin_file ) === $file ) {
+			return $data['Name'];
 		}
-		return $folder;
 	}
 
 	/* translators: %s: file name */
