@@ -81,14 +81,22 @@ function sspw_log_changes( $where, $changes, $fields ) {
 			continue;
 		}
 
+		$before = sspw_log_value( $field, $change[0], $option );
+		$after  = sspw_log_value( $field, $change[1], $option );
+
+		// An empty string saved over an empty list is not a change anyone made.
+		if ( $before === $after && __( '(hidden)', 'staging-superpowers' ) !== $before ) {
+			continue;
+		}
+
 		sspw_log(
 			sprintf(
 				/* translators: 1: settings screen, 2: setting label, 3: old value, 4: new value */
 				__( 'Settings > %1$s: "%2$s" changed from %3$s to %4$s', 'staging-superpowers' ),
 				$where,
 				wp_strip_all_tags( $label ),
-				sspw_log_value( $field, $change[0], $option ),
-				sspw_log_value( $field, $change[1], $option )
+				$before,
+				$after
 			)
 		);
 	}

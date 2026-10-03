@@ -102,14 +102,14 @@ function sspw_visitor_page() {
 	wp_add_inline_style(
 		'sspw-visitor-page',
 		sspw_visitor_bar_css() .
-		'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff7ed;color:#1c1917;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;padding:72px 16px 32px;box-sizing:border-box}' .
-		'.sspw-card{max-width:520px;background:#fff;border:1px solid #fed7aa;border-radius:12px;padding:32px;box-shadow:0 10px 30px rgba(124,45,18,.08)}' .
+		'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fef2f2;color:#1c1917;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;padding:72px 16px 32px;box-sizing:border-box}' .
+		'.sspw-card{max-width:520px;background:#fff;border:1px solid #fecaca;border-radius:12px;padding:32px;box-shadow:0 10px 30px rgba(185,28,28,.08)}' .
 		'.sspw-card h1{margin:0 0 12px;font-size:26px;line-height:1.25}' .
 		'.sspw-card p{margin:0 0 16px}' .
 		'.sspw-button{display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600}' .
-		'.sspw-button:hover,.sspw-button:focus{background:#9a3412;color:#fff}' .
+		'.sspw-button:hover,.sspw-button:focus{background:#991b1b;color:#fff}' .
 		'.sspw-small{font-size:14px;color:#57534e}' .
-		'.sspw-small a{color:#9a3412}'
+		'.sspw-small a{color:#b91c1c}'
 	);
 
 	status_header( 503 );
