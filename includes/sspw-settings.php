@@ -535,7 +535,7 @@ function sspw_settings_fields() {
 			array(
 				'title'    => __( 'Staging look', 'staging-superpowers' ),
 				'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers' ),
-				'desc_tip' => __( 'Turns the admin bar orange with a STAGING badge, adds a status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
+				'desc_tip' => __( 'Adds a red STAGING badge to the admin bar and a red status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
 				'id'       => 'sspw_look',
 				'type'     => 'checkbox',
 				'default'  => 'yes',

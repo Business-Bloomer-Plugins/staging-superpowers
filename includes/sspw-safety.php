@@ -316,12 +316,11 @@ function sspw_admin_bar_style() {
 		return;
 	}
 
-	$css = 'html #wpadminbar{background:#c2410c}' .
-		'html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item{background:#7c2d12;color:#fff;font-weight:700;letter-spacing:.08em}' .
+	$css = 'html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item,html #wpadminbar #wp-admin-bar-sspw-staging:hover>.ab-item{background:#dc2626;color:#fff;font-weight:700;letter-spacing:.08em}' .
 		'@media screen and (max-width:782px){html #wpadminbar li#wp-admin-bar-sspw-staging{display:block}html #wpadminbar #wp-admin-bar-sspw-staging>.ab-item{font-size:14px;padding:0 10px}}';
 
 	if ( sspw_can_see_status_bar() ) {
-		$css .= '#sspw-status-bar{position:fixed;top:32px;left:0;right:0;z-index:99998;height:28px;display:flex;align-items:center;gap:2px;padding:0 8px;box-sizing:border-box;background:#7c2d12;font:13px/28px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;white-space:nowrap}' .
+		$css .= '#sspw-status-bar{position:fixed;top:32px;left:0;right:0;z-index:99998;height:28px;display:flex;align-items:center;gap:2px;padding:0 8px;box-sizing:border-box;background:#b91c1c;font:13px/28px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;white-space:nowrap}' .
 			'#sspw-status-bar .sspw-items{display:flex;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}' .
 			'#sspw-status-bar .sspw-items::-webkit-scrollbar{display:none}' .
 			'#sspw-status-bar a{color:#fff;text-decoration:none;padding:0 8px;border-radius:3px;box-shadow:none}' .
@@ -330,8 +329,8 @@ function sspw_admin_bar_style() {
 			'#sspw-status-bar .sspw-on .sspw-mark{color:#86efac}' .
 			'#sspw-status-bar .sspw-off{color:#fecaca}' .
 			'#sspw-status-bar .sspw-off .sspw-mark{color:#fca5a5}' .
-			'#sspw-status-bar .sspw-warn{background:#fde68a;color:#7c2d12;font-weight:600;margin-left:6px}' .
-			'#sspw-status-bar .sspw-warn:hover,#sspw-status-bar .sspw-warn:focus{background:#fcd34d;color:#7c2d12}' .
+			'#sspw-status-bar .sspw-warn{background:#fde68a;color:#7f1d1d;font-weight:600;margin-left:6px}' .
+			'#sspw-status-bar .sspw-warn:hover,#sspw-status-bar .sspw-warn:focus{background:#fcd34d;color:#7f1d1d}' .
 			'#sspw-status-bar .sspw-gear{flex-shrink:0;margin-left:4px}' .
 			'#sspw-status-bar .dashicons{font-size:18px;width:18px;height:18px;line-height:28px;vertical-align:top}';
 

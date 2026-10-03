@@ -59,7 +59,7 @@ The Plugin check on the settings page lists the active plugins it knows, with "C
 
 **Staging look**
 
-* Orange admin bar with a STAGING badge, on the dashboard and on the front end.
+* A red STAGING badge in the admin bar, on the dashboard and on the front end. Your admin bar keeps its usual colors.
 * A reminder on post, page, product, coupon, menu and store settings screens, so changes meant for the live site are not made here by mistake. Add your live site address and it links to the same screen on the live site.
 * A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
@@ -115,7 +115,7 @@ The web addresses listed in its settings are services the plugin blocks. The def
 == Installation ==
 
 1. On your staging site, go to Plugins > Add New, search for "Staging Superpowers" and click Install Now, then Activate.
-2. If the site looks like staging, the plugin turns itself on and the admin bar turns orange. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
+2. If the site looks like staging, the plugin turns itself on and a red STAGING badge appears in the admin bar. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
 3. Go to Settings > Staging Superpowers, check your live site address, and review the settings. Every protection is on by default.
 
 Do not install it on your live site. If you do by mistake, it stays off unless someone confirms the site is a copy.
