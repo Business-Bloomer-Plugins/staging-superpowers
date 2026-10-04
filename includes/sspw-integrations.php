@@ -4,8 +4,6 @@
  * blocked web address: publishing pings, Jetpack, scheduled backups, payment
  * test modes and analytics. Each one uses that plugin's own switch, so nothing
  * is changed in the database. Only loaded when the site is armed.
- *
- * sspw-plugin-check.php lists these plugins on the settings page.
  */
 
 defined( 'ABSPATH' ) || exit;

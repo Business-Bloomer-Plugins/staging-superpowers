@@ -329,7 +329,7 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Mark it as staging and hide it from search', 'staging-superpowers' ),
+			'title' => __( 'Staging look, search engines and page caching', 'staging-superpowers' ),
 			'type'  => 'title',
 			'id'    => 'sspw_look_section',
 		),
@@ -515,22 +515,6 @@ function sspw_settings_fields() {
 					'type' => 'sectionend',
 					'id'   => 'sspw_integrations',
 				),
-				array(
-					'title' => __( 'Check your other plugins', 'staging-superpowers' ),
-					'type'  => 'title',
-					'desc'  => __( 'Active plugins that talk to live services, and whether Staging Superpowers covers them or there is something to do yourself.', 'staging-superpowers' ),
-					'id'    => 'sspw_plugin_check_section',
-				),
-				array(
-					'title' => __( 'Your plugins', 'staging-superpowers' ),
-					'type'  => 'info',
-					'text'  => sspw_plugin_check_html(),
-					'id'    => 'sspw_plugin_check',
-				),
-				array(
-					'type' => 'sectionend',
-					'id'   => 'sspw_plugin_check_section',
-				),
 			)
 		)
 	);
@@ -618,6 +602,7 @@ function sspw_output_settings_page() {
 	} else {
 		wp_nonce_field( 'sspw_settings', 'sspw_settings_nonce' );
 		sspw_render_fields( sspw_settings_fields() );
+		sspw_pro_features();
 		submit_button( null, 'primary', 'sspw_save' );
 
 		// The forwarding address only matters in "Forward all" mode, so it is hidden otherwise.
@@ -805,4 +790,30 @@ function sspw_inline_script( $js ) {
 
 	wp_enqueue_script( 'sspw-inline' );
 	wp_add_inline_script( 'sspw-inline', 'jQuery( function () { ' . $js . ' } );' );
+}
+
+/**
+ * What PRO adds, shown above the Save button while PRO is not active.
+ */
+function sspw_pro_features() {
+	if ( class_exists( 'Business_Bloomer_Staging_Superpowers_Pro' ) ) {
+		return;
+	}
+
+	$features = array(
+		__( 'Anonymize customers, orders and staff, and remove secret keys, before you hand the site to a developer or agency', 'staging-superpowers' ),
+		__( 'Send logged-out visitors to the same page on your live site', 'staging-superpowers' ),
+		__( 'Compare any page with your live site, side by side', 'staging-superpowers' ),
+		__( 'Find staging links, images and files still used on your live site', 'staging-superpowers' ),
+		__( 'Generate and delete test orders, products and customers', 'staging-superpowers' ),
+		__( 'Scramble revenue and keep only some of your orders', 'staging-superpowers' ),
+		__( 'Log in as a customer, switch WooCommerce versions and HPOS', 'staging-superpowers' ),
+		__( 'And more...', 'staging-superpowers' ),
+	);
+
+	echo '<h2>' . esc_html__( 'Get more with Staging Superpowers PRO', 'staging-superpowers' ) . '</h2><ul style="list-style:disc;margin-left:20px">';
+	foreach ( $features as $feature ) {
+		echo '<li>' . esc_html( $feature ) . '</li>';
+	}
+	echo '</ul><p><a href="' . esc_url( 'https://www.businessbloomer.com/plugins/staging-superpowers-pro/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'See everything PRO does', 'staging-superpowers' ) . '</a></p>';
 }

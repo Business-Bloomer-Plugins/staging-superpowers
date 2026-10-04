@@ -42,7 +42,7 @@ Some plugins reach live services in their own way, so they get their own switch 
 * Easy Digital Downloads and GiveWP run in test mode, and Paid Memberships Pro uses its sandbox gateway environment.
 * Analytics are off (you can turn this off): Site Kit by Google does not add its Analytics, Tag Manager, Ads and AdSense tags, MonsterInsights tracking is skipped, GTM4WP leaves out its container, and the Meta pixel's Conversions API sends nothing.
 
-The Plugin check on the settings page lists the active plugins it knows, with "Covered" or "Check" and what to do. For example, WP Offload Media, Imagify and WP Search with Algolia talk to their services with their own code, which cannot be blocked, so it tells you to switch them off or change their settings on staging.
+A few plugins, such as WP Offload Media, Imagify and WP Search with Algolia, talk to their services with their own code, which cannot be blocked. Switch them off or change their settings on staging.
 
 **Automations**
 
@@ -186,6 +186,8 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 * The changelog is now always kept and shown on its own page, also on WooCommerce stores (it used to go to the WooCommerce logs). It keeps the latest 1,000 changes.
 * The page heading now includes the tagline, and every section has a clearer heading and description.
 * When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
+* The Plugin check list was removed from the settings page; the protections it described still work.
+* A short list of what Staging Superpowers PRO adds, above the Save button.
 
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.
