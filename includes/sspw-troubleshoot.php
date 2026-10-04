@@ -393,8 +393,8 @@ function sspw_site_check() {
 				'timeout'     => 30,
 				'redirection' => 0,
 				'cookies'     => $request[1],
-				/** This filter is documented in wp-includes/class-wp-http-streams.php */
-				'sslverify'   => apply_filters( 'https_local_ssl_verify', false ),
+				// Core's own filter for loopback requests (see class-wp-http-streams.php).
+				'sslverify'   => apply_filters( 'https_local_ssl_verify', false ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core filter.
 				'headers'     => array( 'Cache-Control' => 'no-cache' ),
 			)
 		);
