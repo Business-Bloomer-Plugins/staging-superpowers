@@ -222,8 +222,8 @@ function sspw_log_updates( $upgrader, $extra ) {
 	}
 
 	// Bulk updates pass a list, single and automatic updates pass one item.
-	$files  = ! empty( $extra['plugins'] ) ? (array) $extra['plugins'] : ( ! empty( $extra['plugin'] ) ? array( $extra['plugin'] ) : array() );
-	$slugs  = ! empty( $extra['themes'] ) ? (array) $extra['themes'] : ( ! empty( $extra['theme'] ) ? array( $extra['theme'] ) : array() );
+	$files = ! empty( $extra['plugins'] ) ? (array) $extra['plugins'] : ( ! empty( $extra['plugin'] ) ? array( $extra['plugin'] ) : array() );
+	$slugs = ! empty( $extra['themes'] ) ? (array) $extra['themes'] : ( ! empty( $extra['theme'] ) ? array( $extra['theme'] ) : array() );
 
 	if ( 'plugin' === $extra['type'] && $files ) {
 		wp_clean_plugins_cache( false );
