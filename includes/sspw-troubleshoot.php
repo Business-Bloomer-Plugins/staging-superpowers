@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'admin_post_sspw_troubleshoot', 'sspw_handle_troubleshoot' );
 add_action( 'admin_post_sspw_troubleshoot_cancel', 'sspw_cancel_troubleshoot_plan' );
 add_action( 'wp_ajax_sspw_release_dates', 'sspw_ajax_release_dates' );
+add_action( 'admin_enqueue_scripts', 'sspw_troubleshoot_assets' );
 
 /**
  * Only this plugin is never switched off. WooCommerce can be, like any other.
@@ -136,6 +137,15 @@ function sspw_previous_theme() {
 	return (string) get_option( 'sspw_previous_theme', '' );
 }
 
+/**
+ * WordPress's plugin details window, for the "View changelog" links.
+ */
+function sspw_troubleshoot_assets() {
+	if ( sspw_is_settings_page( 'troubleshooting' ) ) {
+		add_thickbox();
+	}
+}
+
 function sspw_troubleshoot_url() {
 	return sspw_settings_url( 'troubleshooting' );
 }
@@ -189,48 +199,51 @@ function sspw_wporg_slugs() {
 }
 
 /**
- * Newer version waiting, from WordPress's last update check (never forces one).
+ * What WordPress's last update check (never forced here) says about the
+ * installed version: 'old' with the newer version, 'current', or '' if unknown.
+ *
+ * @return array 'state' => 'old', 'current' or '', 'new' => version.
  */
-function sspw_update_available( $type, $key ) {
+function sspw_version_state( $type, $key ) {
 	$updates = get_site_transient( 'plugin' === $type ? 'update_plugins' : 'update_themes' );
 
-	if ( ! is_object( $updates ) || empty( $updates->response[ $key ] ) ) {
-		return '';
+	if ( is_object( $updates ) && ! empty( $updates->response[ $key ] ) ) {
+		$item = (array) $updates->response[ $key ];
+
+		return array(
+			'state' => 'old',
+			'new'   => isset( $item['new_version'] ) ? (string) $item['new_version'] : '',
+		);
 	}
 
-	$item = (array) $updates->response[ $key ];
-
-	return isset( $item['new_version'] ) ? (string) $item['new_version'] : '';
+	return array(
+		'state' => ( is_object( $updates ) && ! empty( $updates->no_update[ $key ] ) ) ? 'current' : '',
+		'new'   => '',
+	);
 }
 
 /**
- * When the files were last written on this site: the folder and main file
- * change on every install or update, so this is cheap and close enough.
+ * Installed version, red when an update is waiting, green when up to date.
  */
-function sspw_changed_here( $paths ) {
-	$time = 0;
+function sspw_version_cell( $type, $key, $version ) {
+	$state = sspw_version_state( $type, $key );
 
-	foreach ( $paths as $path ) {
-		if ( file_exists( $path ) ) {
-			$time = max( $time, (int) filemtime( $path ) );
-		}
+	if ( 'old' === $state['state'] ) {
+		/* translators: %s: version number */
+		return sprintf( '<span style="color:#d63638;font-weight:600" title="%1$s">%2$s</span>', esc_attr( sprintf( __( 'Update available: %s', 'staging-superpowers' ), $state['new'] ) ), esc_html( $version ) );
 	}
 
-	if ( ! $time ) {
-		return '';
+	if ( 'current' === $state['state'] ) {
+		return sprintf( '<span style="color:#00a32a;font-weight:600" title="%1$s">%2$s</span>', esc_attr__( 'Up to date', 'staging-superpowers' ), esc_html( $version ) );
 	}
 
-	/* translators: %s: time span, e.g. "3 days" */
-	return sprintf( __( '%s ago', 'staging-superpowers' ), human_time_diff( $time ) );
-}
-
-function sspw_plugin_paths( $file ) {
-	return '.' === dirname( $file ) ? array( WP_PLUGIN_DIR . '/' . $file ) : array( WP_PLUGIN_DIR . '/' . dirname( $file ), WP_PLUGIN_DIR . '/' . $file );
+	return esc_html( $version );
 }
 
 /**
- * Release dates of every WordPress.org plugin and theme installed, in one
- * request each, cached for 12 hours. Called after the page has loaded.
+ * Newest version and release date of every WordPress.org plugin and theme
+ * installed, in one request each, cached for 12 hours. Called after the page
+ * has loaded, so the screen is never slow.
  */
 function sspw_ajax_release_dates() {
 	check_ajax_referer( 'sspw_release_dates', 'nonce' );
@@ -239,17 +252,17 @@ function sspw_ajax_release_dates() {
 		wp_send_json_error();
 	}
 
-	$slugs  = sspw_wporg_slugs();
-	$dates  = get_transient( 'sspw_release_dates' );
-	$dates  = is_array( $dates ) ? $dates : array();
-	$apis   = array(
+	$slugs    = sspw_wporg_slugs();
+	$releases = get_transient( 'sspw_releases' );
+	$releases = is_array( $releases ) ? $releases : array();
+	$apis     = array(
 		'plugins' => 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information',
 		'themes'  => 'https://api.wordpress.org/themes/info/1.2/?action=theme_information',
 	);
-	$output = array();
+	$output   = array();
 
 	foreach ( $apis as $type => $api ) {
-		$missing = array_diff( array_values( $slugs[ $type ] ), array_keys( isset( $dates[ $type ] ) ? $dates[ $type ] : array() ) );
+		$missing = array_diff( array_values( $slugs[ $type ] ), array_keys( isset( $releases[ $type ] ) ? $releases[ $type ] : array() ) );
 
 		if ( $missing ) {
 			$url = $api;
@@ -264,31 +277,68 @@ function sspw_ajax_release_dates() {
 			// Remember "not found" too, so local plugins are not looked up every time.
 			if ( is_array( $found ) ) {
 				foreach ( $missing as $slug ) {
-					$dates[ $type ][ $slug ] = isset( $found[ $slug ]['last_updated'] ) ? strtotime( $found[ $slug ]['last_updated'] ) : 0;
+					$releases[ $type ][ $slug ] = isset( $found[ $slug ]['last_updated'], $found[ $slug ]['version'] ) ? array( strtotime( $found[ $slug ]['last_updated'] ), (string) $found[ $slug ]['version'] ) : array();
 				}
-				set_transient( 'sspw_release_dates', $dates, 12 * HOUR_IN_SECONDS );
+				set_transient( 'sspw_releases', $releases, 12 * HOUR_IN_SECONDS );
 			}
 		}
 
 		$keys = 'plugins' === $type ? array_keys( get_plugins() ) : array_keys( wp_get_themes() );
 		foreach ( $keys as $key ) {
-			$slug = isset( $slugs[ $type ][ $key ] ) ? $slugs[ $type ][ $key ] : '';
-			$time = ( $slug && ! empty( $dates[ $type ][ $slug ] ) ) ? (int) $dates[ $type ][ $slug ] : 0;
+			$slug    = isset( $slugs[ $type ][ $key ] ) ? $slugs[ $type ][ $key ] : '';
+			$release = $slug && isset( $releases[ $type ][ $slug ] ) ? $releases[ $type ][ $slug ] : null;
 
-			if ( $time ) {
-				/* translators: 1: date, 2: time span, e.g. "3 days" */
-				$text = sprintf( __( '%1$s (%2$s ago)', 'staging-superpowers' ), wp_date( get_option( 'date_format' ), $time ), human_time_diff( $time ) );
-			} elseif ( $slug && ! isset( $dates[ $type ][ $slug ] ) ) {
-				$text = __( 'Could not check', 'staging-superpowers' );
+			if ( $release ) {
+				$html = sprintf(
+					'<span title="%1$s">%2$s</span>',
+					esc_attr( wp_date( get_option( 'date_format' ), (int) $release[0] ) ),
+					/* translators: 1: version number, 2: time span, e.g. "3 days" */
+					esc_html( sprintf( __( '%1$s, %2$s ago', 'staging-superpowers' ), $release[1], human_time_diff( (int) $release[0] ) ) )
+				);
+			} elseif ( $slug && null === $release ) {
+				$html = esc_html__( 'Could not check', 'staging-superpowers' );
 			} else {
-				$text = __( 'Not on WordPress.org', 'staging-superpowers' );
+				$html = esc_html__( 'Not on WordPress.org', 'staging-superpowers' );
 			}
 
-			$output[ ( 'plugins' === $type ? 'p:' : 't:' ) . $key ] = $text;
+			$output[ ( 'plugins' === $type ? 'p:' : 't:' ) . $key ] = $html;
 		}
 	}
 
 	wp_send_json_success( $output );
+}
+
+/**
+ * WordPress's own plugin details window, on the changelog tab.
+ */
+function sspw_changelog_link( $slug ) {
+	return sprintf(
+		'<a href="%1$s" class="thickbox open-plugin-details-modal">%2$s</a>',
+		esc_url( self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . rawurlencode( $slug ) . '&section=changelog&TB_iframe=true&width=772&height=600' ) ),
+		esc_html__( 'View changelog', 'staging-superpowers' )
+	);
+}
+
+/**
+ * Active first, then alphabetical by name.
+ *
+ * @param array    $items  key => name.
+ * @param string[] $active Keys that are active.
+ * @return string[] Keys in order.
+ */
+function sspw_sorted_keys( $items, $active ) {
+	$keys = array_keys( $items );
+
+	usort(
+		$keys,
+		function ( $a, $b ) use ( $items, $active ) {
+			$on = (int) in_array( $b, $active, true ) - (int) in_array( $a, $active, true );
+
+			return $on ? $on : strnatcasecmp( $items[ $a ], $items[ $b ] );
+		}
+	);
+
+	return $keys;
 }
 
 /*
@@ -330,10 +380,10 @@ function sspw_output_troubleshooting() {
 			jQuery.post( ajaxurl, { action: "sspw_release_dates", nonce: ' . wp_json_encode( wp_create_nonce( 'sspw_release_dates' ) ) . ' } ).done( function ( r ) {
 				sspwCells.each( function () {
 					var key = jQuery( this ).data( "key" );
-					jQuery( this ).text( r && r.success && r.data[ key ] ? r.data[ key ] : ' . wp_json_encode( __( 'Could not check', 'staging-superpowers' ) ) . ' );
+					jQuery( this ).find( ".sspw-release-text" ).html( r && r.success && r.data[ key ] ? r.data[ key ] : ' . wp_json_encode( __( 'Could not check', 'staging-superpowers' ) ) . ' );
 				} );
 			} ).fail( function () {
-				sspwCells.text( ' . wp_json_encode( __( 'Could not check', 'staging-superpowers' ) ) . ' );
+				sspwCells.find( ".sspw-release-text" ).text( ' . wp_json_encode( __( 'Could not check', 'staging-superpowers' ) ) . ' );
 			} );
 		}'
 	);
@@ -359,13 +409,6 @@ function sspw_table_head( $columns, $checkbox = false ) {
 		printf( '<th scope="col" class="manage-column"%1$s>%2$s</th>', $width ? ' style="width:' . esc_attr( $width ) . '"' : '', esc_html( $label ) );
 	}
 	echo '</tr></thead>';
-}
-
-function sspw_update_cell( $type, $key ) {
-	$new = sspw_update_available( $type, $key );
-
-	/* translators: %s: version number */
-	return $new ? '<strong>' . esc_html( sprintf( __( 'Update available: %s', 'staging-superpowers' ), $new ) ) . '</strong>' : esc_html__( 'Up to date', 'staging-superpowers' );
 }
 
 function sspw_output_plugin_tools( $action ) {
@@ -415,20 +458,22 @@ function sspw_output_plugin_tools( $action ) {
 	sspw_button( $action, 'switch_on', __( 'Switch on', 'staging-superpowers' ) );
 	echo '</div><br class="clear" /></div>';
 
+	$slugs = sspw_wporg_slugs();
+
 	echo '<table class="wp-list-table widefat fixed striped sspw-table">';
 	sspw_table_head(
 		array(
 			__( 'Plugin', 'staging-superpowers' )         => '',
 			__( 'Status', 'staging-superpowers' )         => '16%',
-			__( 'Updates', 'staging-superpowers' )        => '16%',
+			__( 'On this site', 'staging-superpowers' )   => '11%',
 			__( 'Latest release', 'staging-superpowers' ) => '20%',
-			__( 'Changed on this site', 'staging-superpowers' ) => '14%',
 		),
 		true
 	);
 	echo '<tbody>';
 
-	foreach ( $all as $file => $data ) {
+	foreach ( sspw_sorted_keys( wp_list_pluck( $all, 'Name' ), $active ) as $file ) {
+		$data      = $all[ $file ];
 		$is_active = in_array( $file, $active, true );
 		$is_kept   = in_array( $file, $kept, true );
 		$id        = 'sspw-plugin-' . md5( $file );
@@ -452,17 +497,14 @@ function sspw_output_plugin_tools( $action ) {
 			esc_attr( $file ),
 			$is_kept ? ' disabled' : ''
 		);
-		printf(
-			'<td><label for="%1$s"><strong>%2$s</strong></label><br /><span class="description">%3$s</span></td>',
-			esc_attr( $id ),
-			esc_html( $data['Name'] ),
-			/* translators: %s: version number */
-			esc_html( sprintf( __( 'Version %s', 'staging-superpowers' ), $data['Version'] ) )
-		);
+		printf( '<td><label for="%1$s"><strong>%2$s</strong></label></td>', esc_attr( $id ), esc_html( $data['Name'] ) );
 		echo '<td>' . ( $is_active ? '<strong>' . esc_html( $status ) . '</strong>' : esc_html( $status ) ) . '</td>';
-		echo '<td>' . wp_kses_post( sspw_update_cell( 'plugin', $file ) ) . '</td>';
-		echo '<td class="sspw-released" data-key="' . esc_attr( 'p:' . $file ) . '">' . esc_html__( 'Checking...', 'staging-superpowers' ) . '</td>';
-		echo '<td>' . esc_html( sspw_changed_here( sspw_plugin_paths( $file ) ) ) . '</td>';
+		echo '<td>' . wp_kses_post( sspw_version_cell( 'plugin', $file, $data['Version'] ) ) . '</td>';
+		echo '<td class="sspw-released" data-key="' . esc_attr( 'p:' . $file ) . '"><span class="sspw-release-text">' . esc_html__( 'Checking...', 'staging-superpowers' ) . '</span>';
+		if ( isset( $slugs['plugins'][ $file ] ) ) {
+			echo '<br />' . wp_kses_post( sspw_changelog_link( $slugs['plugins'][ $file ] ) );
+		}
+		echo '</td>';
 		echo '</tr>';
 	}
 
@@ -483,20 +525,26 @@ function sspw_output_theme_tools( $action ) {
 		echo '</p>';
 	}
 
+	$themes = wp_get_themes();
+	$names  = array();
+	foreach ( $themes as $stylesheet => $theme ) {
+		$names[ $stylesheet ] = $theme->get( 'Name' );
+	}
+
 	echo '<table class="wp-list-table widefat fixed striped sspw-table">';
 	sspw_table_head(
 		array(
 			__( 'Theme', 'staging-superpowers' )          => '',
-			__( 'Status', 'staging-superpowers' )         => '13%',
-			__( 'Updates', 'staging-superpowers' )        => '13%',
+			__( 'Status', 'staging-superpowers' )         => '16%',
+			__( 'On this site', 'staging-superpowers' )   => '11%',
 			__( 'Latest release', 'staging-superpowers' ) => '20%',
-			__( 'Changed on this site', 'staging-superpowers' ) => '14%',
 			''                                            => '13%',
 		)
 	);
 	echo '<tbody>';
 
-	foreach ( wp_get_themes() as $stylesheet => $theme ) {
+	foreach ( sspw_sorted_keys( $names, array( $current ) ) as $stylesheet ) {
+		$theme     = $themes[ $stylesheet ];
 		$is_active = $stylesheet === $current;
 		$parent    = $theme->parent();
 
@@ -508,19 +556,16 @@ function sspw_output_theme_tools( $action ) {
 			$status = __( 'Inactive', 'staging-superpowers' );
 		}
 
-		/* translators: %s: version number */
-		$details = sprintf( __( 'Version %s', 'staging-superpowers' ), $theme->get( 'Version' ) );
+		echo '<tr' . ( $is_active ? ' class="active"' : '' ) . '>';
+		echo '<td><strong>' . esc_html( $theme->get( 'Name' ) ) . '</strong>';
 		if ( $parent ) {
 			/* translators: %s: parent theme name */
-			$details .= '. ' . sprintf( __( 'Child theme of %s', 'staging-superpowers' ), $parent->get( 'Name' ) );
+			echo '<br /><span class="description">' . esc_html( sprintf( __( 'Child theme of %s', 'staging-superpowers' ), $parent->get( 'Name' ) ) ) . '</span>';
 		}
-
-		echo '<tr' . ( $is_active ? ' class="active"' : '' ) . '>';
-		echo '<td><strong>' . esc_html( $theme->get( 'Name' ) ) . '</strong><br /><span class="description">' . esc_html( $details ) . '</span></td>';
+		echo '</td>';
 		echo '<td>' . ( $is_active ? '<strong>' . esc_html( $status ) . '</strong>' : esc_html( $status ) ) . '</td>';
-		echo '<td>' . wp_kses_post( sspw_update_cell( 'theme', $stylesheet ) ) . '</td>';
-		echo '<td class="sspw-released" data-key="' . esc_attr( 't:' . $stylesheet ) . '">' . esc_html__( 'Checking...', 'staging-superpowers' ) . '</td>';
-		echo '<td>' . esc_html( sspw_changed_here( array( $theme->get_stylesheet_directory(), $theme->get_stylesheet_directory() . '/style.css' ) ) ) . '</td>';
+		echo '<td>' . wp_kses_post( sspw_version_cell( 'theme', $stylesheet, $theme->get( 'Version' ) ) ) . '</td>';
+		echo '<td class="sspw-released" data-key="' . esc_attr( 't:' . $stylesheet ) . '"><span class="sspw-release-text">' . esc_html__( 'Checking...', 'staging-superpowers' ) . '</span></td>';
 		echo '<td>';
 		if ( ! $is_active ) {
 			printf(

@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'switch_theme', 'sspw_log_theme', 10, 3 );
 add_action( 'activated_plugin', 'sspw_log_plugin_activated' );
 add_action( 'deactivated_plugin', 'sspw_log_plugin_deactivated' );
+add_filter( 'upgrader_pre_install', 'sspw_note_version_before', 10, 2 );
 add_action( 'upgrader_process_complete', 'sspw_log_updates', 10, 2 );
 add_action( 'transition_post_status', 'sspw_log_post_status', 10, 3 );
 add_action( 'before_delete_post', 'sspw_log_post_deleted' );
@@ -189,24 +190,63 @@ function sspw_log_plugin_deactivated( $file ) {
 	sspw_log( sprintf( __( 'Plugin deactivated: %s', 'staging-superpowers' ), sspw_plugin_name( $file ) ) );
 }
 
+/**
+ * The upgrader replaces the files before it says it is done, so the version
+ * being replaced is read here, just before.
+ */
+function sspw_note_version_before( $response, $hook_extra ) {
+	if ( ! empty( $hook_extra['plugin'] ) && file_exists( WP_PLUGIN_DIR . '/' . $hook_extra['plugin'] ) ) {
+		$data = get_file_data( WP_PLUGIN_DIR . '/' . $hook_extra['plugin'], array( 'version' => 'Version' ) );
+
+		$GLOBALS['sspw_versions_before'][ 'plugin:' . $hook_extra['plugin'] ] = $data['version'];
+	} elseif ( ! empty( $hook_extra['theme'] ) ) {
+		$theme = wp_get_theme( $hook_extra['theme'] );
+		if ( $theme->exists() ) {
+			$GLOBALS['sspw_versions_before'][ 'theme:' . $hook_extra['theme'] ] = $theme->get( 'Version' );
+		}
+	}
+
+	return $response;
+}
+
+/**
+ * The version an update replaced, noted by sspw_note_version_before().
+ */
+function sspw_version_before( $key ) {
+	return isset( $GLOBALS['sspw_versions_before'][ $key ] ) ? (string) $GLOBALS['sspw_versions_before'][ $key ] : '';
+}
+
 function sspw_log_updates( $upgrader, $extra ) {
 	if ( empty( $extra['action'] ) || 'update' !== $extra['action'] || empty( $extra['type'] ) ) {
 		return;
 	}
 
 	if ( 'plugin' === $extra['type'] && ! empty( $extra['plugins'] ) ) {
+		wp_clean_plugins_cache( false );
 		$plugins = get_plugins();
 		foreach ( (array) $extra['plugins'] as $file ) {
 			if ( isset( $plugins[ $file ] ) ) {
-				/* translators: 1: plugin name, 2: version */
-				sspw_log( sprintf( __( 'Plugin updated: %1$s to version %2$s', 'staging-superpowers' ), $plugins[ $file ]['Name'], $plugins[ $file ]['Version'] ) );
+				$from = sspw_version_before( 'plugin:' . $file );
+				if ( $from ) {
+					/* translators: 1: plugin name, 2: old version, 3: new version */
+					sspw_log( sprintf( __( 'Plugin updated: %1$s from version %2$s to %3$s', 'staging-superpowers' ), $plugins[ $file ]['Name'], $from, $plugins[ $file ]['Version'] ) );
+				} else {
+					/* translators: 1: plugin name, 2: version */
+					sspw_log( sprintf( __( 'Plugin updated: %1$s to version %2$s', 'staging-superpowers' ), $plugins[ $file ]['Name'], $plugins[ $file ]['Version'] ) );
+				}
 			}
 		}
 	} elseif ( 'theme' === $extra['type'] && ! empty( $extra['themes'] ) ) {
 		foreach ( (array) $extra['themes'] as $slug ) {
 			$theme = wp_get_theme( $slug );
-			/* translators: 1: theme name, 2: version */
-			sspw_log( sprintf( __( 'Theme updated: %1$s to version %2$s', 'staging-superpowers' ), $theme->get( 'Name' ), $theme->get( 'Version' ) ) );
+			$from  = sspw_version_before( 'theme:' . $slug );
+			if ( $from ) {
+				/* translators: 1: theme name, 2: old version, 3: new version */
+				sspw_log( sprintf( __( 'Theme updated: %1$s from version %2$s to %3$s', 'staging-superpowers' ), $theme->get( 'Name' ), $from, $theme->get( 'Version' ) ) );
+			} else {
+				/* translators: 1: theme name, 2: version */
+				sspw_log( sprintf( __( 'Theme updated: %1$s to version %2$s', 'staging-superpowers' ), $theme->get( 'Name' ), $theme->get( 'Version' ) ) );
+			}
 		}
 	} elseif ( 'core' === $extra['type'] ) {
 		/* translators: %s: WordPress version */

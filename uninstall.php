@@ -40,3 +40,4 @@ foreach ( $sspw_options as $sspw_option ) {
 }
 
 delete_transient( 'sspw_pending_actions' );
+delete_transient( 'sspw_releases' );
