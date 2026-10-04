@@ -19,6 +19,11 @@ add_action( 'pre_delete_term', 'sspw_log_term_deleted', 10, 2 );
 add_action( 'wp_update_nav_menu', 'sspw_log_menu' );
 
 function sspw_log( $message ) {
+	// Troubleshooting switches many plugins at once and writes one summary entry itself.
+	if ( ! empty( $GLOBALS['sspw_quiet_log'] ) ) {
+		return;
+	}
+
 	$user = wp_get_current_user();
 	$who  = $user->exists() ? $user->display_name : ( ( defined( 'WP_CLI' ) && WP_CLI ) ? 'WP-CLI' : __( 'the system', 'staging-superpowers' ) );
 

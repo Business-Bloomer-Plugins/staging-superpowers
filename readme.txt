@@ -86,11 +86,13 @@ Find it at Tools > Staging Superpowers > Changelog, on every site, with or witho
 
 Find out if a problem is caused by another plugin or by the theme, from Tools > Staging Superpowers > Troubleshooting.
 
-* Switch off every plugin except the ones you choose, WooCommerce included.
-* Before anything changes, a preview lists what will be switched off. Plugins you kept that need one of them (their "Requires Plugins" header, or a WooCommerce.com extension when WooCommerce goes off) are switched off with it, and the preview says why.
+* Every plugin on one row, with its status, whether an update is waiting, when its latest version was released on WordPress.org and when it was last changed on this site. A plugin updated recently is often the cause.
+* Tick plugins (or select all), then Switch off or Switch on. WooCommerce can be switched off like any other plugin.
+* Before anything is switched off, a preview lists what will change. Plugins that need one of them (their "Requires Plugins" header, or a WooCommerce.com extension when WooCommerce goes off) are switched off with it, and the preview says why. Switching a plugin on also switches on what it needs.
 * After every switch, the site loads itself in the background, logged out and as you. If that shows a fatal error, the switch is undone straight away and the plugin or theme that caused it is named, so the staging site never ends up broken.
-* Switch the same plugins back on with one click, or switch on every installed plugin.
-* Switch to the parent theme or to a default theme, then back to your theme.
+* Switch everything back on with one click.
+* Every theme on one row with the same details, a "Use this theme" button and a button to go back to the theme you started with.
+* Each action is one entry in the changelog, however many plugins it switched.
 * While plugins or the theme are switched, the status bar shows a reminder so nothing is forgotten.
 * Only available while the plugin is on for the current URL, so a live site can never be switched off from here.
 
@@ -167,7 +169,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 1. The status bar shows every protection at a glance, with links to manage each one.
 2. Settings, with a plain-English explanation for every protection.
 3. On a WooCommerce store, the Staging Test Gateway is the only payment method at checkout, so no real money moves.
-4. Troubleshooting: switch plugins and the theme off and back on. A preview shows what will change, and a fatal error is undone straight away.
+4. Troubleshooting: every plugin with its status, updates and release dates. Tick plugins to switch them off or on; a fatal error is undone straight away.
 5. The changelog: a list of what to redo on your live site.
 6. The message visitors can be shown instead of the staging site.
 
@@ -177,7 +179,9 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 * Settings moved to Tools > Staging Superpowers, in a clearer order: staging look, search engines and caching first, then visitors, emails, WooCommerce, then automations and connected services. Old links to Settings > Staging Superpowers still work.
 * New: Crawlers and AI bots (on by default). robots.txt asks every crawler to stay away, the WordPress sitemaps are off, and known search and AI crawlers are refused.
 * Visitors now have two choices: everyone sees the site (the new default), or logged-out visitors see a message with your own heading and text. The message page never mentions staging. The redirect to the live site and the visitor STAGING bar were removed, together with the live site address setting.
+* Troubleshooting is now a table: one plugin or theme per row, with its status, waiting updates, the date of its latest WordPress.org release and when it was last changed on this site. Tick plugins to switch them off or on, or switch any theme on with one click.
 * Troubleshooting: WooCommerce can be switched off like any other plugin. A preview lists what will be switched off, including plugins that need one of them. After every switch the site checks itself, and a fatal error undoes the switch and names the plugin or theme that caused it.
+* Troubleshooting actions write one changelog entry each, however many plugins they switch.
 * The changelog is now always kept and shown on its own page, also on WooCommerce stores (it used to go to the WooCommerce logs). It keeps the latest 1,000 changes.
 * The page heading now includes the tagline, and every section has a clearer heading and description.
 * When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
