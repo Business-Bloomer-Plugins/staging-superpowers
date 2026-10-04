@@ -132,7 +132,7 @@ function sspw_link_check_slice( $step, $from ) {
 	$skip_types = "'revision','oembed_cache','customize_changeset','user_request'";
 
 	// Table and column names are fixed above; every value goes through prepare().
-	// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter
 	switch ( $step ) {
 		case 'posts':
 			$sql = "SELECT p.ID AS id, p.post_type, p.post_title, p.post_content, p.post_excerpt FROM {$wpdb->posts} p WHERE p.ID > %d AND p.ID <= %d AND p.post_type NOT IN ( {$skip_types} ) AND p.post_status NOT IN ( 'auto-draft', 'trash' ) AND {$like}";
