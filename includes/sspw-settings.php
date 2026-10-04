@@ -713,7 +713,8 @@ function sspw_sanitize_field( $field, $raw ) {
 		case 'select':
 			return isset( $field['options'][ (string) $raw ] ) ? (string) $raw : $field['default'];
 		case 'textarea':
-			return sanitize_textarea_field( (string) $raw );
+			// Browsers send Windows line endings; store plain ones so an unchanged list never looks changed.
+			return str_replace( "\r\n", "\n", sanitize_textarea_field( (string) $raw ) );
 		case 'email':
 			return sanitize_email( (string) $raw );
 		case 'url':
@@ -754,6 +755,10 @@ function sspw_save_settings() {
 		update_option( $id, $new );
 
 		$fields[ $id ] = $field;
+		// Lists saved before 1.1.2 may still have Windows line endings.
+		if ( is_string( $old ) ) {
+			$old = str_replace( "\r\n", "\n", $old );
+		}
 		if ( $old !== $new ) {
 			$changes[ $id ] = array( $old, $new );
 		}

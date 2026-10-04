@@ -221,10 +221,14 @@ function sspw_log_updates( $upgrader, $extra ) {
 		return;
 	}
 
-	if ( 'plugin' === $extra['type'] && ! empty( $extra['plugins'] ) ) {
+	// Bulk updates pass a list, single and automatic updates pass one item.
+	$files  = ! empty( $extra['plugins'] ) ? (array) $extra['plugins'] : ( ! empty( $extra['plugin'] ) ? array( $extra['plugin'] ) : array() );
+	$slugs  = ! empty( $extra['themes'] ) ? (array) $extra['themes'] : ( ! empty( $extra['theme'] ) ? array( $extra['theme'] ) : array() );
+
+	if ( 'plugin' === $extra['type'] && $files ) {
 		wp_clean_plugins_cache( false );
 		$plugins = get_plugins();
-		foreach ( (array) $extra['plugins'] as $file ) {
+		foreach ( $files as $file ) {
 			if ( isset( $plugins[ $file ] ) ) {
 				$from = sspw_version_before( 'plugin:' . $file );
 				if ( $from ) {
@@ -236,8 +240,8 @@ function sspw_log_updates( $upgrader, $extra ) {
 				}
 			}
 		}
-	} elseif ( 'theme' === $extra['type'] && ! empty( $extra['themes'] ) ) {
-		foreach ( (array) $extra['themes'] as $slug ) {
+	} elseif ( 'theme' === $extra['type'] && $slugs ) {
+		foreach ( $slugs as $slug ) {
 			$theme = wp_get_theme( $slug );
 			$from  = sspw_version_before( 'theme:' . $slug );
 			if ( $from ) {

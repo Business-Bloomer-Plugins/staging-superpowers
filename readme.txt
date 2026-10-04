@@ -4,7 +4,7 @@ Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -219,6 +219,10 @@ Tools for working on the copy: anonymizing personal data before you hand the sit
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
+
+= 1.1.2 =
+* Fix: automatic background updates of plugins and themes are now recorded in the changelog, like updates made from the Plugins screen.
+* Fix: saving the settings no longer records "Blocked services changed" when the list did not change.
 
 = 1.1.1 =
 * Settings moved to Tools > Staging Superpowers, in a clearer order: staging look, search engines and caching first, then visitors, emails, WooCommerce, then automations and connected services. Old links to Settings > Staging Superpowers still work.
