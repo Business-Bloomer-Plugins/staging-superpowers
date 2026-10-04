@@ -8,7 +8,7 @@ Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Make a staging copy of your site safe to test on: blocks emails and outside services, freezes scheduled tasks, hides staging from Google.
+Make a staging copy of your site safe to test on: blocks emails and outside services, freezes scheduled tasks, keeps search engines and AI bots out.
 
 == Description ==
 
@@ -50,21 +50,27 @@ The Plugin check on the settings page lists the active plugins it knows, with "C
 * Freezes the Action Scheduler queue too, when your site has it (WooCommerce and many other plugins use it), so renewals, follow-up emails, automation workflows and sync jobs do not run. The status bar shows how many are waiting.
 * You can still run any single scheduled action by hand from its admin screen, or a single WP-Cron task with WP-CLI (wp cron event run).
 
-**Visitors**
-
-* Logged-out visitors see the staging copy with a red STAGING bar on every page and a link to open the same page on your live site. You can test the site logged out, and anyone who lands here from an old link knows where they are.
-* You, and anyone who can edit the site, see the staging copy as normal once logged in.
-* Your live site address is filled in for you when it can be detected from your site data (you check it and save).
-* Want to keep everyone except your team out? Send logged-out visitors to the same page on your live site, or show them a plain "We'll be right back" maintenance page that never mentions staging, with a link to your live site. The login page is never redirected, and browsers your team has logged in with go to the login page instead. Search engines are told not to index anything either way.
-
 **Staging look**
 
 * A red STAGING badge in the admin bar, on the dashboard and on the front end. Your admin bar keeps its usual colors.
-* A reminder on post, page, product, coupon, menu and store settings screens, so changes meant for the live site are not made here by mistake. Add your live site address and it links to the same screen on the live site.
 * A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
+* A reminder on post, page, product, coupon, menu and store settings screens, so changes meant for the live site are not made here by mistake.
 * "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
-* Adds noindex, nofollow to every page.
-* Turns off page caching, so you always see your latest changes and visitors are never shown a saved page instead of being redirected. Works with WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Cache Enabler, SiteGround, Breeze, Hummingbird, WP-Optimize and host caches that respect no-cache headers. Existing saved pages are emptied once. Cache plugin settings are not changed.
+
+**Search engines, crawlers and AI bots**
+
+* Adds noindex, nofollow to every page, whatever is set in Settings > Reading.
+* robots.txt asks every crawler to stay away, and the WordPress sitemaps are turned off.
+* Known search and AI crawlers that come anyway (Googlebot, Bingbot, GPTBot, ClaudeBot, PerplexityBot, CCBot, Bytespider and others) are refused. Your team, logged-in users and the site's own background tasks are never blocked.
+
+**Page caching**
+
+* Turns off page caching, so you always see your latest changes. Works with WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Cache Enabler, SiteGround, Breeze, Hummingbird, WP-Optimize and host caches that respect no-cache headers. Existing saved pages are emptied once. Cache plugin settings are not changed.
+
+**Visitors**
+
+* By default everyone can see the staging site, so you can test it logged out too.
+* Or show logged-out visitors (and accounts that cannot edit the site, like customers) a plain message instead, with your own heading and text. It never mentions staging, so customers are not confused. Your team logs in at /wp-login.php as usual, and browsers your team has logged in with go to the login page instead of the message.
 
 **Changelog**
 
@@ -80,21 +86,13 @@ Find it at Tools > Staging Superpowers > Changelog, on every site, with or witho
 
 Find out if a problem is caused by another plugin or by the theme, from Tools > Staging Superpowers > Troubleshooting.
 
-* Switch off every plugin except the ones you choose. Plugins that a kept plugin needs stay on automatically, and so does WooCommerce.
+* Switch off every plugin except the ones you choose, WooCommerce included.
+* Before anything changes, a preview lists what will be switched off. Plugins you kept that need one of them (their "Requires Plugins" header, or a WooCommerce.com extension when WooCommerce goes off) are switched off with it, and the preview says why.
+* After every switch, the site loads itself in the background, logged out and as you. If that shows a fatal error, the switch is undone straight away and the plugin or theme that caused it is named, so the staging site never ends up broken.
 * Switch the same plugins back on with one click, or switch on every installed plugin.
 * Switch to the parent theme or to a default theme, then back to your theme.
 * While plugins or the theme are switched, the status bar shows a reminder so nothing is forgotten.
 * Only available while the plugin is on for the current URL, so a live site can never be switched off from here.
-
-**Link check**
-
-Find every place that points to the other copy of your site, from Tools > Staging Superpowers > Link check. It only lists them: nothing is changed.
-
-* On your live site, it finds links, images and files that still point to a staging copy: in pages and posts, page builder content, widgets, menus, theme settings, plugin settings, category fields and user profiles. They break or show old content once the staging copy changes or goes away.
-* It looks for every staging address the plugin was turned on for, any address you add, and anything that looks like a staging address, such as staging.yoursite.com or a hosting company's staging domain.
-* On a staging site, it does the reverse and finds links to your live site, so you don't end up editing live by accident.
-* Each result says what it is, for example "Widget: Text widget in Footer" or "Menu item: Shop", with an Edit link and the image file when it is an image.
-* It reads the database in small parts, so it works on large sites, and only runs when you click the button.
 
 **Deploy guard**
 
@@ -111,7 +109,7 @@ When WooCommerce is active, these protections are added on top, all on by defaul
 * Payments: hides every payment method at checkout, so live Stripe, PayPal or WooPayments keys are never used, and adds a Staging Test Gateway instead. Choose whether test payments succeed, go on hold or fail. Refunds are simulated too. Works with the classic checkout and the Checkout block.
 * Subscriptions: locks subscriptions copied from the live store, their orders and the customers who own them, so nobody can delete them on staging. Deleting them could make your payment plugin remove the customer's saved card at Stripe (or PayPal, Square...), which would stop renewals on the live store. Subscriptions you create on staging for testing are not locked.
 * Webhooks: stops every WooCommerce webhook from being delivered, so your ERP, fulfillment or accounting tools never receive staging orders.
-* When visitors are sent to the live site or shown the maintenance page, they cannot use the cart and checkout API either, so nobody places orders that go nowhere.
+* When visitors are shown the message instead of the site, they cannot use the cart and checkout API either, so nobody places orders that go nowhere.
 * The changelog also records WooCommerce settings and the cart or checkout switching between blocks and classic.
 
 Settings are at Tools > Staging Superpowers.
@@ -126,7 +124,7 @@ The web addresses listed in its settings are services the plugin blocks. The def
 
 1. On your staging site, go to Plugins > Add New, search for "Staging Superpowers" and click Install Now, then Activate.
 2. If the site looks like staging, the plugin turns itself on and a red STAGING badge appears in the admin bar. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
-3. Go to Tools > Staging Superpowers, check your live site address, and review the settings. Every protection is on by default.
+3. Go to Tools > Staging Superpowers and review the settings. Every protection is on by default.
 
 Do not install it on your live site. If you do by mistake, it stays off unless someone confirms the site is a copy.
 
@@ -140,9 +138,9 @@ No. Every protection except payments, webhooks and the subscription lock works o
 
 No. It only turns itself on when the site address or environment clearly says staging. On any other address it shows a notice and waits for an admin to confirm, with a warning, that the site is a copy.
 
-= I visit my staging site and end up on my live site, or on a maintenance page =
+= Visitors see a message instead of my staging site =
 
-Visitors are set to be sent to the live site, or shown the maintenance page, so nobody uses staging by mistake. Log in at your staging address followed by /wp-login.php (that page is never redirected) and you will see the staging site as normal. To browse staging while logged out, set Visitors to "Show the site with a STAGING bar" in Tools > Staging Superpowers.
+Visitors are set to "Show a message instead". Log in at your staging address followed by /wp-login.php and you will see the staging site as normal. To let everyone see it, set Visitors to "Let everyone see the site" in Tools > Staging Superpowers.
 
 = I cloned my staging site to a new URL and the plugin says it is not turned on =
 
@@ -169,21 +167,20 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 1. The status bar shows every protection at a glance, with links to manage each one.
 2. Settings, with a plain-English explanation for every protection.
 3. On a WooCommerce store, the Staging Test Gateway is the only payment method at checkout, so no real money moves.
-4. Troubleshooting: switch plugins and the theme off, then back on with one click.
+4. Troubleshooting: switch plugins and the theme off and back on. A preview shows what will change, and a fatal error is undone straight away.
 5. The changelog: a list of what to redo on your live site.
-6. The under-maintenance page visitors can be shown instead of the staging site.
+6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
 
 = 1.1.1 =
-* New: Link check. On your live site, it lists every link, image and file that still points to a staging copy, with an Edit link for each. On staging, it lists links to your live site.
-* The page moved to Tools > Staging Superpowers. Old links to Settings > Staging Superpowers still work.
-* The page heading now includes the tagline, and every section has a clearer heading and description.
-* Logged-out visitors now see the site with a STAGING bar by default, so your team can test the site logged out. The bar links to the same page on your live site.
-* Visitors now have three choices: the STAGING bar, the same page on the live site, or a new under-maintenance page. The maintenance page replaces the "this is a staging site" page and never mentions staging, so customers are not confused. "Show the site as normal" was removed; sites that used it now get the STAGING bar.
+* Settings moved to Tools > Staging Superpowers, in a clearer order: staging look, search engines and caching first, then visitors, emails, WooCommerce, then automations and connected services. Old links to Settings > Staging Superpowers still work.
+* New: Crawlers and AI bots (on by default). robots.txt asks every crawler to stay away, the WordPress sitemaps are off, and known search and AI crawlers are refused.
+* Visitors now have two choices: everyone sees the site (the new default), or logged-out visitors see a message with your own heading and text. The message page never mentions staging. The redirect to the live site and the visitor STAGING bar were removed, together with the live site address setting.
+* Troubleshooting: WooCommerce can be switched off like any other plugin. A preview lists what will be switched off, including plugins that need one of them. After every switch the site checks itself, and a fatal error undoes the switch and names the plugin or theme that caused it.
 * The changelog is now always kept and shown on its own page, also on WooCommerce stores (it used to go to the WooCommerce logs). It keeps the latest 1,000 changes.
+* The page heading now includes the tagline, and every section has a clearer heading and description.
 * When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
-* The live site address and the visitor settings (Visitors, Staging look, Search engines, Page caching) are now one section at the top of the page. The live site address is explained as optional, with what changes without it.
 
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.
