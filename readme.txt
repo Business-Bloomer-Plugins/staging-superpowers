@@ -12,11 +12,26 @@ Make a staging copy of your site safe to test on: blocks emails and outside serv
 
 == Description ==
 
+**Live stays safe. Every time.**
+
 A staging copy of a live WordPress site is risky. It has the real email addresses of your users, the same connections to your email marketing, CRM and payment accounts, and the same scheduled tasks, all ready to fire the moment someone tests a form or WP-Cron runs.
 
 Install it on your staging site. When the site looks like staging (a staging. or dev. address, a .local site, a hosting company's staging domain such as WP Engine, Kinsta or Cloudways, or WP_ENVIRONMENT_TYPE set to staging), it turns itself on the moment you activate it. Anywhere else it waits for you to confirm with one click, so installing it on your live site by mistake changes nothing.
 
 It works on any WordPress site. On a WooCommerce store it also hides your payment methods, adds a test gateway, pauses webhooks and locks subscriptions copied from the live store. See "WooCommerce stores" below.
+
+**At a glance**
+
+* Stops every email to real people, including those sent through SMTP plugins.
+* Blocks payment, email marketing, CRM, shipping, tax, social and analytics services, so a test never reaches your live accounts.
+* Freezes WP-Cron and scheduled actions, so renewals, follow-ups and syncs do not run twice.
+* Keeps search engines and AI bots out.
+* Marks the site with a red STAGING badge and a status bar showing every protection.
+* Records what you change, so you know what to redo on the live site.
+* Finds the plugin that breaks your site, and undoes a change that causes a fatal error.
+* Switches itself off if the database ends up on your live site.
+
+Nothing is changed in your database, and everything is on by default. The details are below.
 
 **Emails**
 
@@ -116,6 +131,16 @@ When WooCommerce is active, these protections are added on top, all on by defaul
 
 Settings are at Tools > Staging Superpowers.
 
+**Staging Superpowers Pro**
+
+Staging Superpowers blocks what could hurt your live site. [Staging Superpowers Pro](https://www.businessbloomer.com/plugins/staging-superpowers-pro/) adds tools for working on the copy:
+
+* Anonymize users, customers, form entries and staff, and remove secret keys, before you hand the site to a developer or agency.
+* Send logged-out visitors to the same page on your live site.
+* Compare any page with your live site, side by side.
+* Find staging links, images and files still used on your live site.
+* On WooCommerce stores: generate and delete test orders, products and customers, scramble revenue, log in as a customer, switch WooCommerce versions and HPOS.
+
 == External services ==
 
 This plugin does not connect to any external service and does not send data anywhere.
@@ -124,13 +149,29 @@ The web addresses listed in its settings are services the plugin blocks. The def
 
 == Installation ==
 
-1. On your staging site, go to Plugins > Add New, search for "Staging Superpowers" and click Install Now, then Activate.
+1. On your staging site, go to Plugins > Add New Plugin, search for "Staging Superpowers" and click Install Now, then Activate.
 2. If the site looks like staging, the plugin turns itself on and a red STAGING badge appears in the admin bar. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
 3. Go to Tools > Staging Superpowers and review the settings. Every protection is on by default.
 
 Do not install it on your live site. If you do by mistake, it stays off unless someone confirms the site is a copy.
 
 == Frequently Asked Questions ==
+
+= Who is it for? =
+
+Store owners, developers and agencies who test changes on a staging copy before making them on the live site: plugin and theme updates, new features, redesigns, checkout changes.
+
+= Does it work with my host's staging sites? =
+
+Yes. It works with any staging copy, whether your host made it (WP Engine, Kinsta, SiteGround, Cloudways and others), a staging plugin made it, or you copied the site by hand. Most hosting staging addresses are recognized, so it turns itself on. If yours is not, click the button in the notice once.
+
+= Will it break or change my staging site? =
+
+No. Everything works through WordPress filters while the plugin is active: payment methods, webhooks, scheduled tasks and settings stay exactly as they were in the database. Deactivate it and the site behaves as before.
+
+= What happens when I push staging to my live site? =
+
+The plugin notices it is on a different address and switches itself off, so your live site keeps sending emails, taking payments and running its scheduled tasks. Even so, think twice before pushing a staging database over a live one: it wipes everything added on the live site since the copy was made. The changelog lists what you changed, so you can redo it instead.
 
 = Do I need WooCommerce? =
 
@@ -164,10 +205,14 @@ That is the automations freeze. WooCommerce and other plugins use scheduled task
 
 No. It only exists while the plugin is turned on for the current URL, and the deploy guard switches the plugin off on any other URL.
 
+= What does Staging Superpowers Pro add? =
+
+Tools for working on the copy: anonymizing personal data before you hand the site over, sending visitors to your live site, comparing pages with live, finding staging links on live, and WooCommerce test data and switches. See [Staging Superpowers Pro](https://www.businessbloomer.com/plugins/staging-superpowers-pro/).
+
 == Screenshots ==
 
 1. The status bar shows every protection at a glance, with links to manage each one.
-2. Settings, with a plain-English explanation for every protection.
+2. The protection settings, with a plain-English explanation for each one.
 3. On a WooCommerce store, the Staging Test Gateway is the only payment method at checkout, so no real money moves.
 4. Troubleshooting: every plugin with its status, its version on this site and its latest release. Disable or enable one, or several at once; a fatal error is undone straight away.
 5. The changelog: a list of what to redo on your live site.
