@@ -1,8 +1,8 @@
 <?php
 /**
- * What logged-out visitors and non-staff accounts see: the same page on the
- * live site, a "this is a staging site" page, or the normal site with a
- * STAGING bar. Only loaded when the site is armed.
+ * What logged-out visitors and non-staff accounts see: the normal site with a
+ * STAGING bar, the same page on the live site, or a plain under-maintenance
+ * page. Only loaded when the site is armed.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,8 +17,8 @@ if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) 
 }
 
 /**
- * The same bar on the visitor page and on the site, looking like the admin bar
- * so it reads as "not the real site" at a glance.
+ * Bar shown on the site in "STAGING bar" mode, looking like the admin bar so it
+ * reads as "not the real site" at a glance.
  */
 function sspw_visitor_bar_html() {
 	$live = sspw_live_url();
@@ -97,20 +97,21 @@ function sspw_visitor_page() {
 		exit;
 	}
 
-	// The page below is a complete document of its own, so its styles are
-	// registered here and printed in its head with wp_print_styles().
+	// A plain maintenance page: a customer who lands here should not have to
+	// know what a staging site is. It is a complete document of its own, so its
+	// styles are registered here and printed in its head with wp_print_styles().
 	wp_register_style( 'sspw-visitor-page', false, array(), SSPW_VERSION );
 	wp_add_inline_style(
 		'sspw-visitor-page',
-		sspw_visitor_bar_css() .
-		'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fef2f2;color:#1c1917;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;padding:72px 16px 32px;box-sizing:border-box}' .
-		'.sspw-card{max-width:520px;background:#fff;border:1px solid #fecaca;border-radius:12px;padding:32px;box-shadow:0 10px 30px rgba(185,28,28,.08)}' .
-		'.sspw-card h1{margin:0 0 12px;font-size:26px;line-height:1.25}' .
-		'.sspw-card p{margin:0 0 16px}' .
-		'.sspw-button{display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600}' .
-		'.sspw-button:hover,.sspw-button:focus{background:#991b1b;color:#fff}' .
-		'.sspw-small{font-size:14px;color:#57534e}' .
-		'.sspw-small a{color:#b91c1c}'
+		'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f7f7;color:#1d2327;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;padding:32px 16px;box-sizing:border-box;text-align:center}' .
+		'.sspw-card{max-width:480px}' .
+		'.sspw-name{margin:0 0 24px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#646970}' .
+		'.sspw-card h1{margin:0 0 12px;font-size:32px;line-height:1.2}' .
+		'.sspw-card p{margin:0 0 24px}' .
+		'.sspw-button{display:inline-block;background:#1d2327;color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600}' .
+		'.sspw-button:hover,.sspw-button:focus{background:#3c434a;color:#fff}' .
+		'.sspw-small{margin-top:40px;font-size:13px;color:#646970}' .
+		'.sspw-small a{color:#646970}'
 	);
 
 	status_header( 503 );
@@ -126,31 +127,21 @@ function sspw_visitor_page() {
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title><?php echo esc_html( sprintf( /* translators: %s: site name */ __( 'Staging site: %s', 'staging-superpowers' ), $name ) ); ?></title>
+<title><?php echo esc_html( sprintf( /* translators: %s: site name */ __( 'Under maintenance: %s', 'staging-superpowers' ), $name ) ); ?></title>
 	<?php wp_print_styles( 'sspw-visitor-page' ); ?>
 </head>
 <body>
-	<?php echo sspw_visitor_bar_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped when built. ?>
 <main class="sspw-card">
-	<h1><?php esc_html_e( 'This is a staging site', 'staging-superpowers' ); ?></h1>
-	<p>
-	<?php
-	/* translators: %s: site name */
-	echo esc_html( sprintf( __( 'You found a private test copy of %s. It is used to try out changes safely, so nothing here is real and nothing you do here reaches the real site.', 'staging-superpowers' ), $name ) );
-	?>
-	</p>
+	<p class="sspw-name"><?php echo esc_html( $name ); ?></p>
+	<h1><?php esc_html_e( 'We\'ll be right back', 'staging-superpowers' ); ?></h1>
+	<p><?php esc_html_e( 'This page is under maintenance. Please check back soon.', 'staging-superpowers' ); ?></p>
 	<?php if ( $live ) : ?>
-		<p><a class="sspw-button" href="<?php echo esc_url( $live ); ?>"><?php esc_html_e( 'Go to the live site', 'staging-superpowers' ); ?></a></p>
+		<p><a class="sspw-button" href="<?php echo esc_url( $live . sspw_current_path() ); ?>"><?php sspw_has_woocommerce() ? esc_html_e( 'Visit our store', 'staging-superpowers' ) : esc_html_e( 'Visit our website', 'staging-superpowers' ); ?></a></p>
 	<?php endif; ?>
 	<p class="sspw-small">
 	<?php if ( is_user_logged_in() ) : ?>
-		<?php
-		/* translators: %s: user display name */
-		echo esc_html( sprintf( __( 'You are logged in as %s, but this account cannot see the staging site.', 'staging-superpowers' ), wp_get_current_user()->display_name ) );
-		?>
 		<a href="<?php echo esc_url( wp_logout_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log out', 'staging-superpowers' ); ?></a>
 	<?php else : ?>
-		<?php esc_html_e( 'Work on this site?', 'staging-superpowers' ); ?>
 		<a href="<?php echo esc_url( wp_login_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log in', 'staging-superpowers' ); ?></a>
 	<?php endif; ?>
 	</p>

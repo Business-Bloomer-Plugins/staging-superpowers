@@ -98,7 +98,14 @@ function sspw_get( $key ) {
 		'sspw_live_url'           => '',
 	);
 
-	return get_option( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
+	$value = get_option( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
+
+	// "Show the site as normal" was removed in 1.1.1: a saved "off" now shows the STAGING bar.
+	if ( 'sspw_visitors' === $key && ! in_array( $value, array( 'bar', 'redirect', 'lock' ), true ) ) {
+		$value = 'bar';
+	}
+
+	return $value;
 }
 
 /**
@@ -319,12 +326,12 @@ function sspw_visitors_description() {
 
 	$text = sprintf(
 		/* translators: %s: login page link */
-		__( 'What people see here when they are logged out, or logged in without permission to edit the site (customers, members, subscribers). With the STAGING bar, you can keep testing the site as a logged-out visitor, while anyone who lands here by mistake, for example from an old link, sees a red bar with a link to your live site. Choose one of the other options to keep everyone except your team out. Your team always sees the site once logged in at %s.', 'staging-superpowers' ),
+		__( 'What people see here when they are logged out, or logged in without permission to edit the site (customers, members, subscribers). With the STAGING bar, you can keep testing the site as a logged-out visitor, while anyone who lands here by mistake, for example from an old link, sees a red bar with a link to your live site. To keep everyone except your team out, send them to the live site, or show them a plain "we\'ll be right back" page that does not mention staging. Your team always sees the site once logged in at %s.', 'staging-superpowers' ),
 		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
 	);
 
 	if ( '' === sspw_live_url() && 'redirect' === sspw_get( 'sspw_visitors' ) ) {
-		$text .= ' <strong>' . esc_html__( 'Save your live site address above to send visitors there. Until then, they see the "this is a staging site" page instead.', 'staging-superpowers' ) . '</strong>';
+		$text .= ' <strong>' . esc_html__( 'Save your live site address above to send visitors there. Until then, they see the under-maintenance page instead.', 'staging-superpowers' ) . '</strong>';
 	}
 
 	return $text;
@@ -527,10 +534,9 @@ function sspw_settings_fields() {
 				'css'     => 'min-width:440px;',
 				'default' => 'bar',
 				'options' => array(
-					'bar'      => __( 'Show the site, with a STAGING bar on every page (recommended)', 'staging-superpowers' ),
+					'bar'      => __( 'Show the site with a STAGING bar (recommended)', 'staging-superpowers' ),
 					'redirect' => __( 'Send them to the same page on the live site', 'staging-superpowers' ),
-					'lock'     => __( 'Show a "this is a staging site" page', 'staging-superpowers' ),
-					'off'      => __( 'Show the site as normal (not safe)', 'staging-superpowers' ),
+					'lock'     => __( 'Show an under-maintenance page', 'staging-superpowers' ),
 				),
 			),
 			array(
