@@ -49,7 +49,7 @@ function sspw_output_changelog() {
 	}
 	echo '</tbody></table>';
 
-	/* translators: %d: number of entries */
+	/* translators: %s: number of entries */
 	echo '<p class="description">' . esc_html( sprintf( __( 'Newest first. The latest %s changes are kept.', 'staging-superpowers' ), number_format_i18n( SSPW_LOG_LIMIT ) ) ) . '</p><p>';
 	wp_nonce_field( 'sspw_clear_changelog', 'sspw_changelog_nonce' );
 	printf(
