@@ -12,7 +12,7 @@ if ( 'yes' === sspw_get( 'sspw_webhooks' ) ) {
 	add_filter( 'woocommerce_webhook_should_deliver', '__return_false', PHP_INT_MAX );
 }
 
-if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) ) {
+if ( 'lock' === sspw_get( 'sspw_visitors' ) ) {
 	add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
 }
 

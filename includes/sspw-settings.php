@@ -93,16 +93,22 @@ function sspw_get( $key ) {
 		'sspw_look'               => 'yes',
 		'sspw_noindex'            => 'yes',
 		'sspw_no_analytics'       => 'yes',
-		'sspw_visitors'           => 'bar',
+		'sspw_visitors'           => 'open',
+		'sspw_message_title'      => '',
+		'sspw_message_text'       => '',
 		'sspw_no_cache'           => 'yes',
-		'sspw_live_url'           => '',
 	);
 
 	$value = get_option( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
 
-	// "Show the site as normal" was removed in 1.1.1: a saved "off" now shows the STAGING bar.
-	if ( 'sspw_visitors' === $key && ! in_array( $value, array( 'bar', 'redirect', 'lock' ), true ) ) {
-		$value = 'bar';
+	// 1.1.1 has two choices: older "send to live" becomes the message, everything else lets visitors in.
+	if ( 'sspw_visitors' === $key ) {
+		$value = in_array( $value, array( 'lock', 'redirect' ), true ) ? 'lock' : 'open';
+	}
+
+	// An empty message field falls back to the default text, translated only when needed.
+	if ( in_array( $key, array( 'sspw_message_title', 'sspw_message_text' ), true ) && '' === trim( (string) $value ) ) {
+		$value = 'sspw_message_title' === $key ? __( 'We\'ll be right back', 'staging-superpowers' ) : __( 'This site is under maintenance. Please check back soon.', 'staging-superpowers' );
 	}
 
 	return $value;
@@ -123,70 +129,6 @@ function sspw_email_status() {
 }
 
 /**
- * The live site's address, or '' if unset, invalid, or pointing at this site.
- */
-function sspw_live_url() {
-	$url  = untrailingslashit( esc_url_raw( trim( (string) sspw_get( 'sspw_live_url' ) ) ) );
-	$host = wp_parse_url( $url, PHP_URL_HOST );
-
-	if ( ! $host || strtolower( $host ) === strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
-		return '';
-	}
-
-	return $url;
-}
-
-/**
- * A best guess at the live site's address, from traces that survive cloning:
- * WooCommerce Subscriptions stores it scrambled so search and replace cannot
- * rewrite it, and migration tools leave post GUIDs untouched. Only ever shown as
- * a suggestion; nothing uses it until an admin saves it.
- */
-function sspw_detect_live_url() {
-	$here       = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
-	$candidates = array();
-
-	$wcs = (string) get_option( 'wc_subscriptions_siteurl', '' );
-	if ( '' !== $wcs ) {
-		$candidates[] = str_replace( '_[wc_subscriptions_siteurl]_', '', $wcs );
-	}
-
-	$hosts = array();
-	$posts = get_posts(
-		array(
-			'post_type'   => array( 'post', 'page', 'product' ),
-			'post_status' => 'publish',
-			'numberposts' => 50,
-			'orderby'     => 'ID',
-			'order'       => 'DESC',
-		)
-	);
-	foreach ( $posts as $post ) {
-		// Only default GUIDs (?p=123) reliably hold the site address they were created on.
-		if ( preg_match( '#^https?://([^/?]+)(/[^?]*)?\?(p|page_id|post_type)=#i', $post->guid, $m ) && strtolower( $m[1] ) !== $here ) {
-			$base           = 'https://' . strtolower( $m[1] ) . ( isset( $m[2] ) ? untrailingslashit( $m[2] ) : '' );
-			$hosts[ $base ] = isset( $hosts[ $base ] ) ? $hosts[ $base ] + 1 : 1;
-		}
-	}
-	if ( $hosts ) {
-		arsort( $hosts );
-		$candidates[] = key( $hosts );
-	}
-
-	$candidates[] = (string) get_option( 'milo_subscriptions_production_url', '' );
-
-	foreach ( $candidates as $url ) {
-		$url  = untrailingslashit( esc_url_raw( trim( $url ) ) );
-		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
-		if ( $host && $host !== $here ) {
-			return $url;
-		}
-	}
-
-	return '';
-}
-
-/**
  * The URL being viewed. REQUEST_URI already includes any subfolder the site
  * lives in, so only the scheme, host and port come from the site address.
  */
@@ -196,16 +138,6 @@ function sspw_current_url() {
 	$port = isset( $home['port'] ) ? ':' . $home['port'] : '';
 
 	return $home['scheme'] . '://' . $home['host'] . $port . $uri;
-}
-
-/**
- * The path after the site address, so the same screen can be opened on another copy.
- */
-function sspw_current_path() {
-	$home = (string) wp_parse_url( home_url(), PHP_URL_PATH );
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
-
-	return ( '' !== $home && 0 === strpos( $uri, $home ) ) ? substr( $uri, strlen( untrailingslashit( $home ) ) ) : $uri;
 }
 
 /**
@@ -296,51 +228,14 @@ function sspw_link( $key, $text ) {
 	return sprintf( '<a href="%s">%s</a>', esc_url( $links[ $key ] ), esc_html( $text ) );
 }
 
-/**
- * Pre-filled with the detected address until one is saved, so the admin only has
- * to check it and save.
- */
-function sspw_live_url_field() {
-	$field = array(
-		'title'       => __( 'Live site address', 'staging-superpowers' ),
-		'desc'        => esc_html__( 'The address of your real site, for example https://www.mystore.com. It is optional. Without it:', 'staging-superpowers' ) .
-			'<br>&bull; ' . esc_html__( 'logged-out visitors see the STAGING bar, without a link to the same page on your live site;', 'staging-superpowers' ) .
-			'<br>&bull; ' . esc_html__( '"Send them to the same page on the live site" shows the under-maintenance page instead;', 'staging-superpowers' ) .
-			'<br>&bull; ' . esc_html__( 'the under-maintenance page has no link to your site;', 'staging-superpowers' ) .
-			'<br>&bull; ' . esc_html__( 'the reminder on edit screens has no "Open this screen on the live site" link;', 'staging-superpowers' ) .
-			'<br>&bull; ' . esc_html__( 'Link check cannot look for links that point to your live site.', 'staging-superpowers' ) .
-			'<br>' . esc_html__( 'Staging Superpowers PRO uses it to confirm this isn\'t your live site before changing data, and for Compare with live.', 'staging-superpowers' ),
-		'id'          => 'sspw_live_url',
-		'type'        => 'url',
-		'default'     => '',
-		'placeholder' => 'https://www.example.com',
-	);
-
-	if ( false === get_option( 'sspw_live_url', false ) ) {
-		$detected = sspw_detect_live_url();
-		if ( $detected ) {
-			$field['default'] = $detected;
-			$field['desc']   .= '<br><strong>' . esc_html__( 'We filled this in from your site data. Check it is right, then click Save Changes to use it.', 'staging-superpowers' ) . '</strong>';
-		}
-	}
-
-	return $field;
-}
-
 function sspw_visitors_description() {
 	$login = wp_login_url();
 
-	$text = sprintf(
+	return sprintf(
 		/* translators: %s: login page link */
-		__( 'What people see here when they are logged out, or logged in without permission to edit the site (customers, members, subscribers). With the STAGING bar, you can keep testing the site as a logged-out visitor, while anyone who lands here by mistake, for example from an old link, sees a red bar with a link to your live site. To keep everyone except your team out, send them to the live site, or show them a plain "we\'ll be right back" page that does not mention staging. Your team always sees the site once logged in at %s.', 'staging-superpowers' ),
+		__( 'Who this applies to: anyone logged out, and accounts that cannot edit the site (customers, members, subscribers). Your team always sees the site once logged in at %s. Search engines are kept away either way.', 'staging-superpowers' ),
 		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
 	);
-
-	if ( '' === sspw_live_url() && 'redirect' === sspw_get( 'sspw_visitors' ) ) {
-		$text .= ' <strong>' . esc_html__( 'Save your live site address above to send visitors there. Until then, they see the under-maintenance page instead.', 'staging-superpowers' ) . '</strong>';
-	}
-
-	return $text;
 }
 
 function sspw_woocommerce_settings_fields() {
@@ -413,24 +308,33 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Your live site and what visitors see', 'staging-superpowers' ),
+			'title' => __( 'What visitors see', 'staging-superpowers' ),
 			'type'  => 'title',
-			'desc'  => __( 'Where your real site is, and what people who are not on your team see on this copy.', 'staging-superpowers' ),
+			'desc'  => sspw_visitors_description(),
 			'id'    => 'sspw_live_section',
 		),
-		sspw_live_url_field(),
 		array(
 			'title'   => __( 'Visitors', 'staging-superpowers' ),
-			'desc'    => sspw_visitors_description(),
 			'id'      => 'sspw_visitors',
 			'type'    => 'select',
 			'css'     => 'min-width:440px;',
-			'default' => 'bar',
+			'default' => 'open',
 			'options' => array(
-				'bar'      => __( 'Show the site with a STAGING bar (recommended)', 'staging-superpowers' ),
-				'redirect' => __( 'Send them to the same page on the live site (needs the live site address)', 'staging-superpowers' ),
-				'lock'     => __( 'Show an under-maintenance page', 'staging-superpowers' ),
+				'open' => __( 'Let everyone see the site', 'staging-superpowers' ),
+				'lock' => __( 'Show a message instead', 'staging-superpowers' ),
 			),
+		),
+		array(
+			'title' => __( 'Message heading', 'staging-superpowers' ),
+			'id'    => 'sspw_message_title',
+			'type'  => 'text',
+		),
+		array(
+			'title' => __( 'Message', 'staging-superpowers' ),
+			'desc'  => __( 'Shown on a plain page with your site name and a small Log in link. It never mentions staging, so customers are not confused.', 'staging-superpowers' ),
+			'id'    => 'sspw_message_text',
+			'type'  => 'textarea',
+			'css'   => 'min-width:400px;height:80px;',
 		),
 		array(
 			'title'    => __( 'Staging look', 'staging-superpowers' ),
@@ -455,7 +359,7 @@ function sspw_settings_fields() {
 		array(
 			'title'    => __( 'Page caching', 'staging-superpowers' ),
 			'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers' ),
-			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of being sent to the live site. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
+			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of your message. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
 			'id'       => 'sspw_no_cache',
 			'type'     => 'checkbox',
 			'default'  => 'yes',
@@ -616,7 +520,6 @@ function sspw_settings_sections() {
 		array(
 			''                => __( 'Protection', 'staging-superpowers' ),
 			'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers' ),
-			'links'           => __( 'Link check', 'staging-superpowers' ),
 			'changelog'       => __( 'Changelog', 'staging-superpowers' ),
 		)
 	);
@@ -663,8 +566,6 @@ function sspw_output_settings_page() {
 		sspw_output_troubleshooting();
 	} elseif ( 'changelog' === $section ) {
 		sspw_output_changelog();
-	} elseif ( 'links' === $section ) {
-		sspw_output_link_check();
 	} elseif ( '' !== $section ) {
 		/**
 		 * Output for a sub-page added through sspw_settings_sections.
@@ -680,7 +581,11 @@ function sspw_output_settings_page() {
 			"var sspwMode = jQuery( '#sspw_email_mode' ), sspwTo = jQuery( '#sspw_email_to' ).closest( 'tr' );
 			function sspwToggleTo() { sspwTo.toggle( 'redirect' === sspwMode.val() ); }
 			sspwMode.on( 'change', sspwToggleTo );
-			sspwToggleTo();"
+			sspwToggleTo();
+			var sspwVisitors = jQuery( '#sspw_visitors' ), sspwMessage = jQuery( '#sspw_message_title, #sspw_message_text' ).closest( 'tr' );
+			function sspwToggleMessage() { sspwMessage.toggle( 'lock' === sspwVisitors.val() ); }
+			sspwVisitors.on( 'change', sspwToggleMessage );
+			sspwToggleMessage();"
 		);
 	}
 

@@ -1,72 +1,15 @@
 <?php
 /**
- * What logged-out visitors and non-staff accounts see: the normal site with a
- * STAGING bar, the same page on the live site, or a plain under-maintenance
- * page. Only loaded when the site is armed.
+ * What logged-out visitors and non-staff accounts see: the site as normal, or
+ * a plain message page instead. Only loaded when the site is armed.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( in_array( sspw_get( 'sspw_visitors' ), array( 'redirect', 'lock' ), true ) ) {
+if ( 'lock' === sspw_get( 'sspw_visitors' ) ) {
 	add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
 	add_action( 'wp_login', 'sspw_remember_staff', 10, 2 );
 	add_action( 'admin_init', 'sspw_remember_staff_session' );
-} elseif ( 'bar' === sspw_get( 'sspw_visitors' ) ) {
-	add_action( 'wp_enqueue_scripts', 'sspw_visitor_bar_style' );
-	add_action( 'wp_footer', 'sspw_visitor_bar' );
-}
-
-/**
- * Bar shown on the site in "STAGING bar" mode, looking like the admin bar so it
- * reads as "not the real site" at a glance.
- */
-function sspw_visitor_bar_html() {
-	$live = sspw_live_url();
-
-	$html  = '<div id="sspw-visitor-bar" role="note">';
-	$html .= '<span class="sspw-badge">' . esc_html__( 'STAGING', 'staging-superpowers' ) . '</span>';
-	$html .= '<span class="sspw-text">' . esc_html__( 'This is a test copy of the site. Nothing here is real.', 'staging-superpowers' ) . '</span>';
-	$html .= '<span class="sspw-links">';
-	if ( $live ) {
-		$path  = (string) wp_parse_url( sspw_current_url(), PHP_URL_PATH );
-		$html .= '<a href="' . esc_url( $live . $path ) . '">' . esc_html__( 'Open this page on the live site', 'staging-superpowers' ) . '</a>';
-	}
-	if ( ! is_user_logged_in() ) {
-		$html .= '<a href="' . esc_url( wp_login_url( sspw_current_url() ) ) . '">' . esc_html__( 'Log in', 'staging-superpowers' ) . '</a>';
-	}
-	$html .= '</span></div>';
-
-	return $html;
-}
-
-function sspw_visitor_bar_css() {
-	return '#sspw-visitor-bar{position:fixed;top:0;left:0;right:0;z-index:999999;min-height:32px;display:flex;align-items:center;gap:12px;padding:0 12px 0 0;box-sizing:border-box;background:#b91c1c;color:#fff;font:13px/32px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}' .
-		'#sspw-visitor-bar .sspw-badge{background:#dc2626;font-weight:700;letter-spacing:.08em;padding:0 10px;align-self:stretch}' .
-		'#sspw-visitor-bar .sspw-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' .
-		'#sspw-visitor-bar .sspw-links{display:flex;gap:14px;white-space:nowrap}' .
-		'#sspw-visitor-bar a{color:#fff;text-decoration:underline}' .
-		'@media screen and (max-width:600px){#sspw-visitor-bar .sspw-text{display:none}#sspw-visitor-bar{justify-content:space-between}}';
-}
-
-/**
- * People who see the real admin bar don't need the fake one.
- */
-function sspw_show_visitor_bar() {
-	return ! is_admin_bar_showing();
-}
-
-function sspw_visitor_bar_style() {
-	if ( sspw_show_visitor_bar() ) {
-		wp_register_style( 'sspw-visitor-bar', false, array(), SSPW_VERSION );
-		wp_enqueue_style( 'sspw-visitor-bar' );
-		wp_add_inline_style( 'sspw-visitor-bar', sspw_visitor_bar_css() . 'html{margin-top:32px !important}' );
-	}
-}
-
-function sspw_visitor_bar() {
-	if ( sspw_show_visitor_bar() ) {
-		echo sspw_visitor_bar_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped when built.
-	}
 }
 
 /**
@@ -80,24 +23,15 @@ function sspw_visitor_page() {
 	}
 
 	// A browser someone on the team has logged in with goes to the login page,
-	// not the live site, so an expired session never lands them on live.
+	// so an expired session does not hide the site from them behind the message.
 	if ( ! is_user_logged_in() && isset( $_COOKIE[ sspw_staff_cookie() ] ) ) {
 		wp_safe_redirect( wp_login_url( sspw_current_url() ), 302, 'Staging Superpowers' );
 		exit;
 	}
 
 	$name = get_bloginfo( 'name' );
-	$live = sspw_live_url();
 
-	// 302, not 301: browsers remember a 301, and would keep sending the admin
-	// to the live site even after logging in here.
-	if ( 'redirect' === sspw_get( 'sspw_visitors' ) && $live ) {
-		header( 'X-Robots-Tag: noindex, nofollow', true );
-		wp_redirect( $live . sspw_current_path(), 302, 'Staging Superpowers' ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- the admin-saved live site is on another host by design.
-		exit;
-	}
-
-	// A plain maintenance page: a customer who lands here should not have to
+	// A plain message page: a customer who lands here should not have to
 	// know what a staging site is. It is a complete document of its own, so its
 	// styles are registered here and printed in its head with wp_print_styles().
 	wp_register_style( 'sspw-visitor-page', false, array(), SSPW_VERSION );
@@ -108,8 +42,6 @@ function sspw_visitor_page() {
 		'.sspw-name{margin:0 0 24px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#646970}' .
 		'.sspw-card h1{margin:0 0 12px;font-size:32px;line-height:1.2}' .
 		'.sspw-card p{margin:0 0 24px}' .
-		'.sspw-button{display:inline-block;background:#1d2327;color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600}' .
-		'.sspw-button:hover,.sspw-button:focus{background:#3c434a;color:#fff}' .
 		'.sspw-small{margin-top:40px;font-size:13px;color:#646970}' .
 		'.sspw-small a{color:#646970}'
 	);
@@ -127,17 +59,14 @@ function sspw_visitor_page() {
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title><?php echo esc_html( sprintf( /* translators: %s: site name */ __( 'Under maintenance: %s', 'staging-superpowers' ), $name ) ); ?></title>
+<title><?php echo esc_html( $name ); ?></title>
 	<?php wp_print_styles( 'sspw-visitor-page' ); ?>
 </head>
 <body>
 <main class="sspw-card">
 	<p class="sspw-name"><?php echo esc_html( $name ); ?></p>
-	<h1><?php esc_html_e( 'We\'ll be right back', 'staging-superpowers' ); ?></h1>
-	<p><?php esc_html_e( 'This page is under maintenance. Please check back soon.', 'staging-superpowers' ); ?></p>
-	<?php if ( $live ) : ?>
-		<p><a class="sspw-button" href="<?php echo esc_url( $live . sspw_current_path() ); ?>"><?php sspw_has_woocommerce() ? esc_html_e( 'Visit our store', 'staging-superpowers' ) : esc_html_e( 'Visit our website', 'staging-superpowers' ); ?></a></p>
-	<?php endif; ?>
+	<h1><?php echo esc_html( sspw_get( 'sspw_message_title' ) ); ?></h1>
+	<?php echo wp_kses_post( wpautop( sspw_get( 'sspw_message_text' ) ) ); ?>
 	<p class="sspw-small">
 	<?php if ( is_user_logged_in() ) : ?>
 		<a href="<?php echo esc_url( wp_logout_url( sspw_current_url() ) ); ?>"><?php esc_html_e( 'Log out', 'staging-superpowers' ); ?></a>
@@ -154,7 +83,7 @@ function sspw_visitor_page() {
 
 /**
  * Marks this browser as used by the team. It grants nothing: it only decides
- * whether a logged-out visit goes to the login page or to the live site.
+ * whether a logged-out visit goes to the login page or to the message.
  */
 function sspw_staff_cookie() {
 	return 'sspw_staff_' . COOKIEHASH;

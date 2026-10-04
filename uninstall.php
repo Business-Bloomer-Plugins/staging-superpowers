@@ -1,7 +1,7 @@
 <?php
 /**
  * Removes the plugin's settings when it is deleted from the Plugins screen.
- * A changelog kept in the WooCommerce logs stays there and expires with them.
+ * The live site address is removed too: PRO stores it under the same name.
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
@@ -29,7 +29,8 @@ $sspw_options = array(
 	'sspw_previous_theme',
 	'sspw_changelog',
 	'sspw_armed_history',
-	'sspw_link_check_hosts',
+	'sspw_message_title',
+	'sspw_message_text',
 	'woocommerce_sspw_test_settings',
 );
 

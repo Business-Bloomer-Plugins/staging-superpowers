@@ -472,14 +472,7 @@ function sspw_editing_staging_notice() {
 		return;
 	}
 
-	$live = sspw_live_url();
-
 	echo '<div class="notice notice-warning sspw-editing-notice"><p><strong>' . esc_html__( 'You are editing the STAGING site.', 'staging-superpowers' ) . '</strong> ';
 	esc_html_e( 'Changes made here do not reach your live site.', 'staging-superpowers' );
-
-	if ( $live ) {
-		printf( ' <a href="%1$s">%2$s</a>', esc_url( $live . sspw_current_path() ), esc_html__( 'Open this screen on the live site', 'staging-superpowers' ) );
-	}
-
 	echo '</p></div>';
 }
