@@ -74,7 +74,7 @@ Copying a staging database over your live site wipes everything added on the liv
 * Theme switched, plugins switched on or off, plugin, theme and WordPress updates.
 * Posts, pages, products, coupons, categories, tags and menus created, edited or deleted.
 
-Find it at Tools > Staging Superpowers > Changelog. On a WooCommerce store it is kept in the WooCommerce logs and follows their retention setting (30 days by default). Otherwise the latest 500 entries are kept.
+Find it at Tools > Staging Superpowers > Changelog, on every site, with or without WooCommerce. The latest 1,000 changes are kept.
 
 **Troubleshooting**
 
@@ -181,6 +181,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 * The page heading now includes the tagline, and every section has a clearer heading and description.
 * Logged-out visitors now see the site with a STAGING bar by default, so your team can test the site logged out. The bar links to the same page on your live site.
 * Visitors now have three choices: the STAGING bar, the same page on the live site, or a new under-maintenance page. The maintenance page replaces the "this is a staging site" page and never mentions staging, so customers are not confused. "Show the site as normal" was removed; sites that used it now get the STAGING bar.
+* The changelog is now always kept and shown on its own page, also on WooCommerce stores (it used to go to the WooCommerce logs). It keeps the latest 1,000 changes.
 * When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
 * The live site address and the visitor settings (Visitors, Staging look, Search engines, Page caching) are now one section at the top of the page. The live site address is explained as optional, with what changes without it.
 

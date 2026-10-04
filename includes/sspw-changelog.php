@@ -1,10 +1,8 @@
 <?php
 /**
  * Changelog: what was changed on this staging copy, so it can be redone on the
- * live site. With WooCommerce it goes to the WooCommerce logs (source
- * "staging-superpowers"), which show, filter, download and clean up the
- * entries. Without it, the latest entries are kept in one option and shown on
- * the Changelog sub-page. Only loaded when the site is armed.
+ * live site. The latest entries are kept in one option and shown on the
+ * Changelog sub-page. Only loaded when the site is armed.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -26,11 +24,6 @@ function sspw_log( $message ) {
 
 	/* translators: 1: what changed, 2: user name */
 	$entry = sprintf( __( '%1$s (by %2$s)', 'staging-superpowers' ), $message, $who );
-
-	if ( sspw_changelog_uses_woocommerce() ) {
-		wc_get_logger()->notice( $entry, array( 'source' => SSPW_LOG_SOURCE ) );
-		return;
-	}
 
 	// Newest last, capped so the option never grows without limit.
 	$log   = sspw_changelog_entries();
