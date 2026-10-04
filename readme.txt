@@ -187,7 +187,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 * The page heading now includes the tagline, and every section has a clearer heading and description.
 * When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
 * The Plugin check list was removed from the settings page; the protections it described still work.
-* A short list of what Staging Superpowers PRO adds, above the Save button.
+* A short list of what Staging Superpowers Pro adds, above the Save button.
 
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.

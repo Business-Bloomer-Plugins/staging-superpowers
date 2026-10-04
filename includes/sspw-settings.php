@@ -793,7 +793,7 @@ function sspw_inline_script( $js ) {
 }
 
 /**
- * What PRO adds, shown above the Save button while PRO is not active.
+ * What Pro adds, shown above the Save button while Pro is not active.
  */
 function sspw_pro_features() {
 	if ( class_exists( 'Business_Bloomer_Staging_Superpowers_Pro' ) ) {
@@ -819,9 +819,9 @@ function sspw_pro_features() {
 
 	$features[] = __( 'And more...', 'staging-superpowers' );
 
-	echo '<h2>' . esc_html__( 'Get more with Staging Superpowers PRO', 'staging-superpowers' ) . '</h2><ul style="list-style:disc;margin-left:20px">';
+	echo '<h2>' . esc_html__( 'Get more with Staging Superpowers Pro', 'staging-superpowers' ) . '</h2><ul style="list-style:disc;margin-left:20px">';
 	foreach ( $features as $feature ) {
 		echo '<li>' . esc_html( $feature ) . '</li>';
 	}
-	echo '</ul><p><a href="' . esc_url( 'https://www.businessbloomer.com/plugins/staging-superpowers-pro/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'See everything PRO does', 'staging-superpowers' ) . '</a></p>';
+	echo '</ul><p><a href="' . esc_url( 'https://www.businessbloomer.com/plugins/staging-superpowers-pro/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'See everything Pro does', 'staging-superpowers' ) . '</a></p>';
 }
