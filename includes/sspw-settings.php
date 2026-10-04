@@ -801,15 +801,23 @@ function sspw_pro_features() {
 	}
 
 	$features = array(
-		__( 'Anonymize customers, orders and staff, and remove secret keys, before you hand the site to a developer or agency', 'staging-superpowers' ),
+		__( 'Anonymize users, customers, form entries and staff, and remove secret keys, before you hand the site to a developer or agency', 'staging-superpowers' ),
 		__( 'Send logged-out visitors to the same page on your live site', 'staging-superpowers' ),
 		__( 'Compare any page with your live site, side by side', 'staging-superpowers' ),
 		__( 'Find staging links, images and files still used on your live site', 'staging-superpowers' ),
-		__( 'Generate and delete test orders, products and customers', 'staging-superpowers' ),
-		__( 'Scramble revenue and keep only some of your orders', 'staging-superpowers' ),
-		__( 'Log in as a customer, switch WooCommerce versions and HPOS', 'staging-superpowers' ),
-		__( 'And more...', 'staging-superpowers' ),
 	);
+
+	if ( sspw_has_woocommerce() ) {
+		$features[] = __( 'Generate and delete test orders, products and customers', 'staging-superpowers' );
+		$features[] = __( 'Scramble revenue and keep only some of your orders', 'staging-superpowers' );
+		$features[] = __( 'Log in as a customer, switch WooCommerce versions and HPOS', 'staging-superpowers' );
+	} else {
+		$features[] = __( 'Delete your own account when you log out, so whoever takes over never sees your details', 'staging-superpowers' );
+		$features[] = __( 'Every data tool checks this is not your live site before it changes anything', 'staging-superpowers' );
+		$features[] = __( 'For WooCommerce stores: test orders and products, revenue scrambling, logging in as a customer, version and HPOS switches', 'staging-superpowers' );
+	}
+
+	$features[] = __( 'And more...', 'staging-superpowers' );
 
 	echo '<h2>' . esc_html__( 'Get more with Staging Superpowers PRO', 'staging-superpowers' ) . '</h2><ul style="list-style:disc;margin-left:20px">';
 	foreach ( $features as $feature ) {
