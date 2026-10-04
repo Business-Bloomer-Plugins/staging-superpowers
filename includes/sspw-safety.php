@@ -357,8 +357,28 @@ function sspw_admin_bar_style() {
 			"( function () {
 				function sspwFollowAdminBar() {
 					var adminBar = document.getElementById( 'wpadminbar' ), statusBar = document.getElementById( 'sspw-status-bar' );
-					if ( adminBar && statusBar ) {
-						statusBar.style.position = 'fixed' === getComputedStyle( adminBar ).position ? 'fixed' : 'absolute';
+					if ( ! adminBar || ! statusBar ) {
+						return;
+					}
+					statusBar.style.position = 'fixed' === getComputedStyle( adminBar ).position ? 'fixed' : 'absolute';
+
+					// Too many admin bar items wrap onto a second row that WordPress does not make room for.
+					// Grow the admin bar to cover it and move the status bar and the page down by the same amount.
+					var root = document.documentElement, offset = document.body.classList.contains( 'wp-admin' ) ? 'padding-top' : 'margin-top';
+					adminBar.style.removeProperty( 'height' );
+					statusBar.style.removeProperty( 'top' );
+					root.style.removeProperty( offset );
+					var barRect = adminBar.getBoundingClientRect(), bottom = barRect.bottom;
+					adminBar.querySelectorAll( '#wp-admin-bar-root-default > li, #wp-admin-bar-top-secondary > li' ).forEach( function ( item ) {
+						if ( item.offsetParent ) {
+							bottom = Math.max( bottom, item.getBoundingClientRect().bottom );
+						}
+					} );
+					var extra = Math.round( bottom - barRect.bottom );
+					if ( extra > 2 ) {
+						adminBar.style.height = ( barRect.height + extra ) + 'px';
+						statusBar.style.top = ( parseFloat( getComputedStyle( statusBar ).top ) + extra ) + 'px';
+						root.style.setProperty( offset, ( parseFloat( getComputedStyle( root )[ 'padding-top' === offset ? 'paddingTop' : 'marginTop' ] ) + extra ) + 'px', 'important' );
 					}
 				}
 				if ( 'loading' === document.readyState ) {

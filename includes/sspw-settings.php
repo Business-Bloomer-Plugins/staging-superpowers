@@ -1,6 +1,6 @@
 <?php
 /**
- * Settings page at Settings > Staging Superpowers, with sub-pages for
+ * Settings page at Tools > Staging Superpowers, with sub-pages for
  * troubleshooting, the changelog and anything an add-on adds.
  */
 
@@ -226,7 +226,7 @@ function sspw_settings_label() {
 }
 
 function sspw_settings_url( $section = '' ) {
-	return admin_url( 'options-general.php?page=' . SSPW_SETTINGS_PAGE . ( '' !== $section ? '&section=' . $section : '' ) );
+	return admin_url( 'tools.php?page=' . SSPW_SETTINGS_PAGE . ( '' !== $section ? '&section=' . $section : '' ) );
 }
 
 /**
@@ -586,7 +586,17 @@ function sspw_settings_fields() {
 }
 
 function sspw_add_settings_page() {
-	add_options_page( sspw_settings_label(), sspw_settings_label(), 'manage_options', SSPW_SETTINGS_PAGE, 'sspw_output_settings_page' );
+	add_management_page( sspw_settings_label(), sspw_settings_label(), 'manage_options', SSPW_SETTINGS_PAGE, 'sspw_output_settings_page' );
+
+	// The page lived under Settings until 1.1.0: send old links and bookmarks to Tools.
+	global $pagenow;
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only redirect, no data changes.
+	if ( 'options-general.php' === $pagenow && isset( $_GET['page'] ) && SSPW_SETTINGS_PAGE === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only redirect, no data changes.
+		$section = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
+		wp_safe_redirect( sspw_settings_url( $section ) );
+		exit;
+	}
 }
 
 /**

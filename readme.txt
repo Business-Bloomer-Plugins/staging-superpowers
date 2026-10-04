@@ -74,11 +74,11 @@ Copying a staging database over your live site wipes everything added on the liv
 * Theme switched, plugins switched on or off, plugin, theme and WordPress updates.
 * Posts, pages, products, coupons, categories, tags and menus created, edited or deleted.
 
-Find it at Settings > Staging Superpowers > Changelog. On a WooCommerce store it is kept in the WooCommerce logs and follows their retention setting (30 days by default). Otherwise the latest 500 entries are kept.
+Find it at Tools > Staging Superpowers > Changelog. On a WooCommerce store it is kept in the WooCommerce logs and follows their retention setting (30 days by default). Otherwise the latest 500 entries are kept.
 
 **Troubleshooting**
 
-Find out if a problem is caused by another plugin or by the theme, from Settings > Staging Superpowers > Troubleshooting.
+Find out if a problem is caused by another plugin or by the theme, from Tools > Staging Superpowers > Troubleshooting.
 
 * Switch off every plugin except the ones you choose. Plugins that a kept plugin needs stay on automatically, and so does WooCommerce.
 * Switch the same plugins back on with one click, or switch on every installed plugin.
@@ -104,7 +104,7 @@ When WooCommerce is active, these protections are added on top, all on by defaul
 * Visitors cannot use the cart and checkout API, so nobody places orders that go nowhere.
 * The changelog also records WooCommerce settings and the cart or checkout switching between blocks and classic.
 
-Settings are at Settings > Staging Superpowers.
+Settings are at Tools > Staging Superpowers.
 
 == External services ==
 
@@ -116,7 +116,7 @@ The web addresses listed in its settings are services the plugin blocks. The def
 
 1. On your staging site, go to Plugins > Add New, search for "Staging Superpowers" and click Install Now, then Activate.
 2. If the site looks like staging, the plugin turns itself on and a red STAGING badge appears in the admin bar. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
-3. Go to Settings > Staging Superpowers, check your live site address, and review the settings. Every protection is on by default.
+3. Go to Tools > Staging Superpowers, check your live site address, and review the settings. Every protection is on by default.
 
 Do not install it on your live site. If you do by mistake, it stays off unless someone confirms the site is a copy.
 
@@ -148,7 +148,7 @@ It blocks requests made through the WordPress HTTP API, which is what almost eve
 
 = Some background tasks are not running =
 
-That is the automations freeze. WooCommerce and other plugins use scheduled tasks for their own housekeeping too, for example analytics imports and order table syncs. Untick "Scheduled actions" or "WP-Cron" in Settings > Staging Superpowers if you need them, or run the ones you need by hand.
+That is the automations freeze. WooCommerce and other plugins use scheduled tasks for their own housekeeping too, for example analytics imports and order table syncs. Untick "Scheduled actions" or "WP-Cron" in Tools > Staging Superpowers if you need them, or run the ones you need by hand.
 
 = Can the Staging Test Gateway be used on my live store? =
 
@@ -167,7 +167,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.
-* Settings moved to Settings > Staging Superpowers.
+* Settings moved to Tools > Staging Superpowers.
 * New: Plugin check lists active plugins that talk to live services, with Covered or Check and what to do. It replaces the email plugin list.
 * New: Jetpack safe mode, no scheduled UpdraftPlus backups, test mode for Easy Digital Downloads, GiveWP and Paid Memberships Pro, and no pingbacks, trackbacks or update-service pings.
 * New: "Stop analytics on staging" setting (on by default) for Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel's Conversions API.

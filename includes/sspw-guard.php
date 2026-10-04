@@ -220,7 +220,7 @@ function sspw_is_notice_screen() {
 		return false;
 	}
 
-	return in_array( $screen->id, array( 'dashboard', 'plugins', 'settings_page_staging-superpowers' ), true );
+	return in_array( $screen->id, array( 'dashboard', 'plugins', 'tools_page_staging-superpowers' ), true );
 }
 
 function sspw_handle_arm() {
