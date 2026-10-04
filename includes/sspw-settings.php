@@ -251,10 +251,10 @@ function sspw_is_settings_page( $section = null ) {
 function sspw_status_text() {
 	if ( sspw_is_armed() ) {
 		/* translators: %s: site URL */
-		return sprintf( __( 'Active on %s. Everything below applies to this site only; if the database is moved to another URL, the plugin pauses itself.', 'staging-superpowers' ), '<code>' . esc_html( sspw_site_fingerprint() ) . '</code>' );
+		return sprintf( __( 'Protecting this staging site, %s. If this site is ever copied to another address, for example pushed back to your live site, the protection switches itself off there, so it never gets in the way on live.', 'staging-superpowers' ), '<code>' . esc_html( sspw_site_fingerprint() ) . '</code>' );
 	}
 
-	return __( 'Paused. See the notice at the top of the page. These settings do nothing until the plugin is turned on for this URL.', 'staging-superpowers' );
+	return __( 'Not protecting this site yet. See the notice at the top of the page: once you confirm this is a staging site, everything below starts working.', 'staging-superpowers' );
 }
 
 /**
@@ -296,7 +296,7 @@ function sspw_link( $key, $text ) {
 function sspw_live_url_field() {
 	$field = array(
 		'title'       => __( 'Live site address', 'staging-superpowers' ),
-		'desc'        => __( 'Where your real site is. Visitors to this copy are sent there, and admin screens get a link to open the same screen there.', 'staging-superpowers' ),
+		'desc'        => __( 'The address of your real site, for example https://www.mystore.com.', 'staging-superpowers' ),
 		'id'          => 'sspw_live_url',
 		'type'        => 'url',
 		'default'     => '',
@@ -333,7 +333,7 @@ function sspw_visitors_description() {
 function sspw_woocommerce_settings_fields() {
 	return array(
 		array(
-			'title' => __( 'WooCommerce', 'staging-superpowers' ),
+			'title' => __( 'Protect your WooCommerce store', 'staging-superpowers' ),
 			'type'  => 'title',
 			'id'    => 'sspw_woocommerce',
 		),
@@ -389,7 +389,7 @@ function sspw_settings_fields() {
 
 	$fields = array(
 		array(
-			'title' => __( 'Status', 'staging-superpowers' ),
+			'title' => __( 'Protection status', 'staging-superpowers' ),
 			'type'  => 'title',
 			'desc'  => sspw_status_text(),
 			'id'    => 'sspw_status',
@@ -400,8 +400,9 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Your live site', 'staging-superpowers' ),
+			'title' => __( 'Where is your live site?', 'staging-superpowers' ),
 			'type'  => 'title',
+			'desc'  => __( 'So this copy can point people to the real thing: logged-out visitors are sent to the same page on your live site, and the reminder on edit screens gets a link to open that screen on live.', 'staging-superpowers' ),
 			'id'    => 'sspw_live_section',
 		),
 		sspw_live_url_field(),
@@ -411,7 +412,7 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Emails', 'staging-superpowers' ),
+			'title' => __( 'Stop emails to real people', 'staging-superpowers' ),
 			'type'  => 'title',
 			'desc'  => $emails,
 			'id'    => 'sspw_emails',
@@ -452,7 +453,7 @@ function sspw_settings_fields() {
 	}
 
 	$fields[] = array(
-		'title' => __( 'Connected services and automations', 'staging-superpowers' ),
+		'title' => __( 'Block outside services and freeze automations', 'staging-superpowers' ),
 		'type'  => 'title',
 		'id'    => 'sspw_integrations',
 	);
@@ -514,7 +515,7 @@ function sspw_settings_fields() {
 		$fields,
 		array(
 			array(
-				'title' => __( 'Look and feel', 'staging-superpowers' ),
+				'title' => __( 'Visitors, search engines and the staging look', 'staging-superpowers' ),
 				'type'  => 'title',
 				'id'    => 'sspw_look_section',
 			),
@@ -566,7 +567,7 @@ function sspw_settings_fields() {
 			),
 
 			array(
-				'title' => __( 'Plugin check', 'staging-superpowers' ),
+				'title' => __( 'Check your other plugins', 'staging-superpowers' ),
 				'type'  => 'title',
 				'desc'  => __( 'Active plugins that talk to live services, and whether Staging Superpowers covers them or there is something to do yourself.', 'staging-superpowers' ),
 				'id'    => 'sspw_plugin_check_section',
@@ -643,7 +644,8 @@ function sspw_output_sections() {
 function sspw_output_settings_page() {
 	$section = sspw_current_section();
 
-	echo '<div class="wrap"><h1>' . esc_html( sspw_settings_label() ) . '</h1>';
+	/* translators: %s: plugin name */
+	echo '<div class="wrap"><h1>' . esc_html( sprintf( __( '%s: Live stays safe. Every time.', 'staging-superpowers' ), sspw_settings_label() ) ) . '</h1>';
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only shows the "saved" message after the redirect.
 	if ( isset( $_GET['sspw-saved'] ) && '' === $section ) {
