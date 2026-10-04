@@ -1,0 +1,28 @@
+name: Update readme and assets on WordPress.org
+
+# Pushes readme.txt and the .wordpress-org images (banner, icon, screenshots) to
+# WordPress.org without a new version. Code changes still go out through a
+# release (deploy.yml). If main holds code that is not released yet, the 10up
+# action refuses to run, so a version bump pushed before its release is safe.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'readme.txt'
+      - '.wordpress-org/**'
+  workflow_dispatch:
+
+jobs:
+  readme_assets:
+    name: Push readme and assets to WP.org
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: WordPress.org plugin asset and readme update
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: staging-superpowers

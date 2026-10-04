@@ -31,7 +31,7 @@ It works on any WordPress site. On a WooCommerce store it also hides your paymen
 * Finds the plugin that breaks your site, and undoes a change that causes a fatal error.
 * Switches itself off if the database ends up on your live site.
 
-Nothing is changed in your database, and everything is on by default. The details are below.
+The protections never change your settings in the database, and they are all on by default. The details are below.
 
 **Emails**
 
@@ -167,7 +167,7 @@ Yes. It works with any staging copy, whether your host made it (WP Engine, Kinst
 
 = Will it break or change my staging site? =
 
-No. Everything works through WordPress filters while the plugin is active: payment methods, webhooks, scheduled tasks and settings stay exactly as they were in the database. Deactivate it and the site behaves as before.
+No. The protections work through WordPress filters while the plugin is active: payment methods, webhooks, scheduled tasks and settings stay exactly as they were in the database. Deactivate it and the site behaves as before. Only Troubleshooting changes things, and only when you ask it to: it disables and enables the plugins and themes you pick, and can enable them all again with one click.
 
 = What happens when I push staging to my live site? =
 
@@ -215,7 +215,7 @@ Tools for working on the copy: anonymizing personal data before you hand the sit
 2. The protection settings, with a plain-English explanation for each one.
 3. On a WooCommerce store, the Staging Test Gateway is the only payment method at checkout, so no real money moves.
 4. Troubleshooting: every plugin with its status, its version on this site and its latest release. Disable or enable one, or several at once; a fatal error is undone straight away.
-5. The changelog: a list of what to redo on your live site.
+5. The changelog: a list of everything you changed on staging, to redo on your live site.
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
