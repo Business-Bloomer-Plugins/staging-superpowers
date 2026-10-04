@@ -476,62 +476,62 @@ function sspw_settings_fields() {
 	return apply_filters(
 		'sspw_settings_fields',
 		array_merge(
-		$fields,
-		array(
+			$fields,
 			array(
-				'title'    => __( 'WP-Cron', 'staging-superpowers' ),
-				'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
-				'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers' ),
-				'id'       => 'sspw_freeze_cron',
-				'type'     => 'checkbox',
-				'default'  => 'yes',
-			),
-			array(
-				'title'    => __( 'Connected services', 'staging-superpowers' ),
-				'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
-				'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP and Paid Memberships Pro. Everything else keeps working.', 'staging-superpowers' ),
-				'id'       => 'sspw_http_firewall',
-				'type'     => 'checkbox',
-				'default'  => 'yes',
-			),
-			array(
-				'title'             => __( 'Blocked services', 'staging-superpowers' ),
-				'desc'              => __( 'One web address per line. The list already covers common payment, email, marketing, shipping, tax and tracking services. Add any other service your site is connected to. Entering api.mailchimp.com also blocks addresses ending in it, such as us1.api.mailchimp.com.', 'staging-superpowers' ),
-				'id'                => 'sspw_blocked_hosts',
-				'type'              => 'textarea',
-				'default'           => implode( "\n", sspw_default_blocked_hosts() ),
-				'css'               => 'min-width:400px;height:220px;font-family:monospace;',
-				'custom_attributes' => array( 'spellcheck' => 'false' ),
-			),
-			array(
-				'title'    => __( 'Analytics', 'staging-superpowers' ),
-				'desc'     => __( 'Stop analytics on staging', 'staging-superpowers' ),
-				'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel\'s Conversions API, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
-				'id'       => 'sspw_no_analytics',
-				'type'     => 'checkbox',
-				'default'  => 'yes',
-			),
-			array(
-				'type' => 'sectionend',
-				'id'   => 'sspw_integrations',
-			),
-			array(
-				'title' => __( 'Check your other plugins', 'staging-superpowers' ),
-				'type'  => 'title',
-				'desc'  => __( 'Active plugins that talk to live services, and whether Staging Superpowers covers them or there is something to do yourself.', 'staging-superpowers' ),
-				'id'    => 'sspw_plugin_check_section',
-			),
-			array(
-				'title' => __( 'Your plugins', 'staging-superpowers' ),
-				'type'  => 'info',
-				'text'  => sspw_plugin_check_html(),
-				'id'    => 'sspw_plugin_check',
-			),
-			array(
-				'type' => 'sectionend',
-				'id'   => 'sspw_plugin_check_section',
-			),
-		)
+				array(
+					'title'    => __( 'WP-Cron', 'staging-superpowers' ),
+					'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
+					'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers' ),
+					'id'       => 'sspw_freeze_cron',
+					'type'     => 'checkbox',
+					'default'  => 'yes',
+				),
+				array(
+					'title'    => __( 'Connected services', 'staging-superpowers' ),
+					'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
+					'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP and Paid Memberships Pro. Everything else keeps working.', 'staging-superpowers' ),
+					'id'       => 'sspw_http_firewall',
+					'type'     => 'checkbox',
+					'default'  => 'yes',
+				),
+				array(
+					'title'             => __( 'Blocked services', 'staging-superpowers' ),
+					'desc'              => __( 'One web address per line. The list already covers common payment, email, marketing, shipping, tax and tracking services. Add any other service your site is connected to. Entering api.mailchimp.com also blocks addresses ending in it, such as us1.api.mailchimp.com.', 'staging-superpowers' ),
+					'id'                => 'sspw_blocked_hosts',
+					'type'              => 'textarea',
+					'default'           => implode( "\n", sspw_default_blocked_hosts() ),
+					'css'               => 'min-width:400px;height:220px;font-family:monospace;',
+					'custom_attributes' => array( 'spellcheck' => 'false' ),
+				),
+				array(
+					'title'    => __( 'Analytics', 'staging-superpowers' ),
+					'desc'     => __( 'Stop analytics on staging', 'staging-superpowers' ),
+					'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel\'s Conversions API, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
+					'id'       => 'sspw_no_analytics',
+					'type'     => 'checkbox',
+					'default'  => 'yes',
+				),
+				array(
+					'type' => 'sectionend',
+					'id'   => 'sspw_integrations',
+				),
+				array(
+					'title' => __( 'Check your other plugins', 'staging-superpowers' ),
+					'type'  => 'title',
+					'desc'  => __( 'Active plugins that talk to live services, and whether Staging Superpowers covers them or there is something to do yourself.', 'staging-superpowers' ),
+					'id'    => 'sspw_plugin_check_section',
+				),
+				array(
+					'title' => __( 'Your plugins', 'staging-superpowers' ),
+					'type'  => 'info',
+					'text'  => sspw_plugin_check_html(),
+					'id'    => 'sspw_plugin_check',
+				),
+				array(
+					'type' => 'sectionend',
+					'id'   => 'sspw_plugin_check_section',
+				),
+			)
 		)
 	);
 }
