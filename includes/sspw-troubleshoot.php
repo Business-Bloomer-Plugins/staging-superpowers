@@ -511,13 +511,15 @@ function sspw_output_troubleshooting() {
  */
 function sspw_action_button( $action, $name, $value, $label, $icon = '', $classes = 'button' ) {
 	printf(
-		'<button type="submit" class="%1$s sspw-do" formaction="%2$s" formmethod="post" name="%3$s" value="%4$s">%5$s%6$s</button> ',
+		'<button type="submit" class="%1$s sspw-do"%7$s formaction="%2$s" formmethod="post" name="%3$s" value="%4$s">%5$s%6$s</button> ',
 		esc_attr( $classes ),
 		esc_url( $action ),
 		esc_attr( $name ),
 		esc_attr( $value ),
-		$icon ? '<span class="dashicons ' . esc_attr( $icon ) . '" aria-hidden="true" style="font-size:16px;width:16px;height:16px;line-height:inherit;vertical-align:top;margin-right:3px"></span>' : '',
-		esc_html( $label )
+		$icon ? '<span class="dashicons ' . esc_attr( $icon ) . '" aria-hidden="true" style="font-size:16px;width:16px;height:16px;line-height:1"></span>' : '',
+		esc_html( $label ),
+		// Flex centers the icon on the label, whatever the button's line height.
+		$icon ? ' style="display:inline-flex;align-items:center;gap:4px"' : ''
 	);
 }
 
