@@ -23,6 +23,7 @@ $sspw_options = array(
 	'sspw_visitors',
 	'sspw_look',
 	'sspw_noindex',
+	'sspw_block_bots',
 	'sspw_no_analytics',
 	'sspw_no_cache',
 	'sspw_disabled_plugins',

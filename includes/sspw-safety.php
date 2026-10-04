@@ -69,6 +69,61 @@ if ( 'yes' === sspw_get( 'sspw_noindex' ) ) {
 	add_filter( 'wp_robots', 'sspw_no_robots', PHP_INT_MAX );
 }
 
+// Crawlers and AI bots: robots.txt asks them all to stay away, and the ones that
+// come anyway are refused before WordPress builds the page.
+if ( 'yes' === sspw_get( 'sspw_block_bots' ) ) {
+	add_filter( 'robots_txt', 'sspw_robots_txt', PHP_INT_MAX );
+	add_filter( 'wp_sitemaps_enabled', '__return_false', PHP_INT_MAX );
+	add_action( 'init', 'sspw_block_bot_requests', 0 );
+}
+
+function sspw_robots_txt() {
+	return "User-agent: *\nDisallow: /\n";
+}
+
+/**
+ * User agent names of search and AI crawlers. Google-Extended and
+ * Applebot-Extended are robots.txt names only, covered by robots.txt above.
+ */
+function sspw_blocked_bots() {
+	/**
+	 * Crawlers refused on staging, matched anywhere in the user agent, ignoring case.
+	 *
+	 * @param string[] $bots User agent names.
+	 */
+	return (array) apply_filters(
+		'sspw_blocked_bots',
+		array( 'GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'ClaudeBot', 'Claude-User', 'Claude-SearchBot', 'anthropic-ai', 'CCBot', 'PerplexityBot', 'Perplexity-User', 'Bytespider', 'Amazonbot', 'Applebot', 'meta-externalagent', 'cohere-ai', 'Diffbot', 'Googlebot', 'bingbot', 'DuckDuckBot', 'YandexBot', 'Baiduspider' )
+	);
+}
+
+/**
+ * Logged-in users, cron, WP-CLI and robots.txt itself are never refused.
+ */
+function sspw_block_bot_requests() {
+	if ( is_user_logged_in() || wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return;
+	}
+
+	$agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+	$path  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) : '';
+
+	if ( '' === $agent || str_ends_with( $path, '/robots.txt' ) ) {
+		return;
+	}
+
+	foreach ( sspw_blocked_bots() as $bot ) {
+		if ( false !== stripos( $agent, $bot ) ) {
+			status_header( 403 );
+			nocache_headers();
+			header( 'X-Robots-Tag: noindex, nofollow', true );
+			header( 'Content-Type: text/plain; charset=utf-8' );
+			echo 'This site is not open to crawlers.';
+			exit;
+		}
+	}
+}
+
 /**
  * Core's wp_robots_no_robots() keeps "follow" on public sites; staging should
  * not pass link equity anywhere either.

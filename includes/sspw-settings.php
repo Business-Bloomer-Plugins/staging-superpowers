@@ -92,6 +92,7 @@ function sspw_get( $key ) {
 		'sspw_lock_subscriptions' => 'yes',
 		'sspw_look'               => 'yes',
 		'sspw_noindex'            => 'yes',
+		'sspw_block_bots'         => 'yes',
 		'sspw_no_analytics'       => 'yes',
 		'sspw_visitors'           => 'open',
 		'sspw_message_title'      => '',
@@ -308,10 +309,56 @@ function sspw_settings_fields() {
 		),
 
 		array(
+			'title' => __( 'Mark it as staging and hide it from search', 'staging-superpowers' ),
+			'type'  => 'title',
+			'id'    => 'sspw_look_section',
+		),
+		array(
+			'title'    => __( 'Staging look', 'staging-superpowers' ),
+			'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers' ),
+			'desc_tip' => __( 'Adds a red STAGING badge to the admin bar and a red status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
+			'id'       => 'sspw_look',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Search engines', 'staging-superpowers' ),
+			'desc'     => __( 'Hide this site from search engines', 'staging-superpowers' ),
+			'desc_tip' => sprintf(
+				/* translators: %s: link to Settings > Reading */
+				__( 'Tells Google and other search engines not to list any page of this copy, so it never competes with your live site. This works on its own, whatever is set in %s.', 'staging-superpowers' ),
+				sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers' ) )
+			),
+			'id'       => 'sspw_noindex',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Crawlers and AI bots', 'staging-superpowers' ),
+			'desc'     => __( 'Block crawlers and AI bots', 'staging-superpowers' ),
+			'desc_tip' => __( 'Asks every crawler to stay away in robots.txt, turns off the WordPress sitemaps, and refuses pages to known search and AI bots (Googlebot, Bingbot, GPTBot, ClaudeBot, PerplexityBot, CCBot and others) that come anyway. Your team, logged-in users and the site\'s own background tasks are never blocked.', 'staging-superpowers' ),
+			'id'       => 'sspw_block_bots',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Page caching', 'staging-superpowers' ),
+			'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers' ),
+			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of your message. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
+			'id'       => 'sspw_no_cache',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'type' => 'sectionend',
+			'id'   => 'sspw_look_section',
+		),
+
+		array(
 			'title' => __( 'What visitors see', 'staging-superpowers' ),
 			'type'  => 'title',
 			'desc'  => sspw_visitors_description(),
-			'id'    => 'sspw_live_section',
+			'id'    => 'sspw_visitors_section',
 		),
 		array(
 			'title'   => __( 'Visitors', 'staging-superpowers' ),
@@ -337,36 +384,8 @@ function sspw_settings_fields() {
 			'css'   => 'min-width:400px;height:80px;',
 		),
 		array(
-			'title'    => __( 'Staging look', 'staging-superpowers' ),
-			'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers' ),
-			'desc_tip' => __( 'Adds a red STAGING badge to the admin bar and a red status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
-			'id'       => 'sspw_look',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Search engines', 'staging-superpowers' ),
-			'desc'     => __( 'Hide this site from search engines', 'staging-superpowers' ),
-			'desc_tip' => sprintf(
-				/* translators: %s: link to Settings > Reading */
-				__( 'Tells Google and other search engines not to list any page of this copy, so it never competes with your live site. This works on its own, whatever is set in %s.', 'staging-superpowers' ),
-				sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers' ) )
-			),
-			'id'       => 'sspw_noindex',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
-			'title'    => __( 'Page caching', 'staging-superpowers' ),
-			'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers' ),
-			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of your message. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
-			'id'       => 'sspw_no_cache',
-			'type'     => 'checkbox',
-			'default'  => 'yes',
-		),
-		array(
 			'type' => 'sectionend',
-			'id'   => 'sspw_live_section',
+			'id'   => 'sspw_visitors_section',
 		),
 
 		array(
@@ -411,26 +430,9 @@ function sspw_settings_fields() {
 	}
 
 	$fields[] = array(
-		'title' => __( 'Block outside services and freeze automations', 'staging-superpowers' ),
+		'title' => __( 'Freeze automations and block outside services', 'staging-superpowers' ),
 		'type'  => 'title',
 		'id'    => 'sspw_integrations',
-	);
-	$fields[] = array(
-		'title'    => __( 'Connected services', 'staging-superpowers' ),
-		'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
-		'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP and Paid Memberships Pro. Everything else keeps working.', 'staging-superpowers' ),
-		'id'       => 'sspw_http_firewall',
-		'type'     => 'checkbox',
-		'default'  => 'yes',
-	);
-	$fields[] = array(
-		'title'             => __( 'Blocked services', 'staging-superpowers' ),
-		'desc'              => __( 'One web address per line. The list already covers common payment, email, marketing, shipping, tax and tracking services. Add any other service your site is connected to. Entering api.mailchimp.com also blocks addresses ending in it, such as us1.api.mailchimp.com.', 'staging-superpowers' ),
-		'id'                => 'sspw_blocked_hosts',
-		'type'              => 'textarea',
-		'default'           => implode( "\n", sspw_default_blocked_hosts() ),
-		'css'               => 'min-width:400px;height:220px;font-family:monospace;',
-		'custom_attributes' => array( 'spellcheck' => 'false' ),
 	);
 
 	if ( sspw_has_action_scheduler() ) {
@@ -448,30 +450,46 @@ function sspw_settings_fields() {
 		);
 	}
 
-	$fields[] = array(
-		'title'    => __( 'Analytics', 'staging-superpowers' ),
-		'desc'     => __( 'Stop analytics on staging', 'staging-superpowers' ),
-		'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel\'s Conversions API, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
-		'id'       => 'sspw_no_analytics',
-		'type'     => 'checkbox',
-		'default'  => 'yes',
-	);
-	$fields[] = array(
-		'title'    => __( 'WP-Cron', 'staging-superpowers' ),
-		'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
-		'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers' ),
-		'id'       => 'sspw_freeze_cron',
-		'type'     => 'checkbox',
-		'default'  => 'yes',
-	);
-	$fields[] = array(
-		'type' => 'sectionend',
-		'id'   => 'sspw_integrations',
-	);
-
 	return array_merge(
 		$fields,
 		array(
+			array(
+				'title'    => __( 'WP-Cron', 'staging-superpowers' ),
+				'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
+				'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers' ),
+				'id'       => 'sspw_freeze_cron',
+				'type'     => 'checkbox',
+				'default'  => 'yes',
+			),
+			array(
+				'title'    => __( 'Connected services', 'staging-superpowers' ),
+				'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
+				'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP and Paid Memberships Pro. Everything else keeps working.', 'staging-superpowers' ),
+				'id'       => 'sspw_http_firewall',
+				'type'     => 'checkbox',
+				'default'  => 'yes',
+			),
+			array(
+				'title'             => __( 'Blocked services', 'staging-superpowers' ),
+				'desc'              => __( 'One web address per line. The list already covers common payment, email, marketing, shipping, tax and tracking services. Add any other service your site is connected to. Entering api.mailchimp.com also blocks addresses ending in it, such as us1.api.mailchimp.com.', 'staging-superpowers' ),
+				'id'                => 'sspw_blocked_hosts',
+				'type'              => 'textarea',
+				'default'           => implode( "\n", sspw_default_blocked_hosts() ),
+				'css'               => 'min-width:400px;height:220px;font-family:monospace;',
+				'custom_attributes' => array( 'spellcheck' => 'false' ),
+			),
+			array(
+				'title'    => __( 'Analytics', 'staging-superpowers' ),
+				'desc'     => __( 'Stop analytics on staging', 'staging-superpowers' ),
+				'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel\'s Conversions API, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
+				'id'       => 'sspw_no_analytics',
+				'type'     => 'checkbox',
+				'default'  => 'yes',
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'sspw_integrations',
+			),
 			array(
 				'title' => __( 'Check your other plugins', 'staging-superpowers' ),
 				'type'  => 'title',
