@@ -6,11 +6,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( 'lock' === sspw_get( 'sspw_visitors' ) ) {
-	add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
-	add_action( 'wp_login', 'sspw_remember_staff', 10, 2 );
-	add_action( 'admin_init', 'sspw_remember_staff_session' );
-}
+// The choice is read when the page is built, so an add-on's own choice (added on
+// sspw_loaded, after this file) is known by then.
+add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
+add_action( 'wp_login', 'sspw_remember_staff', 10, 2 );
+add_action( 'admin_init', 'sspw_remember_staff_session' );
 
 /**
  * Runs before plugins and themes build the page, so visitors never reach any of
@@ -18,7 +18,7 @@ if ( 'lock' === sspw_get( 'sspw_visitors' ) ) {
  * page is temporarily unavailable, which keeps it out of their index.
  */
 function sspw_visitor_page() {
-	if ( sspw_can_see_store() ) {
+	if ( 'lock' !== sspw_get( 'sspw_visitors' ) || sspw_can_see_store() ) {
 		return;
 	}
 

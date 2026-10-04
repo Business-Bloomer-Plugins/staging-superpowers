@@ -12,9 +12,7 @@ if ( 'yes' === sspw_get( 'sspw_webhooks' ) ) {
 	add_filter( 'woocommerce_webhook_should_deliver', '__return_false', PHP_INT_MAX );
 }
 
-if ( 'lock' === sspw_get( 'sspw_visitors' ) ) {
-	add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
-}
+add_filter( 'rest_pre_dispatch', 'sspw_visitor_store_api', 10, 3 );
 
 add_action( 'check_admin_referer', 'sspw_log_settings_start', 10, 2 );
 add_action( 'woocommerce_update_options', 'sspw_log_settings_end', PHP_INT_MAX );
@@ -25,7 +23,7 @@ add_action( 'post_updated', 'sspw_log_checkout_switch', 10, 3 );
  * page alone would not stop a determined shopper (or bot) from ordering.
  */
 function sspw_visitor_store_api( $result, $server, $request ) {
-	if ( 0 === strpos( $request->get_route(), '/wc/store' ) && ! sspw_can_see_store() ) {
+	if ( 0 === strpos( $request->get_route(), '/wc/store' ) && 'lock' === sspw_get( 'sspw_visitors' ) && ! sspw_can_see_store() ) {
 		return new WP_Error( 'sspw_staging_site', __( 'This is a staging site. Orders are not accepted.', 'staging-superpowers' ), array( 'status' => 503 ) );
 	}
 

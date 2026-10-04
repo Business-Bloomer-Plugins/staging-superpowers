@@ -102,8 +102,9 @@ function sspw_get( $key ) {
 
 	$value = get_option( $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
 
-	// 1.1.1 has two choices: older "send to live" becomes the message, everything else lets visitors in.
-	if ( 'sspw_visitors' === $key ) {
+	// Free has two choices. An unknown value (older "send to live", or an add-on's
+	// choice while that add-on is off) shows the message, so visitors stay out.
+	if ( 'sspw_visitors' === $key && ! array_key_exists( $value, sspw_visitor_modes() ) ) {
 		$value = in_array( $value, array( 'lock', 'redirect' ), true ) ? 'lock' : 'open';
 	}
 
@@ -286,6 +287,25 @@ function sspw_woocommerce_settings_fields() {
 	);
 }
 
+/**
+ * Choices for what logged-out visitors see. "open" and "lock" are handled here;
+ * an add-on that adds a choice handles it itself.
+ */
+function sspw_visitor_modes() {
+	/**
+	 * Visitor choices, value => label.
+	 *
+	 * @param array $modes Default "open" and "lock".
+	 */
+	return (array) apply_filters(
+		'sspw_visitor_modes',
+		array(
+			'open' => __( 'Let everyone see the site', 'staging-superpowers' ),
+			'lock' => __( 'Show a message instead', 'staging-superpowers' ),
+		)
+	);
+}
+
 function sspw_settings_fields() {
 	$emails = __( 'Your staging copy has the real email addresses of your customers, members and users. This stops password resets, notifications, order updates, newsletters and any other email from reaching them. It covers every email the site sends. Anyone copied in (CC or BCC) is removed too.', 'staging-superpowers' );
 	if ( sspw_has_woocommerce() ) {
@@ -366,10 +386,7 @@ function sspw_settings_fields() {
 			'type'    => 'select',
 			'css'     => 'min-width:440px;',
 			'default' => 'open',
-			'options' => array(
-				'open' => __( 'Let everyone see the site', 'staging-superpowers' ),
-				'lock' => __( 'Show a message instead', 'staging-superpowers' ),
-			),
+			'options' => sspw_visitor_modes(),
 		),
 		array(
 			'title' => __( 'Message heading', 'staging-superpowers' ),
@@ -450,7 +467,15 @@ function sspw_settings_fields() {
 		);
 	}
 
-	return array_merge(
+	/**
+	 * Fields on the Protection page, in order. Add-ons can add or move fields;
+	 * the page saves every field listed here.
+	 *
+	 * @param array $fields Field definitions.
+	 */
+	return apply_filters(
+		'sspw_settings_fields',
+		array_merge(
 		$fields,
 		array(
 			array(
@@ -506,6 +531,7 @@ function sspw_settings_fields() {
 				'type' => 'sectionend',
 				'id'   => 'sspw_plugin_check_section',
 			),
+		)
 		)
 	);
 }
