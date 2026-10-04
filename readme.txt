@@ -86,6 +86,16 @@ Find out if a problem is caused by another plugin or by the theme, from Tools > 
 * While plugins or the theme are switched, the status bar shows a reminder so nothing is forgotten.
 * Only available while the plugin is on for the current URL, so a live site can never be switched off from here.
 
+**Link check**
+
+Find every place that points to the other copy of your site, from Tools > Staging Superpowers > Link check. It only lists them: nothing is changed.
+
+* On your live site, it finds links, images and files that still point to a staging copy: in pages and posts, page builder content, widgets, menus, theme settings, plugin settings, category fields and user profiles. They break or show old content once the staging copy changes or goes away.
+* It looks for every staging address the plugin was turned on for, any address you add, and anything that looks like a staging address, such as staging.yoursite.com or a hosting company's staging domain.
+* On a staging site, it does the reverse and finds links to your live site, so you don't end up editing live by accident.
+* Each result says what it is, for example "Widget: Text widget in Footer" or "Menu item: Shop", with an Edit link and the image file when it is an image.
+* It reads the database in small parts, so it works on large sites, and only runs when you click the button.
+
 **Deploy guard**
 
 The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live site keeps sending emails and running its scheduled tasks even if the plugin comes along by mistake. If the new URL also looks like staging (say you refreshed staging into staging2.), the plugin turns itself back on.
@@ -165,9 +175,16 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 
 == Changelog ==
 
+= 1.1.1 =
+* New: Link check. On your live site, it lists every link, image and file that still points to a staging copy, with an Edit link for each. On staging, it lists links to your live site.
+* The page moved to Tools > Staging Superpowers. Old links to Settings > Staging Superpowers still work.
+* The page heading now includes the tagline, and every section has a clearer heading and description.
+* Logged-out visitors now see the site with a STAGING bar by default, so your team can test the site logged out. The bar links to the same page on your live site.
+* When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
+
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.
-* Settings moved to Tools > Staging Superpowers.
+* Settings moved to Settings > Staging Superpowers.
 * New: Plugin check lists active plugins that talk to live services, with Covered or Check and what to do. It replaces the email plugin list.
 * New: Jetpack safe mode, no scheduled UpdraftPlus backups, test mode for Easy Digital Downloads, GiveWP and Paid Memberships Pro, and no pingbacks, trackbacks or update-service pings.
 * New: "Stop analytics on staging" setting (on by default) for Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel's Conversions API.

@@ -614,6 +614,7 @@ function sspw_settings_sections() {
 		array(
 			''                => __( 'Protection', 'staging-superpowers' ),
 			'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers' ),
+			'links'           => __( 'Link check', 'staging-superpowers' ),
 			'changelog'       => __( 'Changelog', 'staging-superpowers' ),
 		)
 	);
@@ -660,6 +661,8 @@ function sspw_output_settings_page() {
 		sspw_output_troubleshooting();
 	} elseif ( 'changelog' === $section ) {
 		sspw_output_changelog();
+	} elseif ( 'links' === $section ) {
+		sspw_output_link_check();
 	} elseif ( '' !== $section ) {
 		/**
 		 * Output for a sub-page added through sspw_settings_sections.

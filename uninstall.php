@@ -28,6 +28,8 @@ $sspw_options = array(
 	'sspw_disabled_plugins',
 	'sspw_previous_theme',
 	'sspw_changelog',
+	'sspw_armed_history',
+	'sspw_link_check_hosts',
 	'woocommerce_sspw_test_settings',
 );
 

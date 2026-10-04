@@ -118,6 +118,9 @@ function sspw_auto_arm() {
  * The time is kept so the changelog can say since when it has been recording.
  */
 function sspw_arm() {
+	// Every address it was turned on for, so the link check on live knows the staging addresses.
+	$history = array_slice( array_unique( array_merge( array( sspw_site_fingerprint() ), (array) get_option( 'sspw_armed_history', array() ) ) ), 0, 10 );
+	update_option( 'sspw_armed_history', $history, false );
 	update_option( 'sspw_armed_for', sspw_site_fingerprint(), false );
 	update_option( 'sspw_armed_at', time(), false );
 
