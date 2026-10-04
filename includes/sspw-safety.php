@@ -181,7 +181,8 @@ function sspw_blocked_hosts() {
 function sspw_http_firewall( $pre, $args, $url ) {
 	$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
 
-	if ( '' === $host ) {
+	// The site's own address is never blocked: troubleshooting checks load the site in the background.
+	if ( '' === $host || strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) === $host ) {
 		return $pre;
 	}
 

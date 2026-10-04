@@ -30,6 +30,12 @@ define( 'SSPW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 require_once SSPW_PLUGIN_DIR . 'includes/sspw-init.php';
 require_once SSPW_PLUGIN_DIR . 'includes/sspw-guard.php';
 
+// Registered this early so a fatal error in a plugin loaded after this one can be traced.
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compared with a one-time key.
+if ( isset( $_GET['sspw_check'] ) ) {
+	add_filter( 'wp_php_error_message', 'sspw_mark_fatal_error', 10, 2 );
+}
+
 add_action( 'before_woocommerce_init', 'sspw_declare_compatibility' );
 add_action( 'plugins_loaded', 'sspw_init' );
 register_activation_hook( __FILE__, 'sspw_activate' );

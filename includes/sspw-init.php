@@ -12,6 +12,22 @@ function sspw_declare_compatibility() {
 	}
 }
 
+/**
+ * During a troubleshooting check only, adds the file a fatal error came from to
+ * WordPress's error page, so the check can name the plugin or theme.
+ */
+function sspw_mark_fatal_error( $message, $error ) {
+	$key = (string) get_transient( 'sspw_check_key' );
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- compared with a one-time key.
+	$given = isset( $_GET['sspw_check'] ) ? sanitize_text_field( wp_unslash( $_GET['sspw_check'] ) ) : '';
+
+	if ( '' !== $key && hash_equals( $key, $given ) && ! empty( $error['file'] ) ) {
+		$message .= '<!-- sspw-fatal-file: ' . esc_html( $error['file'] ) . ' -->';
+	}
+
+	return $message;
+}
+
 function sspw_has_woocommerce() {
 	return class_exists( 'WooCommerce' );
 }
