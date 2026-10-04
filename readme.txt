@@ -8,7 +8,7 @@ Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Make a staging copy of your site safe to test on: blocks emails and outside services, freezes scheduled tasks, sends visitors to your live site.
+Make a staging copy of your site safe to test on: blocks emails and outside services, freezes scheduled tasks, hides staging from Google.
 
 == Description ==
 
@@ -52,10 +52,10 @@ The Plugin check on the settings page lists the active plugins it knows, with "C
 
 **Visitors**
 
-* Logged-out visitors and accounts that cannot edit the site (customers, members, subscribers) who find the staging copy through Google or an old link are sent to the same page on your live site.
-* You, and anyone who can edit the site, see the staging copy as normal once logged in. The login page is never redirected. Browsers you have logged in with are remembered, so when your login expires you land on the staging login page, not on the live site.
+* Logged-out visitors see the staging copy with a red STAGING bar on every page and a link to open the same page on your live site. You can test the site logged out, and anyone who lands here from an old link knows where they are.
+* You, and anyone who can edit the site, see the staging copy as normal once logged in.
 * Your live site address is filled in for you when it can be detected from your site data (you check it and save).
-* Prefer something else? Show visitors a "this is a staging site" page, or let them browse with a STAGING bar on every page. Search engines are told not to index anything either way.
+* Want to keep everyone except your team out? Send logged-out visitors to the same page on your live site, or show them a "this is a staging site" page. The login page is never redirected, and browsers your team has logged in with go to the login page instead. Search engines are told not to index anything either way.
 
 **Staging look**
 
@@ -101,7 +101,7 @@ When WooCommerce is active, these protections are added on top, all on by defaul
 * Payments: hides every payment method at checkout, so live Stripe, PayPal or WooPayments keys are never used, and adds a Staging Test Gateway instead. Choose whether test payments succeed, go on hold or fail. Refunds are simulated too. Works with the classic checkout and the Checkout block.
 * Subscriptions: locks subscriptions copied from the live store, their orders and the customers who own them, so nobody can delete them on staging. Deleting them could make your payment plugin remove the customer's saved card at Stripe (or PayPal, Square...), which would stop renewals on the live store. Subscriptions you create on staging for testing are not locked.
 * Webhooks: stops every WooCommerce webhook from being delivered, so your ERP, fulfillment or accounting tools never receive staging orders.
-* Visitors cannot use the cart and checkout API, so nobody places orders that go nowhere.
+* When visitors are sent to the live site or shown the "this is a staging site" page, they cannot use the cart and checkout API either, so nobody places orders that go nowhere.
 * The changelog also records WooCommerce settings and the cart or checkout switching between blocks and classic.
 
 Settings are at Tools > Staging Superpowers.
@@ -132,7 +132,7 @@ No. It only turns itself on when the site address or environment clearly says st
 
 = I visit my staging site and end up on my live site =
 
-That is the visitor protection: logged-out visitors are sent to the live site so nobody uses staging by mistake. Log in at your staging address followed by /wp-login.php (that page is never redirected) and you will see the staging site as normal. After that, your browser is remembered and goes to the login page instead.
+Visitors are set to be sent to the live site, so nobody uses staging by mistake. Log in at your staging address followed by /wp-login.php (that page is never redirected) and you will see the staging site as normal. To browse staging while logged out, set Visitors to "Show the site, with a STAGING bar on every page" in Tools > Staging Superpowers.
 
 = I cloned my staging site to a new URL and the plugin says it is not turned on =
 
@@ -161,7 +161,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 3. On a WooCommerce store, the Staging Test Gateway is the only payment method at checkout, so no real money moves.
 4. Troubleshooting: switch plugins and the theme off, then back on with one click.
 5. The changelog: a list of what to redo on your live site.
-6. What visitors see if you choose the "this is a staging site" page instead of sending them to the live site.
+6. What visitors see if you choose the "this is a staging site" page.
 
 == Changelog ==
 

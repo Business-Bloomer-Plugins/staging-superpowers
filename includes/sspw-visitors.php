@@ -28,7 +28,8 @@ function sspw_visitor_bar_html() {
 	$html .= '<span class="sspw-text">' . esc_html__( 'This is a test copy of the site. Nothing here is real.', 'staging-superpowers' ) . '</span>';
 	$html .= '<span class="sspw-links">';
 	if ( $live ) {
-		$html .= '<a href="' . esc_url( $live ) . '">' . esc_html__( 'Go to the live site', 'staging-superpowers' ) . '</a>';
+		$path  = (string) wp_parse_url( sspw_current_url(), PHP_URL_PATH );
+		$html .= '<a href="' . esc_url( $live . $path ) . '">' . esc_html__( 'Open this page on the live site', 'staging-superpowers' ) . '</a>';
 	}
 	if ( ! is_user_logged_in() ) {
 		$html .= '<a href="' . esc_url( wp_login_url( sspw_current_url() ) ) . '">' . esc_html__( 'Log in', 'staging-superpowers' ) . '</a>';

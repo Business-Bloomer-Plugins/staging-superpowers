@@ -93,7 +93,7 @@ function sspw_get( $key ) {
 		'sspw_look'               => 'yes',
 		'sspw_noindex'            => 'yes',
 		'sspw_no_analytics'       => 'yes',
-		'sspw_visitors'           => 'redirect',
+		'sspw_visitors'           => 'bar',
 		'sspw_no_cache'           => 'yes',
 		'sspw_live_url'           => '',
 	);
@@ -319,11 +319,11 @@ function sspw_visitors_description() {
 
 	$text = sprintf(
 		/* translators: %s: login page link */
-		__( 'For logged-out visitors and for accounts that cannot edit the site (customers, members, subscribers), so nobody uses this copy by mistake. You, and anyone who can edit the site, see this copy as normal once logged in. To log in, go to %s: that page is never redirected. Browsers you have logged in with here are remembered, so when you are logged out they go to the login page instead of the live site.', 'staging-superpowers' ),
+		__( 'What people see here when they are logged out, or logged in without permission to edit the site (customers, members, subscribers). With the STAGING bar, you can keep testing the site as a logged-out visitor, while anyone who lands here by mistake, for example from an old link, sees a red bar with a link to your live site. Choose one of the other options to keep everyone except your team out. Your team always sees the site once logged in at %s.', 'staging-superpowers' ),
 		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
 	);
 
-	if ( '' === sspw_live_url() ) {
+	if ( '' === sspw_live_url() && 'redirect' === sspw_get( 'sspw_visitors' ) ) {
 		$text .= ' <strong>' . esc_html__( 'Save your live site address above to send visitors there. Until then, they see the "this is a staging site" page instead.', 'staging-superpowers' ) . '</strong>';
 	}
 
@@ -525,11 +525,11 @@ function sspw_settings_fields() {
 				'id'      => 'sspw_visitors',
 				'type'    => 'select',
 				'css'     => 'min-width:440px;',
-				'default' => 'redirect',
+				'default' => 'bar',
 				'options' => array(
-					'redirect' => __( 'Send them to the same page on the live site (recommended)', 'staging-superpowers' ),
+					'bar'      => __( 'Show the site, with a STAGING bar on every page (recommended)', 'staging-superpowers' ),
+					'redirect' => __( 'Send them to the same page on the live site', 'staging-superpowers' ),
 					'lock'     => __( 'Show a "this is a staging site" page', 'staging-superpowers' ),
-					'bar'      => __( 'Show the site, with a STAGING bar on every page', 'staging-superpowers' ),
 					'off'      => __( 'Show the site as normal (not safe)', 'staging-superpowers' ),
 				),
 			),
