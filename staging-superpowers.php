@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:          Staging Superpowers
- * Description:          Make a staging copy of your site safe to test on: block emails, block outside services, freeze scheduled tasks and send visitors to your live site. With WooCommerce, it also swaps payment methods for a test gateway and pauses webhooks.
+ * Description:          Make a staging copy of your site safe to test on: block emails, block outside services, freeze scheduled tasks and hide staging from search engines. With WooCommerce, it also swaps payment methods for a test gateway and pauses webhooks.
  * Version:              1.1.0
  * Requires at least:    6.5
  * Requires PHP:         7.4
