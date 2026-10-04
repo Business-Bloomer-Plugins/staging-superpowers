@@ -433,7 +433,7 @@ function sspw_fatal_culprit( $body ) {
 		return '';
 	}
 
-	$file = wp_normalize_path( html_entity_decode( $m[1] ) );
+	$file = wp_normalize_path( html_entity_decode( $m[1], ENT_QUOTES | ENT_HTML5 ) );
 
 	foreach ( array_keys( get_plugins() ) as $plugin ) {
 		$folder = wp_normalize_path( WP_PLUGIN_DIR . '/' . dirname( $plugin ) . '/' );
