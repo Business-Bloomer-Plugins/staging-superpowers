@@ -303,7 +303,13 @@ function sspw_link( $key, $text ) {
 function sspw_live_url_field() {
 	$field = array(
 		'title'       => __( 'Live site address', 'staging-superpowers' ),
-		'desc'        => __( 'The address of your real site, for example https://www.mystore.com.', 'staging-superpowers' ),
+		'desc'        => esc_html__( 'The address of your real site, for example https://www.mystore.com. It is optional. Without it:', 'staging-superpowers' ) .
+			'<br>&bull; ' . esc_html__( 'logged-out visitors see the STAGING bar, without a link to the same page on your live site;', 'staging-superpowers' ) .
+			'<br>&bull; ' . esc_html__( '"Send them to the same page on the live site" shows the under-maintenance page instead;', 'staging-superpowers' ) .
+			'<br>&bull; ' . esc_html__( 'the under-maintenance page has no link to your site;', 'staging-superpowers' ) .
+			'<br>&bull; ' . esc_html__( 'the reminder on edit screens has no "Open this screen on the live site" link;', 'staging-superpowers' ) .
+			'<br>&bull; ' . esc_html__( 'Link check cannot look for links that point to your live site.', 'staging-superpowers' ) .
+			'<br>' . esc_html__( 'Staging Superpowers PRO uses it to confirm this isn\'t your live site before changing data, and for Compare with live.', 'staging-superpowers' ),
 		'id'          => 'sspw_live_url',
 		'type'        => 'url',
 		'default'     => '',
@@ -314,7 +320,7 @@ function sspw_live_url_field() {
 		$detected = sspw_detect_live_url();
 		if ( $detected ) {
 			$field['default'] = $detected;
-			$field['desc']   .= ' <strong>' . esc_html__( 'We filled this in from your site data. Check it is right, then click Save Changes to use it.', 'staging-superpowers' ) . '</strong>';
+			$field['desc']   .= '<br><strong>' . esc_html__( 'We filled this in from your site data. Check it is right, then click Save Changes to use it.', 'staging-superpowers' ) . '</strong>';
 		}
 	}
 
@@ -407,12 +413,53 @@ function sspw_settings_fields() {
 		),
 
 		array(
-			'title' => __( 'Where is your live site?', 'staging-superpowers' ),
+			'title' => __( 'Your live site and what visitors see', 'staging-superpowers' ),
 			'type'  => 'title',
-			'desc'  => __( 'So this copy can point people to the real thing: logged-out visitors are sent to the same page on your live site, and the reminder on edit screens gets a link to open that screen on live.', 'staging-superpowers' ),
+			'desc'  => __( 'Where your real site is, and what people who are not on your team see on this copy.', 'staging-superpowers' ),
 			'id'    => 'sspw_live_section',
 		),
 		sspw_live_url_field(),
+		array(
+			'title'   => __( 'Visitors', 'staging-superpowers' ),
+			'desc'    => sspw_visitors_description(),
+			'id'      => 'sspw_visitors',
+			'type'    => 'select',
+			'css'     => 'min-width:440px;',
+			'default' => 'bar',
+			'options' => array(
+				'bar'      => __( 'Show the site with a STAGING bar (recommended)', 'staging-superpowers' ),
+				'redirect' => __( 'Send them to the same page on the live site (needs the live site address)', 'staging-superpowers' ),
+				'lock'     => __( 'Show an under-maintenance page', 'staging-superpowers' ),
+			),
+		),
+		array(
+			'title'    => __( 'Staging look', 'staging-superpowers' ),
+			'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers' ),
+			'desc_tip' => __( 'Adds a red STAGING badge to the admin bar and a red status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
+			'id'       => 'sspw_look',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Search engines', 'staging-superpowers' ),
+			'desc'     => __( 'Hide this site from search engines', 'staging-superpowers' ),
+			'desc_tip' => sprintf(
+				/* translators: %s: link to Settings > Reading */
+				__( 'Tells Google and other search engines not to list any page of this copy, so it never competes with your live site. This works on its own, whatever is set in %s.', 'staging-superpowers' ),
+				sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers' ) )
+			),
+			'id'       => 'sspw_noindex',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
+		array(
+			'title'    => __( 'Page caching', 'staging-superpowers' ),
+			'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers' ),
+			'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of being sent to the live site. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
+			'id'       => 'sspw_no_cache',
+			'type'     => 'checkbox',
+			'default'  => 'yes',
+		),
 		array(
 			'type' => 'sectionend',
 			'id'   => 'sspw_live_section',
@@ -521,57 +568,6 @@ function sspw_settings_fields() {
 	return array_merge(
 		$fields,
 		array(
-			array(
-				'title' => __( 'Visitors, search engines and the staging look', 'staging-superpowers' ),
-				'type'  => 'title',
-				'id'    => 'sspw_look_section',
-			),
-			array(
-				'title'   => __( 'Visitors', 'staging-superpowers' ),
-				'desc'    => sspw_visitors_description(),
-				'id'      => 'sspw_visitors',
-				'type'    => 'select',
-				'css'     => 'min-width:440px;',
-				'default' => 'bar',
-				'options' => array(
-					'bar'      => __( 'Show the site with a STAGING bar (recommended)', 'staging-superpowers' ),
-					'redirect' => __( 'Send them to the same page on the live site', 'staging-superpowers' ),
-					'lock'     => __( 'Show an under-maintenance page', 'staging-superpowers' ),
-				),
-			),
-			array(
-				'title'    => __( 'Staging look', 'staging-superpowers' ),
-				'desc'     => __( 'Make it obvious this is the staging site', 'staging-superpowers' ),
-				'desc_tip' => __( 'Adds a red STAGING badge to the admin bar and a red status bar under it showing which protections are on, puts [STAGING] in front of admin page titles so browser tabs are easy to tell apart, and shows a reminder when you edit posts, pages, products, menus or store settings, so changes meant for the live site are not made here by mistake.', 'staging-superpowers' ),
-				'id'       => 'sspw_look',
-				'type'     => 'checkbox',
-				'default'  => 'yes',
-			),
-			array(
-				'title'    => __( 'Search engines', 'staging-superpowers' ),
-				'desc'     => __( 'Hide this site from search engines', 'staging-superpowers' ),
-				'desc_tip' => sprintf(
-					/* translators: %s: link to Settings > Reading */
-					__( 'Tells Google and other search engines not to list any page of this copy, so it never competes with your live site. This works on its own, whatever is set in %s.', 'staging-superpowers' ),
-					sspw_link( 'reading', __( 'Settings > Reading', 'staging-superpowers' ) )
-				),
-				'id'       => 'sspw_noindex',
-				'type'     => 'checkbox',
-				'default'  => 'yes',
-			),
-			array(
-				'title'    => __( 'Page caching', 'staging-superpowers' ),
-				'desc'     => __( 'Turn off page caching on this site', 'staging-superpowers' ),
-				'desc_tip' => __( 'Cache plugins save copies of your pages and show those instead of the real page. On staging that means you do not see your changes, and visitors could see a saved page instead of being sent to the live site. This tells cache plugins (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache and others) and your host not to save pages, and empties their saved pages once. Their own settings are not changed.', 'staging-superpowers' ),
-				'id'       => 'sspw_no_cache',
-				'type'     => 'checkbox',
-				'default'  => 'yes',
-			),
-			array(
-				'type' => 'sectionend',
-				'id'   => 'sspw_look_section',
-			),
-
 			array(
 				'title' => __( 'Check your other plugins', 'staging-superpowers' ),
 				'type'  => 'title',

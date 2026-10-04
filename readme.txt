@@ -182,6 +182,7 @@ No. It only exists while the plugin is turned on for the current URL, and the de
 * Logged-out visitors now see the site with a STAGING bar by default, so your team can test the site logged out. The bar links to the same page on your live site.
 * Visitors now have three choices: the STAGING bar, the same page on the live site, or a new under-maintenance page. The maintenance page replaces the "this is a staging site" page and never mentions staging, so customers are not confused. "Show the site as normal" was removed; sites that used it now get the STAGING bar.
 * When the admin bar wraps onto two rows on narrow screens, the status bar moves down instead of covering it.
+* The live site address and the visitor settings (Visitors, Staging look, Search engines, Page caching) are now one section at the top of the page. The live site address is explained as optional, with what changes without it.
 
 = 1.1.0 =
 * New name: Staging Superpowers. It now works on any WordPress site, and its WooCommerce protections turn on by themselves when WooCommerce is active.
