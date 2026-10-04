@@ -289,27 +289,6 @@ function sspw_status_items() {
 		)
 	);
 
-	// Troubleshooting leftovers are easy to forget, so they stay visible until undone.
-	$disabled = count( sspw_disabled_plugins() );
-	if ( $disabled ) {
-		$items[] = array(
-			'warn'  => true,
-			/* translators: %d: number of plugins */
-			'label' => sprintf( _n( '%d plugin switched off', '%d plugins switched off', $disabled, 'staging-superpowers' ), $disabled ),
-			'tip'   => __( 'Switched off for troubleshooting. Click to switch them back on.', 'staging-superpowers' ),
-			'url'   => $links['troubleshooting'],
-		);
-	}
-
-	if ( sspw_previous_theme() && sspw_previous_theme() !== get_stylesheet() ) {
-		$items[] = array(
-			'warn'  => true,
-			'label' => __( 'Theme switched', 'staging-superpowers' ),
-			'tip'   => __( 'Switched for troubleshooting. Click to switch back.', 'staging-superpowers' ),
-			'url'   => $links['troubleshooting'],
-		);
-	}
-
 	return $items;
 }
 
@@ -320,26 +299,7 @@ function sspw_status_bar() {
 
 	echo '<div id="sspw-status-bar" role="status"><div class="sspw-items">';
 
-	// Warnings first, so they stay visible when a narrow screen cuts the bar short.
-	$items = sspw_status_items();
-	usort(
-		$items,
-		function ( $a, $b ) {
-			return (int) ! empty( $b['warn'] ) - (int) ! empty( $a['warn'] );
-		}
-	);
-
-	foreach ( $items as $item ) {
-		if ( ! empty( $item['warn'] ) ) {
-			printf(
-				'<a class="sspw-warn" href="%1$s" title="%2$s"><span class="sspw-mark" aria-hidden="true">&#9888;</span> %3$s</a>',
-				esc_url( $item['url'] ),
-				esc_attr( $item['tip'] ),
-				esc_html( $item['label'] )
-			);
-			continue;
-		}
-
+	foreach ( sspw_status_items() as $item ) {
 		printf(
 			'<a class="%1$s" href="%2$s" title="%3$s"><span class="sspw-mark" aria-hidden="true">%4$s</span> %5$s<span class="screen-reader-text"> (%6$s)</span></a>',
 			$item['on'] ? 'sspw-on' : 'sspw-off',
@@ -385,8 +345,6 @@ function sspw_admin_bar_style() {
 			'#sspw-status-bar .sspw-on .sspw-mark{color:#86efac}' .
 			'#sspw-status-bar .sspw-off{color:#fecaca}' .
 			'#sspw-status-bar .sspw-off .sspw-mark{color:#fca5a5}' .
-			'#sspw-status-bar .sspw-warn{background:#fde68a;color:#7f1d1d;font-weight:600;margin-left:6px}' .
-			'#sspw-status-bar .sspw-warn:hover,#sspw-status-bar .sspw-warn:focus{background:#fcd34d;color:#7f1d1d}' .
 			'#sspw-status-bar .sspw-gear{flex-shrink:0;margin-left:4px}' .
 			'#sspw-status-bar .dashicons{font-size:18px;width:18px;height:18px;line-height:28px;vertical-align:top}';
 
