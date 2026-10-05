@@ -84,7 +84,7 @@ function sspw_request_source() {
 
 	// Resolved paths, so symlinked plugin folders and "./" in paths still match.
 	if ( null === $dirs ) {
-		$dirs = array();
+		$dirs  = array();
 		$roots = array(
 			'plugin' => WP_PLUGIN_DIR,
 			'theme'  => get_theme_root(),
