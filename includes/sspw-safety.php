@@ -38,6 +38,9 @@ if ( 'yes' === sspw_get( 'sspw_http_firewall' ) ) {
 	add_filter( 'pre_http_request', 'sspw_http_firewall', PHP_INT_MAX, 3 );
 }
 
+// Requests that went out, recorded only when an add-on asks for it.
+add_action( 'http_api_debug', 'sspw_record_allowed_request', 10, 5 );
+
 // Action Scheduler: zero allowed batches means every queue run (WP-Cron, async
 // loopback, WP-CLI runner) exits before claiming anything. Running a single
 // action from Tools > Scheduled Actions bypasses the queue, so it still works.
@@ -188,6 +191,7 @@ function sspw_http_firewall( $pre, $args, $url ) {
 
 	foreach ( sspw_blocked_hosts() as $blocked ) {
 		if ( $host === $blocked || str_ends_with( $host, '.' . $blocked ) ) {
+			sspw_record_request( $url, $args, 'blocked' );
 			/* translators: %s: blocked host name */
 			return new WP_Error( 'sspw_blocked', sprintf( __( 'Request to %s blocked by Staging Superpowers.', 'staging-superpowers' ), $host ) );
 		}
@@ -214,8 +218,9 @@ function sspw_can_see_status_bar() {
  * One entry per protection: is it on, what to call it, where to manage it.
  */
 function sspw_status_items() {
-	$links = sspw_admin_links();
-	$email = sspw_email_status();
+	$links         = sspw_admin_links();
+	$email         = sspw_email_status();
+	$blocked_count = sspw_blocked_request_count();
 
 	$email_labels = array(
 		'block'               => __( 'Emails blocked', 'staging-superpowers' ),
@@ -269,9 +274,13 @@ function sspw_status_items() {
 		array(
 			array(
 				'on'    => 'yes' === sspw_get( 'sspw_http_firewall' ),
-				'label' => __( 'Services blocked', 'staging-superpowers' ),
+				'label' => $blocked_count ? sprintf(
+					/* translators: %s: number of blocked requests */
+					__( 'Services blocked (%s)', 'staging-superpowers' ),
+					number_format_i18n( $blocked_count )
+				) : __( 'Services blocked', 'staging-superpowers' ),
 				'tip'   => __( 'Payment, email, marketing, shipping and tax services cannot be contacted.', 'staging-superpowers' ),
-				'url'   => $links['settings'],
+				'url'   => $blocked_count ? sspw_settings_url( 'requests' ) : $links['settings'],
 			),
 			sspw_automations_item( $links['actions'] ),
 			array(

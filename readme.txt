@@ -46,6 +46,7 @@ The protections never change your settings in the database, and they are all on 
 * Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more), plus the services automation workflows send to (Twilio SMS, Slack, Zapier, Make, ActiveCampaign, SendGrid, Mailgun, Postmark, Google Sheets and more).
 * Also blocked by default: social sharing and push notification services (X, LinkedIn, Blog2Social, OneSignal, PushEngage), the Cloudflare API, the Uncanny Automator API, Google Analytics (including GA4 server events) and the ShortPixel and Smush image APIs.
 * Blocking payment APIs also stops a refund from an admin screen reaching the real payment account.
+* The Requests log (Tools > Staging Superpowers > Requests) lists every blocked request: the address, the plugin that made it and how many times. Only the address is kept, never what was sent.
 * Stops pingbacks, trackbacks and update-service pings (Ping-O-Matic) when you publish, so other sites are not told about test posts.
 
 **Popular plugins**
@@ -219,6 +220,9 @@ Tools for working on the copy: anonymizing personal data before you hand the sit
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
+
+= 1.2.0 =
+* New: Requests log. Every request the staging site tried to make to a blocked service is listed with the address, the plugin that made it and a count. Only the method, host and path are kept, never what was sent. The status bar shows how many requests were blocked.
 
 = 1.1.2 =
 * Fix: automatic background updates of plugins and themes are now recorded in the changelog, like updates made from the Plugins screen.

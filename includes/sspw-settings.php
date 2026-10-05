@@ -548,6 +548,7 @@ function sspw_settings_sections() {
 		array(
 			''                => __( 'Protection', 'staging-superpowers' ),
 			'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers' ),
+			'requests'        => __( 'Requests', 'staging-superpowers' ),
 			'changelog'       => __( 'Changelog', 'staging-superpowers' ),
 		)
 	);
@@ -592,6 +593,8 @@ function sspw_output_settings_page() {
 
 	if ( 'troubleshooting' === $section ) {
 		sspw_output_troubleshooting();
+	} elseif ( 'requests' === $section ) {
+		sspw_output_requests();
 	} elseif ( 'changelog' === $section ) {
 		sspw_output_changelog();
 	} elseif ( '' !== $section ) {
@@ -810,6 +813,7 @@ function sspw_pro_features() {
 		__( 'Send logged-out visitors to the same page on your live site', 'staging-superpowers' ),
 		__( 'Compare any page with your live site, side by side', 'staging-superpowers' ),
 		__( 'Find staging links, images and files still used on your live site', 'staging-superpowers' ),
+		__( 'See and block every outgoing request', 'staging-superpowers' ),
 	);
 
 	if ( sspw_has_woocommerce() ) {

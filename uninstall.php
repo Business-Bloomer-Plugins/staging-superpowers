@@ -26,6 +26,7 @@ $sspw_options = array(
 	'sspw_block_bots',
 	'sspw_no_analytics',
 	'sspw_no_cache',
+	'sspw_requests',
 	'sspw_disabled_plugins',
 	'sspw_previous_theme',
 	'sspw_changelog',
