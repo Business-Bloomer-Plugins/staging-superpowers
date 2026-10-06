@@ -4,7 +4,7 @@ Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,134 +14,41 @@ Make a staging copy of your site safe to test on: blocks emails and outside serv
 
 **Live stays safe. Every time.**
 
-A staging copy of a live WordPress site is risky. It has the real email addresses of your users, the same connections to your email marketing, CRM and payment accounts, and the same scheduled tasks, all ready to fire the moment someone tests a form or WP-Cron runs.
+Your staging copy has your real customers, your real payment keys and your real automations. One test can email thousands of people or charge a real card. Staging Superpowers stops all of it, the moment you activate it.
 
-Install it on your staging site. When the site looks like staging (a staging. or dev. address, a .local site, a hosting company's staging domain such as WP Engine, Kinsta or Cloudways, or WP_ENVIRONMENT_TYPE set to staging), it turns itself on the moment you activate it. Anywhere else it waits for you to confirm with one click, so installing it on your live site by mistake changes nothing.
+= What it blocks =
 
-It works on any WordPress site. On a WooCommerce store it also hides your payment methods, adds a test gateway, pauses webhooks and locks subscriptions copied from the live store. See "WooCommerce stores" below.
+* **Emails:** every email to real people is blocked, even through SMTP plugins. Or forward them all to yourself.
+* **Outside services:** Stripe, PayPal, Mailchimp, Klaviyo, Zapier, CRMs and 50+ more can't be reached.
+* **Automations:** WP-Cron and scheduled actions are frozen, so nothing runs twice.
+* **Search engines and AI bots:** noindex, robots.txt, no sitemaps, and known crawlers refused.
+* **Analytics:** test visits stay out of Google Analytics and Meta reports.
+* **Page caching:** off, so you always see your latest change.
 
-**At a glance**
+= What it adds =
 
-* Stops every email to real people, including those sent through SMTP plugins.
-* Blocks payment, email marketing, CRM, shipping, tax, social and analytics services, so a test never reaches your live accounts.
-* Freezes WP-Cron and scheduled actions, so renewals, follow-ups and syncs do not run twice.
-* Keeps search engines and AI bots out.
-* Marks the site with a red STAGING badge and a status bar showing every protection.
-* Records what you change, so you know what to redo on the live site.
-* Finds the plugin that breaks your site, and undoes a change that causes a fatal error.
-* Switches itself off if the database ends up on your live site.
+* **Staging look:** a red STAGING badge and a status bar showing every protection.
+* **Changelog:** every change you make on staging, so you know what to redo on live.
+* **Troubleshooting:** switch plugins off and on in bulk. A fatal error is undone automatically.
+* **Visitors:** let everyone in, or show logged-out visitors a "We'll be right back" message.
+* **Emails log:** every email it stopped or forwarded, with recipient, subject and sender plugin. Never the message body.
+* **Requests log:** every outgoing request it blocked, with the plugin that tried.
 
-The protections never change your settings in the database, and they are all on by default. The details are below.
+= On WooCommerce stores =
 
-**Emails**
+* Payment methods are swapped for a Staging Test Gateway, so no real card is charged.
+* Subscriptions copied from live are locked, so live renewals keep working.
+* Webhooks are paused.
 
-* Blocks every outgoing email by default.
-* Or forward them all to one address instead. The original recipient is added to the subject line, for example "[STAGING to jane@example.com] Your password was reset". Until you enter a forwarding address, emails stay blocked.
-* CC and BCC headers are removed, so nobody gets a copy by accident.
-* The Emails log (Tools > Staging Superpowers > Emails) lists every email that was blocked or forwarded: the recipients, the subject, the plugin that sent it and how many times. The message itself is never kept, and CC and BCC copies are only counted.
-* Works for every email sent through WordPress, including SMTP plugins like WP Mail SMTP, FluentSMTP and Post SMTP: the block runs before any mailer.
-* Checks for plugins that replace the WordPress email function (some Mailgun, SendGrid, SparkPost and Mandrill versions do) and warns you in the status bar. Their sending services are blocked too, and anything that still reaches the WordPress mailer is readdressed to nowhere.
+= Safe to keep on your live site =
 
-**Connected services**
+It only switches itself on where the address looks like staging (staging., dev., .local, WP Engine, Kinsta, Cloudways and more) or WP_ENVIRONMENT_TYPE is staging, development or local. On your live site it stays off. Every clone of your site already has it, and protects itself straight away. Push staging back to live and it switches itself off again.
 
-* Blocks outgoing requests to a list of hosts you control. The default list covers common payment, email marketing, shipping, tax and tracking APIs (Stripe, PayPal, Square, Mollie, Mailchimp, Klaviyo, ShipStation, Avalara, Facebook and more), plus the services automation workflows send to (Twilio SMS, Slack, Zapier, Make, ActiveCampaign, SendGrid, Mailgun, Postmark, Google Sheets and more).
-* Also blocked by default: social sharing and push notification services (X, LinkedIn, Blog2Social, OneSignal, PushEngage), the Cloudflare API, the Uncanny Automator API, Google Analytics (including GA4 server events) and the ShortPixel and Smush image APIs.
-* Blocking payment APIs also stops a refund from an admin screen reaching the real payment account.
-* The Requests log (Tools > Staging Superpowers > Requests) lists every blocked request: the address, the plugin that made it and how many times. Only the address is kept, never what was sent.
-* Stops pingbacks, trackbacks and update-service pings (Ping-O-Matic) when you publish, so other sites are not told about test posts.
+Nothing in your database is changed by the protections. Deactivate it and the site behaves as before.
 
-**Popular plugins**
+= Staging Superpowers Pro =
 
-Some plugins reach live services in their own way, so they get their own switch while the site is protected:
-
-* Jetpack is put in safe mode, so it stops syncing to WordPress.com and Jetpack Social does not share new posts.
-* UpdraftPlus scheduled backups do not run, so they cannot upload to or prune your live backup storage. Backups you start by hand still work.
-* Easy Digital Downloads and GiveWP run in test mode, and Paid Memberships Pro uses its sandbox gateway environment.
-* Analytics are off (you can turn this off): Site Kit by Google does not add its Analytics, Tag Manager, Ads and AdSense tags, MonsterInsights tracking is skipped, GTM4WP leaves out its container, and the Meta pixel's Conversions API sends nothing.
-
-A few plugins, such as WP Offload Media, Imagify and WP Search with Algolia, talk to their services with their own code, which cannot be blocked. Switch them off or change their settings on staging.
-
-**Automations**
-
-* Freezes WP-Cron, so scheduled tasks copied from the live site (digests, syncs, backups to the cloud, imports) do not run a second time. Nothing is deleted: everything runs again once you turn it off.
-* Freezes the Action Scheduler queue too, when your site has it (WooCommerce and many other plugins use it), so renewals, follow-up emails, automation workflows and sync jobs do not run. The status bar shows how many are waiting.
-* You can still run any single scheduled action by hand from its admin screen, or a single WP-Cron task with WP-CLI (wp cron event run).
-
-**Staging look**
-
-* A red STAGING badge in the admin bar, on the dashboard and on the front end. Your admin bar keeps its usual colors.
-* A status bar under it shows at a glance which protections are on (✓) or off (✗), each linking to the screen where you manage it, plus a shortcut to all settings.
-* A reminder on post, page, product, coupon, menu and store settings screens, so changes meant for the live site are not made here by mistake.
-* "[STAGING]" prefix on admin page titles, so browser tabs are easy to tell apart.
-
-**Search engines, crawlers and AI bots**
-
-* Adds noindex, nofollow to every page, whatever is set in Settings > Reading.
-* robots.txt asks every crawler to stay away, and the WordPress sitemaps are turned off.
-* Known search and AI crawlers that come anyway (Googlebot, Bingbot, GPTBot, ClaudeBot, PerplexityBot, CCBot, Bytespider and others) are refused. Your team, logged-in users and the site's own background tasks are never blocked.
-
-**Page caching**
-
-* Turns off page caching, so you always see your latest changes. Works with WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Cache Enabler, SiteGround, Breeze, Hummingbird, WP-Optimize and host caches that respect no-cache headers. Existing saved pages are emptied once. Cache plugin settings are not changed.
-
-**Visitors**
-
-* By default everyone can see the staging site, so you can test it logged out too.
-* Or show logged-out visitors (and accounts that cannot edit the site, like customers) a plain message instead, with your own heading and text. It never mentions staging, so customers are not confused. Your team logs in at /wp-login.php as usual, and browsers your team has logged in with go to the login page instead of the message.
-
-**Changelog**
-
-Copying a staging database over your live site wipes everything added on the live site since the copy was made: comments, sign-ups, form entries, orders. So instead, the plugin records everything you change on staging, as a list of what to redo on the live site:
-
-* Settings of this plugin (and of WooCommerce), with the old and new value, for example: Settings > Products: "Enable AJAX add to cart buttons on archives" changed from on to off.
-* Theme switched, plugins switched on or off, plugin, theme and WordPress updates.
-* Posts, pages, products, coupons, categories, tags and menus created, edited or deleted.
-
-Find it at Tools > Staging Superpowers > Changelog, on every site, with or without WooCommerce. The latest 1,000 changes are kept.
-
-**Troubleshooting**
-
-Find out if a problem is caused by another plugin or by the theme, from Tools > Staging Superpowers > Troubleshooting.
-
-* Every plugin on one row, active ones first: its status, the version on this site (red when a newer version is out, green when up to date) and its latest release with how long ago it came out, plus a link to its changelog. A plugin with a recent release is often the cause.
-* Premium plugins with their own updater show the newest version their updater reports.
-* Disable or Enable any plugin from its row, or tick several (or select all) and use Disable selected or Enable selected, above or below the table. WooCommerce can be disabled like any other plugin. Staging Superpowers is always on.
-* Plugins that need a plugin you disable (their "Requires Plugins" header, or a WooCommerce.com extension when WooCommerce goes off) are disabled with it, and enabling a plugin also enables what it needs. The message afterwards says what else changed and why.
-* After every change, the site loads itself in the background, logged out and as you. If that shows a fatal error, the change is undone straight away and the plugin or theme that caused it is named, so the staging site never ends up broken.
-* Enable everything you disabled here again with one click.
-* Every theme on one row with the same details, a "Use this theme" button and a button to go back to the theme you started with.
-* Each action is one entry in the changelog, however many plugins it changed.
-* Only available while the plugin is on for the current URL, so a live site can never be switched off from here.
-
-**Deploy guard**
-
-The plugin remembers the exact URL it was turned on for. If the database ends up on a different URL, for example when staging is pushed to the live site, every feature switches off by itself and an admin notice explains why. Your live site keeps sending emails and running its scheduled tasks even if the plugin comes along by mistake. If the new URL also looks like staging (say you refreshed staging into staging2.), the plugin turns itself back on.
-
-If the site's configuration says it is the live site (WP_ENVIRONMENT_TYPE set to "production"), the plugin also stays off until an admin confirms the site is a copy. That confirmation only applies to the current URL, so the deploy guard still protects the live site.
-
-Nothing is changed in the database: gateway settings, webhook statuses and scheduled tasks are left exactly as they were. Deactivate the plugin and the site behaves as before.
-
-**WooCommerce stores**
-
-When WooCommerce is active, these protections are added on top, all on by default:
-
-* Payments: hides every payment method at checkout, so live Stripe, PayPal or WooPayments keys are never used, and adds a Staging Test Gateway instead. Choose whether test payments succeed, go on hold or fail. Refunds are simulated too. Works with the classic checkout and the Checkout block.
-* Subscriptions: locks subscriptions copied from the live store, their orders and the customers who own them, so nobody can delete them on staging. Deleting them could make your payment plugin remove the customer's saved card at Stripe (or PayPal, Square...), which would stop renewals on the live store. Subscriptions you create on staging for testing are not locked.
-* Webhooks: stops every WooCommerce webhook from being delivered, so your ERP, fulfillment or accounting tools never receive staging orders.
-* When visitors are shown the message instead of the site, they cannot use the cart and checkout API either, so nobody places orders that go nowhere.
-* The changelog also records WooCommerce settings and the cart or checkout switching between blocks and classic.
-
-Settings are at Tools > Staging Superpowers.
-
-**Staging Superpowers Pro**
-
-Staging Superpowers blocks what could hurt your live site. [Staging Superpowers Pro](https://www.businessbloomer.com/plugins/staging-superpowers-pro/) adds tools for working on the copy:
-
-* Anonymize users, customers, form entries and staff, and remove secret keys, before you hand the site to a developer or agency.
-* Send logged-out visitors to the same page on your live site.
-* Compare any page with your live site, side by side.
-* Find staging links, images and files still used on your live site.
-* On WooCommerce stores: generate and delete test orders, products and customers, scramble revenue, log in as a customer, switch WooCommerce versions and HPOS.
+[Staging Superpowers Pro](https://www.businessbloomer.com/plugins/staging-superpowers-pro/) adds tools for working on the copy: anonymize customers and staff before handing the site to an agency, send visitors to your live site, compare pages with live side by side, find staging links on live, see and block every outgoing request, and WooCommerce test data and switches.
 
 == External services ==
 
@@ -151,65 +58,39 @@ The web addresses listed in its settings are services the plugin blocks. The def
 
 == Installation ==
 
-1. On your staging site, go to Plugins > Add New Plugin, search for "Staging Superpowers" and click Install Now, then Activate.
-2. If the site looks like staging, the plugin turns itself on and a red STAGING badge appears in the admin bar. If not, click "This is a staging site: turn on" in the notice at the top of the screen.
-3. Go to Tools > Staging Superpowers and review the settings. Every protection is on by default.
-
-Do not install it on your live site. If you do by mistake, it stays off unless someone confirms the site is a copy.
+1. Install and activate Staging Superpowers, on your live site or on staging.
+2. On a staging address it switches itself on: you'll see a red STAGING badge. Anywhere else it stays off, or click "This is a staging site: turn on" in the notice.
+3. Everything is on by default. Settings are at Tools > Staging Superpowers.
 
 == Frequently Asked Questions ==
 
-= Who is it for? =
-
-Store owners, developers and agencies who test changes on a staging copy before making them on the live site: plugin and theme updates, new features, redesigns, checkout changes.
-
-= Does it work with my host's staging sites? =
-
-Yes. It works with any staging copy, whether your host made it (WP Engine, Kinsta, SiteGround, Cloudways and others), a staging plugin made it, or you copied the site by hand. Most hosting staging addresses are recognized, so it turns itself on. If yours is not, click the button in the notice once.
-
-= Will it break or change my staging site? =
-
-No. The protections work through WordPress filters while the plugin is active: payment methods, webhooks, scheduled tasks and settings stay exactly as they were in the database. Deactivate it and the site behaves as before. Only Troubleshooting changes things, and only when you ask it to: it disables and enables the plugins and themes you pick, and can enable them all again with one click.
-
-= What happens when I push staging to my live site? =
-
-The plugin notices it is on a different address and switches itself off, so your live site keeps sending emails, taking payments and running its scheduled tasks. Even so, think twice before pushing a staging database over a live one: it wipes everything added on the live site since the copy was made. The changelog lists what you changed, so you can redo it instead.
-
 = Do I need WooCommerce? =
 
-No. Every protection except payments, webhooks and the subscription lock works on any WordPress site. Those three turn on by themselves when WooCommerce is active.
+No. It works on any WordPress site. The payment, subscription and webhook protections turn on by themselves when WooCommerce is active.
 
-= Will it turn itself on if I install it on my live site? =
+= Can I keep it active on my live site? =
 
-No. It only turns itself on when the site address or environment clearly says staging. On any other address it shows a notice and waits for an admin to confirm, with a warning, that the site is a copy.
+Yes. It stays off there, and switches on by itself in every staging copy. That way you never forget to install it on a new clone.
 
-= Visitors see a message instead of my staging site =
+= Does it work with my host's staging? =
 
-Visitors are set to "Show a message instead". Log in at your staging address followed by /wp-login.php and you will see the staging site as normal. To let everyone see it, set Visitors to "Let everyone see the site" in Tools > Staging Superpowers.
+Yes, with any staging copy: made by your host, a staging plugin or by hand. If yours isn't recognized, click the button in the notice once.
 
-= I cloned my staging site to a new URL and the plugin says it is not turned on =
+= What happens when I push staging to live? =
 
-That is the deploy guard. If the new address looks like staging, the plugin turns itself back on by itself. Otherwise click "This is a staging site: turn on for ..." in the admin notice.
+It notices the address changed and switches itself off, so your live site keeps working normally.
 
-= I cloned my site by hand and the plugin says the site is the live site =
+= Does it stop bots that ignore robots.txt? =
 
-A hand-made copy keeps the live site's wp-config.php, which may say the site is in production. If you are sure the site is a copy, click "This is a copy, not my live site" in the admin notice and confirm.
-
-= Does blocking connected services stop every request a plugin makes? =
-
-It blocks requests made through the WordPress HTTP API, which is what almost every WordPress plugin uses. A plugin that bypasses it with its own cURL calls will not be blocked.
+Known crawlers and AI bots, Bytespider included, are refused whatever robots.txt says. For full lockdown, also password-protect staging at your host.
 
 = Some background tasks are not running =
 
-That is the automations freeze. WooCommerce and other plugins use scheduled tasks for their own housekeeping too, for example analytics imports and order table syncs. Untick "Scheduled actions" or "WP-Cron" in Tools > Staging Superpowers if you need them, or run the ones you need by hand.
+That's the automations freeze. Untick "Scheduled actions" or "WP-Cron" in Tools > Staging Superpowers, or run single tasks by hand.
 
-= Can the Staging Test Gateway be used on my live store? =
+= Does blocking services stop every request? =
 
-No. It only exists while the plugin is turned on for the current URL, and the deploy guard switches the plugin off on any other URL.
-
-= What does Staging Superpowers Pro add? =
-
-Tools for working on the copy: anonymizing personal data before you hand the site over, sending visitors to your live site, comparing pages with live, finding staging links on live, and WooCommerce test data and switches. See [Staging Superpowers Pro](https://www.businessbloomer.com/plugins/staging-superpowers-pro/).
+It blocks requests made through the WordPress HTTP API, which almost every plugin uses. A plugin with its own connection code, such as WP Offload Media, can't be blocked: switch it off on staging.
 
 == Screenshots ==
 
@@ -223,8 +104,11 @@ Tools for working on the copy: anonymizing personal data before you hand the sit
 == Changelog ==
 
 = 1.2.0 =
-* New: Emails log. Every email the staging site tried to send is listed with its recipients, subject, the plugin that sent it, what happened (blocked or forwarded) and a count. Message bodies, headers and attachments are never kept, and CC and BCC addresses are only counted. The status bar shows how many emails were stopped.
-* New: Requests log. Every request the staging site tried to make to a blocked service is listed with the address, the plugin that made it and a count. Only the method, host and path are kept, never what was sent. The status bar shows how many requests were blocked.
+* New: Emails log. Every email the staging site tried to send is listed with its recipients, subject, the plugin that sent it, what happened (blocked or forwarded) and a count. Message bodies, headers and attachments are never kept, and CC and BCC addresses are only counted.
+* New: Requests log. Every request to a blocked service is listed with the address, the plugin that made it and a count. Only the method, host and path are kept, never what was sent.
+* The status bar shows how many emails and requests were stopped, with a link to each log.
+* Shorter, clearer plugin description, and new FAQ answers.
+* It's safe to keep the plugin active on your live site: it stays off there and switches on by itself in every staging copy.
 
 = 1.1.2 =
 * Fix: automatic background updates of plugins and themes are now recorded in the changelog, like updates made from the Plugins screen.
