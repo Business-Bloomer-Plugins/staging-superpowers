@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 if ( 'redirect' === sspw_email_status() ) {
 	add_filter( 'wp_mail', 'sspw_redirect_email', PHP_INT_MAX );
 } elseif ( 'off' !== sspw_email_status() ) {
-	add_filter( 'pre_wp_mail', 'sspw_block_email', PHP_INT_MAX );
+	add_filter( 'pre_wp_mail', 'sspw_block_email', PHP_INT_MAX, 2 );
 }
 
 // Safety net for plugins that replace wp_mail() but still hand the email to
@@ -28,6 +28,15 @@ if ( 'off' !== sspw_email_status() ) {
  * goes nowhere without throwing errors in plugins that do not expect them.
  */
 function sspw_phpmailer_safety_net( $phpmailer ) {
+	// Forwarded emails were logged when they were rerouted; anything else got here around the block.
+	if ( empty( $GLOBALS['sspw_mail_logged'] ) ) {
+		$to     = array_map( 'strtolower', array_column( $phpmailer->getToAddresses(), 0 ) );
+		$copies = count( $phpmailer->getCcAddresses() ) + count( $phpmailer->getBccAddresses() );
+		$target = 'redirect' === sspw_email_status() ? sanitize_email( sspw_get( 'sspw_email_to' ) ) : '';
+		sspw_record_email( $to, $phpmailer->Subject, $copies, $target ? 'forwarded' : 'blocked', $target ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer property.
+	}
+	$GLOBALS['sspw_mail_logged'] = false;
+
 	$phpmailer->clearAllRecipients();
 	$phpmailer->clearReplyTos();
 	$phpmailer->addAddress( 'redirect' === sspw_email_status() ? sanitize_email( sspw_get( 'sspw_email_to' ) ) : 'blocked@staging-superpowers.invalid' );
@@ -143,12 +152,21 @@ function sspw_no_robots( $robots ) {
  * Returning true tells wp_mail() the email was sent, so WooCommerce and other
  * plugins carry on as normal instead of logging failures.
  */
-function sspw_block_email() {
+function sspw_block_email( $result, $atts = array() ) {
+	if ( null !== $result ) {
+		return $result;
+	}
+
+	sspw_record_email_atts( (array) $atts, 'blocked' );
+
 	return true;
 }
 
 function sspw_redirect_email( $atts ) {
 	$original = is_array( $atts['to'] ) ? implode( ', ', $atts['to'] ) : (string) $atts['to'];
+
+	sspw_record_email_atts( $atts, 'forwarded', sanitize_email( sspw_get( 'sspw_email_to' ) ) );
+	$GLOBALS['sspw_mail_logged'] = true;
 
 	$atts['to']      = sanitize_email( sspw_get( 'sspw_email_to' ) );
 	$atts['subject'] = sprintf( '[STAGING to %s] %s', $original, $atts['subject'] );
@@ -221,6 +239,7 @@ function sspw_status_items() {
 	$links         = sspw_admin_links();
 	$email         = sspw_email_status();
 	$blocked_count = sspw_blocked_request_count();
+	$email_count   = sspw_logged_email_count();
 
 	$email_labels = array(
 		'block'               => __( 'Emails blocked', 'staging-superpowers' ),
@@ -248,9 +267,9 @@ function sspw_status_items() {
 	$items = array(
 		array(
 			'on'    => in_array( $email, array( 'block', 'redirect' ), true ),
-			'label' => $email_labels[ $email ],
+			'label' => $email_count && in_array( $email, array( 'block', 'redirect' ), true ) ? sprintf( '%1$s (%2$s)', $email_labels[ $email ], number_format_i18n( $email_count ) ) : $email_labels[ $email ],
 			'tip'   => $email_tips[ $email ],
-			'url'   => $links['settings'],
+			'url'   => $email_count ? sspw_settings_url( 'emails' ) : $links['settings'],
 		),
 	);
 

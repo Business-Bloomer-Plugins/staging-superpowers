@@ -38,6 +38,7 @@ The protections never change your settings in the database, and they are all on 
 * Blocks every outgoing email by default.
 * Or forward them all to one address instead. The original recipient is added to the subject line, for example "[STAGING to jane@example.com] Your password was reset". Until you enter a forwarding address, emails stay blocked.
 * CC and BCC headers are removed, so nobody gets a copy by accident.
+* The Emails log (Tools > Staging Superpowers > Emails) lists every email that was blocked or forwarded: the recipients, the subject, the plugin that sent it and how many times. The message itself is never kept, and CC and BCC copies are only counted.
 * Works for every email sent through WordPress, including SMTP plugins like WP Mail SMTP, FluentSMTP and Post SMTP: the block runs before any mailer.
 * Checks for plugins that replace the WordPress email function (some Mailgun, SendGrid, SparkPost and Mandrill versions do) and warns you in the status bar. Their sending services are blocked too, and anything that still reaches the WordPress mailer is readdressed to nowhere.
 
@@ -222,6 +223,7 @@ Tools for working on the copy: anonymizing personal data before you hand the sit
 == Changelog ==
 
 = 1.2.0 =
+* New: Emails log. Every email the staging site tried to send is listed with its recipients, subject, the plugin that sent it, what happened (blocked or forwarded) and a count. Message bodies, headers and attachments are never kept, and CC and BCC addresses are only counted. The status bar shows how many emails were stopped.
 * New: Requests log. Every request the staging site tried to make to a blocked service is listed with the address, the plugin that made it and a count. Only the method, host and path are kept, never what was sent. The status bar shows how many requests were blocked.
 
 = 1.1.2 =

@@ -548,6 +548,7 @@ function sspw_settings_sections() {
 		array(
 			''                => __( 'Protection', 'staging-superpowers' ),
 			'troubleshooting' => __( 'Troubleshooting', 'staging-superpowers' ),
+			'emails'          => __( 'Emails', 'staging-superpowers' ),
 			'requests'        => __( 'Requests', 'staging-superpowers' ),
 			'changelog'       => __( 'Changelog', 'staging-superpowers' ),
 		)
@@ -593,6 +594,8 @@ function sspw_output_settings_page() {
 
 	if ( 'troubleshooting' === $section ) {
 		sspw_output_troubleshooting();
+	} elseif ( 'emails' === $section ) {
+		sspw_output_emails();
 	} elseif ( 'requests' === $section ) {
 		sspw_output_requests();
 	} elseif ( 'changelog' === $section ) {

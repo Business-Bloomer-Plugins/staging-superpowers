@@ -50,6 +50,7 @@ function sspw_init() {
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-troubleshoot.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-changelog-page.php';
 	require_once SSPW_PLUGIN_DIR . 'includes/sspw-requests.php';
+	require_once SSPW_PLUGIN_DIR . 'includes/sspw-emails-log.php';
 
 	if ( sspw_is_armed() ) {
 		require_once SSPW_PLUGIN_DIR . 'includes/sspw-safety.php';
