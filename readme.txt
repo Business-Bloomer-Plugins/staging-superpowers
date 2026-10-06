@@ -14,6 +14,8 @@ Make a staging copy of your site safe to test on: blocks emails and outside serv
 
 **Live stays safe. Every time.**
 
+https://www.youtube.com/watch?v=azXQoueJlTs
+
 Your staging copy has your real customers, your real payment keys and your real automations. One test can email thousands of people or charge a real card. Staging Superpowers stops all of it, the moment you activate it.
 
 = What it blocks =
