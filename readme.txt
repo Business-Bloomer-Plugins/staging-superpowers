@@ -4,7 +4,7 @@ Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -106,7 +106,7 @@ It blocks requests made through the WordPress HTTP API, which almost every plugi
 == Changelog ==
 
 = 1.2.1 =
-* Fix: pushing staging to live with a search-replace of the site address (as most hosts and migration plugins do) could turn the plugin on on the live site. The staging address is now stored in a form search-replace cannot change. If an older stored address matches a site that does not look like staging, you are asked to confirm once more.
+* Fix: when staging is pushed to live with a search-replace of the site address (as many hosts and migration plugins do), the plugin could treat the live site as its staging copy. The staging address is now stored in a form search-replace cannot change. If an older stored address matches a site that does not look like staging, you are asked to confirm once more.
 * Fix: hosts that run cron from the server with WP-CLI (wp cron event run --due-now), such as GridPane, could still run frozen tasks. WP-CLI now respects the WP-Cron freeze, and wp action-scheduler run respects the scheduled actions freeze. Running a single task by name, or a single action by ID, still works.
 * New: WooCommerce Subscriptions runs in its own staging mode, so renewals are never charged automatically on staging.
 * New: WP Fusion runs in its own staging mode, so nothing reaches your CRM.
