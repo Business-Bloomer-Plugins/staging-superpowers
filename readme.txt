@@ -4,7 +4,7 @@ Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.2
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,11 +52,18 @@ Nothing in your database is changed by the protections. Deactivate it and the si
 
 [Staging Superpowers Pro](https://www.businessbloomer.com/plugins/staging-superpowers-pro/) adds tools for working on the copy: anonymize customers and staff before handing the site to an agency, send visitors to your live site, compare pages with live side by side, find staging links on live, see and block every outgoing request, and WooCommerce test data and switches.
 
+= Works with =
+
+* **Payments:** WooPayments, Mollie, FluentCart, Easy Digital Downloads, GiveWP, Paid Memberships Pro, Restrict Content Pro, WooCommerce Subscriptions. Stripe's and Square's own "don't detach saved cards" protection turns on by itself on staging.
+* **Email:** MailPoet, FluentCRM, WP Mail SMTP, FluentSMTP, Post SMTP.
+* **Marketing and analytics:** Facebook for WooCommerce, Google for WooCommerce, Pinterest for WooCommerce, Klaviyo, Square, Site Kit by Google, MonsterInsights, GTM4WP, Meta pixel.
+* **Memberships and more:** Jetpack, WP Fusion, Uncanny Automator, UpdraftPlus.
+
 == External services ==
 
 This plugin does not connect to any external service and does not send data anywhere.
 
-The web addresses listed in its settings are services the plugin blocks. The default list is: api.stripe.com, api.paypal.com, api-m.paypal.com, api.braintreegateway.com, connect.squareup.com, api.mollie.com, api.authorize.net, api.mailchimp.com, a.klaviyo.com, api.brevo.com, api.sendinblue.com, connect.mailerlite.com, api.omnisend.com, api.kit.com, api.convertkit.com, api.hubapi.com, ssapi.shipstation.com, api.taxjar.com, rest.avatax.com, graph.facebook.com, google-analytics.com, api.twilio.com, slack.com, hooks.zapier.com, make.com, integromat.com, api-us1.com, api.createsend.com, api.getdrip.com, api.sendgrid.com, mailgun.net, api.postmarkapp.com, sheets.googleapis.com, api.sparkpost.com, mandrillapp.com, bridge.mailpoet.com, api.mailjet.com, api.resend.com, api.mailersend.com, api.smtp2go.com, api.elasticemail.com, api.twitter.com, api.linkedin.com, developer.blog2social.com, blog2social-wordpress-api.adenion.de, onesignal.com, api.pushengage.com, rpc.pingomatic.com, api.cloudflare.com, api.automatorplugin.com, api.shortpixel.com and smushpro.wpmudev.com. When "Connected services" is on, the plugin stops the staging site from contacting them, so a staging copy cannot reach your live accounts. The plugin never sends requests to them itself.
+The web addresses listed in its settings are services the plugin blocks. The default list is: api.stripe.com, api.paypal.com, api-m.paypal.com, api.braintreegateway.com, connect.squareup.com, api.mollie.com, api.authorize.net, api.mailchimp.com, a.klaviyo.com, api.brevo.com, api.sendinblue.com, connect.mailerlite.com, api.omnisend.com, api.kit.com, api.convertkit.com, api.hubapi.com, ssapi.shipstation.com, api.taxjar.com, rest.avatax.com, graph.facebook.com, google-analytics.com, api.twilio.com, slack.com, hooks.zapier.com, make.com, integromat.com, api-us1.com, api.createsend.com, api.getdrip.com, api.sendgrid.com, mailgun.net, api.postmarkapp.com, sheets.googleapis.com, api.sparkpost.com, mandrillapp.com, bridge.mailpoet.com, api.mailjet.com, api.resend.com, api.mailersend.com, api.smtp2go.com, api.elasticemail.com, api.twitter.com, api.linkedin.com, developer.blog2social.com, blog2social-wordpress-api.adenion.de, onesignal.com, api.pushengage.com, rpc.pingomatic.com, api.cloudflare.com, api.automatorplugin.com, api.indexnow.org, business-api.tiktok.com, api.pinterest.com, api.shortpixel.com and smushpro.wpmudev.com. When "Connected services" is on, the plugin stops the staging site from contacting them, so a staging copy cannot reach your live accounts. The plugin never sends requests to them itself.
 
 == Installation ==
 
@@ -108,6 +115,14 @@ It blocks requests made through the WordPress HTTP API, which almost every plugi
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
+
+= 1.3.0 =
+* New: WooPayments and Mollie run in test mode, FluentCart and Restrict Content Pro too.
+* New: MailPoet newsletters are stopped along with other emails.
+* New: Facebook, Google, Pinterest and Klaviyo tracking is off, and the Facebook, Google and Square catalog and order syncs are paused.
+* New: Uncanny Automator recipes do not run.
+* New: api.indexnow.org, business-api.tiktok.com and api.pinterest.com are in the default blocked services. Sites that already saved their list keep it: add them there if you want them.
+* New: a "Works with" list in the description.
 
 = 1.2.2 =
 * Changed: by default only logged-in users can see the staging site; everyone else gets the message page. Sites that already saved a choice keep it.
