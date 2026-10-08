@@ -295,7 +295,15 @@ function sspw_status_items() {
 		$email_tips[ $email ] = sprintf( __( '%s replaces the WordPress email function, so its emails may still go out. See the Emails settings.', 'staging-superpowers' ), $mail_owner );
 	}
 
+	$visitors_locked = 'lock' === sspw_get( 'sspw_visitors' );
+
 	$items = array(
+		array(
+			'on'    => $visitors_locked,
+			'label' => $visitors_locked ? __( 'Logged-in only', 'staging-superpowers' ) : __( 'Open to everyone', 'staging-superpowers' ),
+			'tip'   => $visitors_locked ? __( 'Logged-out visitors and customers see a message instead of this copy.', 'staging-superpowers' ) : __( 'Anyone can browse this copy, including customers who land here by mistake.', 'staging-superpowers' ),
+			'url'   => $links['settings'] . '#sspw_visitors',
+		),
 		array(
 			'on'    => in_array( $email, array( 'block', 'redirect' ), true ),
 			'label' => $email_count && in_array( $email, array( 'block', 'redirect' ), true ) ? sprintf( '%1$s (%2$s)', $email_labels[ $email ], number_format_i18n( $email_count ) ) : $email_labels[ $email ],

@@ -7,10 +7,9 @@
 defined( 'ABSPATH' ) || exit;
 
 // The choice is read when the page is built, so an add-on's own choice (added on
-// sspw_loaded, after this file) is known by then.
+// sspw_loaded, after this file) is known by then. template_redirect never runs for
+// wp-admin, wp-login.php, admin-ajax, REST, cron or WP-CLI, so those stay reachable.
 add_action( 'template_redirect', 'sspw_visitor_page', -1000 );
-add_action( 'wp_login', 'sspw_remember_staff', 10, 2 );
-add_action( 'admin_init', 'sspw_remember_staff_session' );
 
 /**
  * Runs before plugins and themes build the page, so visitors never reach any of
@@ -22,11 +21,8 @@ function sspw_visitor_page() {
 		return;
 	}
 
-	// A browser someone on the team has logged in with goes to the login page,
-	// so an expired session does not hide the site from them behind the message.
-	if ( ! is_user_logged_in() && isset( $_COOKIE[ sspw_staff_cookie() ] ) ) {
-		wp_safe_redirect( wp_login_url( sspw_current_url() ), 302, 'Staging Superpowers' );
-		exit;
+	if ( sspw_visitor_path_allowed() ) {
+		return;
 	}
 
 	$name = get_bloginfo( 'name' );
@@ -82,29 +78,42 @@ function sspw_visitor_page() {
 }
 
 /**
- * Marks this browser as used by the team. It grants nothing: it only decides
- * whether a logged-out visit goes to the login page or to the message.
+ * Front-end pages logged-out visitors can still reach: the login page (also a
+ * custom one, through the login_url filter) and the WooCommerce My Account page,
+ * where many stores log in.
  */
-function sspw_staff_cookie() {
-	return 'sspw_staff_' . COOKIEHASH;
-}
+function sspw_visitor_path_allowed() {
+	$paths = array( (string) wp_parse_url( wp_login_url(), PHP_URL_PATH ) );
 
-function sspw_set_staff_cookie() {
-	setcookie( sspw_staff_cookie(), '1', time() + YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
-}
-
-function sspw_remember_staff( $user_login, $user ) {
-	if ( user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_options' ) || user_can( $user, 'manage_woocommerce' ) ) {
-		sspw_set_staff_cookie();
+	if ( function_exists( 'wc_get_page_permalink' ) && function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'myaccount' ) > 0 ) {
+		$paths[] = (string) wp_parse_url( wc_get_page_permalink( 'myaccount' ), PHP_URL_PATH );
 	}
+
+	/**
+	 * Request paths logged-out visitors can still see, such as a custom login or
+	 * register page. Sub-paths are included: "/account" also allows "/account/lost-password".
+	 *
+	 * @param string[] $paths Paths like "/my-account".
+	 */
+	$paths = (array) apply_filters( 'sspw_visitor_allowed_paths', $paths );
+
+	$current = '/' . trim( (string) wp_parse_url( sspw_current_url(), PHP_URL_PATH ), '/' );
+	foreach ( $paths as $path ) {
+		$path = '/' . trim( (string) $path, '/' );
+		if ( '/' !== $path && ( $current === $path || 0 === strpos( $current . '/', $path . '/' ) ) ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
- * People already logged in when the plugin was turned on get the cookie on their
- * next admin page, without logging in again.
+ * Kept for add-ons written for 1.2.1 and earlier, which checked a "team browser"
+ * cookie. The cookie is no longer set, so checks against it simply never match.
+ *
+ * @deprecated 1.2.2
  */
-function sspw_remember_staff_session() {
-	if ( ! isset( $_COOKIE[ sspw_staff_cookie() ] ) && sspw_can_see_store() && ! wp_doing_ajax() && ! headers_sent() ) {
-		sspw_set_staff_cookie();
-	}
+function sspw_staff_cookie() {
+	return 'sspw_staff_' . COOKIEHASH;
 }

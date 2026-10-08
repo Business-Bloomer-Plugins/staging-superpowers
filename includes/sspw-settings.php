@@ -94,7 +94,7 @@ function sspw_get( $key ) {
 		'sspw_noindex'            => 'yes',
 		'sspw_block_bots'         => 'yes',
 		'sspw_no_analytics'       => 'yes',
-		'sspw_visitors'           => 'open',
+		'sspw_visitors'           => 'lock',
 		'sspw_message_title'      => '',
 		'sspw_message_text'       => '',
 		'sspw_no_cache'           => 'yes',
@@ -235,7 +235,7 @@ function sspw_visitors_description() {
 
 	return sprintf(
 		/* translators: %s: login page link */
-		__( 'Who this applies to: anyone logged out, and accounts that cannot edit the site (customers, members, subscribers). Your team always sees the site once logged in at %s. Search engines are kept away either way.', 'staging-superpowers' ),
+		__( 'By default only your team sees this copy: anyone logged out, and accounts that cannot edit the site (customers, members, subscribers), get the message below instead. Log in at %s as usual: the login page, wp-admin and your WooCommerce My Account page always stay reachable. Search engines are kept away either way.', 'staging-superpowers' ),
 		'<a href="' . esc_url( $login ) . '">' . esc_html( preg_replace( '#^https?://#', '', $login ) ) . '</a>'
 	);
 }
@@ -300,8 +300,8 @@ function sspw_visitor_modes() {
 	return (array) apply_filters(
 		'sspw_visitor_modes',
 		array(
+			'lock' => __( 'Only logged-in users can see the site (recommended)', 'staging-superpowers' ),
 			'open' => __( 'Let everyone see the site', 'staging-superpowers' ),
-			'lock' => __( 'Show a message instead', 'staging-superpowers' ),
 		)
 	);
 }
@@ -385,7 +385,7 @@ function sspw_settings_fields() {
 			'id'      => 'sspw_visitors',
 			'type'    => 'select',
 			'css'     => 'min-width:440px;',
-			'default' => 'open',
+			'default' => 'lock',
 			'options' => sspw_visitor_modes(),
 		),
 		array(

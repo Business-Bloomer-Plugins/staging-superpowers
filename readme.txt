@@ -4,7 +4,7 @@ Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,7 +32,7 @@ https://www.youtube.com/watch?v=azXQoueJlTs
 * **Staging look:** a red STAGING badge and a status bar showing every protection.
 * **Changelog:** every change you make on staging, so you know what to redo on live.
 * **Troubleshooting:** switch plugins off and on in bulk. A fatal error is undone automatically.
-* **Visitors:** let everyone in, or show logged-out visitors a "We'll be right back" message.
+* **Visitors:** only logged-in users see the copy by default; everyone else gets a "We'll be right back" message. Or let everyone in.
 * **Emails log:** every email it stopped or forwarded, with recipient, subject and sender plugin. Never the message body.
 * **Requests log:** every outgoing request it blocked, with the plugin that tried.
 
@@ -62,9 +62,13 @@ The web addresses listed in its settings are services the plugin blocks. The def
 
 1. Install and activate Staging Superpowers, on your live site or on staging.
 2. On a staging address it switches itself on: you'll see a red STAGING badge. Anywhere else it stays off, or click "This is a staging site: turn on" in the notice.
-3. Everything is on by default. Settings are at Tools > Staging Superpowers.
+3. Everything is on by default, and only logged-in users can see the site. Log in as usual. Settings are at Tools > Staging Superpowers.
 
 == Frequently Asked Questions ==
+
+= I use a custom login page and I'm locked out =
+
+Your login page always stays reachable, custom ones included (for example WPS Hide Login), and the Log in link on the message page points to it. The WooCommerce My Account page stays reachable too. Developers can allow more pages with the sspw_visitor_allowed_paths filter.
 
 = Do I need WooCommerce? =
 
@@ -104,6 +108,12 @@ It blocks requests made through the WordPress HTTP API, which almost every plugi
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
+
+= 1.2.2 =
+* Changed: by default only logged-in users can see the staging site; everyone else gets the message page. Sites that already saved a choice keep it.
+* The login page (also custom ones), wp-admin and the WooCommerce My Account page always stay reachable. New filter sspw_visitor_allowed_paths for other pages.
+* Removed the "remembered team browser" redirect to the login page: logged out simply means the message page.
+* New: a Visitors item first in the status bar, "Logged-in only" or "Open to everyone".
 
 = 1.2.1 =
 * Fix: when staging is pushed to live with a search-replace of the site address (as many hosts and migration plugins do), the plugin could treat the live site as its staging copy. The staging address is now stored in a form search-replace cannot change. If an older stored address matches a site that does not look like staging, you are asked to confirm once more.
