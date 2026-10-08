@@ -69,6 +69,10 @@ function sspw_default_blocked_hosts() {
 		// Shared live services and automation platforms.
 		'api.cloudflare.com',
 		'api.automatorplugin.com',
+		// Search engine, TikTok and Pinterest pings and catalog syncs.
+		'api.indexnow.org',
+		'business-api.tiktok.com',
+		'api.pinterest.com',
 		// Image optimization credits.
 		'api.shortpixel.com',
 		'smushpro.wpmudev.com',
@@ -252,7 +256,7 @@ function sspw_woocommerce_settings_fields() {
 			'desc'     => __( 'Hide every payment method at checkout and show the Staging Test Gateway instead', 'staging-superpowers' ),
 			'desc_tip' => sprintf(
 				/* translators: 1: link to payment methods, 2: link to the test gateway settings */
-				__( 'Your staging copy still has your live Stripe, PayPal or WooPayments keys, so a test order could charge a real card. With this on, only the Staging Test Gateway shows at checkout: it pretends to take the payment and never touches real money. Your %1$s settings are not changed. You can choose whether test payments succeed, wait or fail in the %2$s.', 'staging-superpowers' ),
+				__( 'Your staging copy still has your live Stripe, PayPal or WooPayments keys, so a test order could charge a real card. With this on, only the Staging Test Gateway shows at checkout: it pretends to take the payment and never touches real money. WooPayments and Mollie also run in test mode. Your %1$s settings are not changed. You can choose whether test payments succeed, wait or fail in the %2$s.', 'staging-superpowers' ),
 				sspw_link( 'payments', __( 'payment methods', 'staging-superpowers' ) ),
 				sspw_link( 'gateway', __( 'Staging Test Gateway settings', 'staging-superpowers' ) )
 			),
@@ -489,7 +493,7 @@ function sspw_settings_fields() {
 				array(
 					'title'    => __( 'Connected services', 'staging-superpowers' ),
 					'desc'     => __( 'Block the site from contacting the services listed below', 'staging-superpowers' ),
-					'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP and Paid Memberships Pro. Everything else keeps working.', 'staging-superpowers' ),
+					'desc_tip' => __( 'Many plugins talk to outside services in the background: payment processors, email marketing, CRM, social sharing, push notifications, shipping, tax and tracking tools. On a staging copy they still use your live accounts, so a test could refund a real payment, add a test contact to your mailing list, or share a test post on your social accounts. This stops the site from connecting to those services, stops pings to other sites when you publish, puts Jetpack in safe mode, skips scheduled UpdraftPlus backups, and turns on test mode in Easy Digital Downloads, GiveWP, Paid Memberships Pro, Restrict Content Pro and FluentCart, pauses the Facebook, Google and Square catalog syncs, and stops Uncanny Automator recipes. Everything else keeps working.', 'staging-superpowers' ),
 					'id'       => 'sspw_http_firewall',
 					'type'     => 'checkbox',
 					'default'  => 'yes',
@@ -506,7 +510,7 @@ function sspw_settings_fields() {
 				array(
 					'title'    => __( 'Analytics', 'staging-superpowers' ),
 					'desc'     => __( 'Stop analytics on staging', 'staging-superpowers' ),
-					'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP and the Meta pixel\'s Conversions API, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
+					'desc_tip' => __( 'Your staging copy has the same tracking codes as your live site, so every visit and test order here would show up in your reports. This switches off the tracking of Site Kit by Google, MonsterInsights, GTM4WP, the Meta pixel\'s Conversions API, Facebook for WooCommerce, Google for WooCommerce, Pinterest for WooCommerce and Klaviyo, and the blocked services list stops Google Analytics and Meta server events from other plugins.', 'staging-superpowers' ),
 					'id'       => 'sspw_no_analytics',
 					'type'     => 'checkbox',
 					'default'  => 'yes',

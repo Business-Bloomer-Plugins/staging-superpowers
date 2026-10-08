@@ -73,3 +73,16 @@ function sspw_init() {
 	 */
 	do_action( 'sspw_loaded', sspw_is_armed() );
 }
+
+/**
+ * Uncanny Automator recipes send data to other apps, so none run while the
+ * site is armed with Connected services on. Older versions ask once at load,
+ * newer ones each time a trigger fires.
+ */
+function sspw_hold_automator( $run ) {
+	if ( 'yes' === get_option( 'sspw_http_firewall', 'yes' ) && sspw_is_armed() ) {
+		return false;
+	}
+
+	return $run;
+}

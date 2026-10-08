@@ -32,8 +32,32 @@ if ( 'yes' === sspw_get( 'sspw_http_firewall' ) ) {
 	add_filter( 'edd_is_test_mode', '__return_true' );
 	add_filter( 'give_is_test_mode', '__return_true' );
 	add_filter( 'pre_option_pmpro_gateway_environment', 'sspw_pmpro_sandbox' );
+	add_filter( 'rcp_is_sandbox', '__return_true' );
+	add_filter( 'option_fluent_cart_store_settings', 'sspw_fluentcart_test_mode' );
+
+	// Product, inventory and order syncs would change the live catalog and orders.
+	add_filter( 'wc_facebook_is_product_sync_enabled', '__return_false' );
+	add_filter( 'woocommerce_gla_ready_for_syncing', '__return_false' );
+	add_filter( 'wc_square_inventory_sync_enabled', '__return_false' );
+	add_filter( 'wc_square_order_fulfillment_sync_enabled', '__return_false' );
 
 	// phpcs:enable
+}
+
+if ( 'yes' === sspw_get( 'sspw_gateways' ) ) {
+	// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- each plugin's own hook.
+
+	// WooPayments and Mollie: test mode, so refunds and captures done here never touch real money.
+	add_filter( 'wcpay_test_mode', '__return_true' );
+	add_filter( 'pre_option_mollie-payments-for-woocommerce_test_mode_enabled', 'sspw_yes' );
+
+	// phpcs:enable
+}
+
+if ( 'off' !== sspw_email_status() ) {
+	// MailPoet newsletters can go out through its own sending service, not the
+	// WordPress email function. An empty batch means nobody gets them.
+	add_filter( 'mailpoet_sending_queue_subscribers_to_process', '__return_empty_array' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- MailPoet's hook.
 }
 
 if ( 'yes' === sspw_get( 'sspw_no_analytics' ) ) {
@@ -55,6 +79,15 @@ if ( 'yes' === sspw_get( 'sspw_no_analytics' ) ) {
 	// code, so the blocked services list cannot stop it.
 	add_filter( 'before_conversions_api_event_sent', '__return_empty_array' );
 
+	// Facebook for WooCommerce, Google for WooCommerce, Pinterest for WooCommerce.
+	add_filter( 'facebook_for_woocommerce_integration_pixel_enabled', '__return_false' );
+	add_filter( 'woocommerce_gla_disable_gtag_tracking', '__return_true' );
+	add_filter( 'woocommerce_pinterest_disable_tracking', '__return_true' );
+
+	// Klaviyo: its onsite script and the Started Checkout event.
+	add_filter( 'wck_should_add_started_checkout', '__return_false' );
+	add_action( 'wp_enqueue_scripts', 'sspw_no_klaviyo_js', PHP_INT_MAX );
+
 	// phpcs:enable
 }
 
@@ -74,4 +107,35 @@ function sspw_no_scheduled_updraftplus( $start, $files, $database ) {
 
 function sspw_pmpro_sandbox() {
 	return 'sandbox';
+}
+
+function sspw_yes() {
+	return 'yes';
+}
+
+function sspw_fluentcart_test_mode( $settings ) {
+	if ( is_array( $settings ) ) {
+		$settings['order_mode'] = 'test';
+	}
+
+	return $settings;
+}
+
+/**
+ * Klaviyo's other scripts depend on klaviyojs, which would bring it back, so
+ * they are dropped too.
+ */
+function sspw_no_klaviyo_js() {
+	$scripts = wp_scripts();
+	$drop    = array( 'klaviyojs' );
+
+	foreach ( $scripts->queue as $handle ) {
+		if ( isset( $scripts->registered[ $handle ] ) && array_intersect( $drop, (array) $scripts->registered[ $handle ]->deps ) ) {
+			$drop[] = $handle;
+		}
+	}
+
+	foreach ( $drop as $handle ) {
+		wp_dequeue_script( $handle );
+	}
 }
