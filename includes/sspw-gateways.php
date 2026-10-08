@@ -12,6 +12,11 @@ add_action( 'woocommerce_blocks_payment_method_type_registration', 'sspw_registe
 
 if ( 'yes' === sspw_get( 'sspw_gateways' ) ) {
 	add_filter( 'woocommerce_available_payment_gateways', 'sspw_only_test_gateway', PHP_INT_MAX );
+
+	// WooCommerce Subscriptions' own staging mode: renewals are created but never
+	// charged automatically, even if someone unfreezes scheduled actions. Hiding
+	// gateways at checkout alone would not stop a renewal charging the saved card.
+	add_filter( 'woocommerce_subscriptions_is_duplicate_site', '__return_true', PHP_INT_MAX ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce Subscriptions' own hook.
 }
 
 function sspw_register_test_gateway( $gateways ) {

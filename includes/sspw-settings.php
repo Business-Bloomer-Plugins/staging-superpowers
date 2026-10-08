@@ -481,7 +481,7 @@ function sspw_settings_fields() {
 				array(
 					'title'    => __( 'WP-Cron', 'staging-superpowers' ),
 					'desc'     => __( 'Freeze WP-Cron tasks', 'staging-superpowers' ),
-					'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Developers can still run a single task with WP-CLI (wp cron event run).', 'staging-superpowers' ),
+					'desc_tip' => __( 'WordPress and many plugins run background jobs with the WordPress scheduler (WP-Cron): digests and follow-up emails, syncs with other apps, backups to the cloud, imports and clean-ups. The staging copy would run them a second time. This holds them, so nothing runs by itself on this copy. Nothing is deleted: the tasks run again as soon as you turn this off. Hosts that run cron from the server with WP-CLI are held too. Developers can still run a single task by name with WP-CLI (wp cron event run <hook>).', 'staging-superpowers' ),
 					'id'       => 'sspw_freeze_cron',
 					'type'     => 'checkbox',
 					'default'  => 'yes',

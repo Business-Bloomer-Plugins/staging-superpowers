@@ -53,6 +53,7 @@ add_action( 'http_api_debug', 'sspw_record_allowed_request', 10, 5 );
 // Action Scheduler: zero allowed batches means every queue run (WP-Cron, async
 // loopback, WP-CLI runner) exits before claiming anything. Running a single
 // action from Tools > Scheduled Actions bypasses the queue, so it still works.
+// `wp action-scheduler run --force` would skip the limit, see below.
 if ( sspw_has_action_scheduler() && 'yes' === sspw_get( 'sspw_freeze_actions' ) ) {
 	add_filter( 'action_scheduler_queue_runner_concurrent_batches', '__return_zero', PHP_INT_MAX );
 	add_filter( 'action_scheduler_allow_async_request_runner', '__return_false', PHP_INT_MAX );
@@ -62,9 +63,39 @@ if ( sspw_has_action_scheduler() && 'yes' === sspw_get( 'sspw_freeze_actions' ) 
 }
 
 // WP-Cron: an empty list of due jobs means wp-cron.php runs nothing and never
-// spawns. `wp cron event run <hook>` reads the schedule directly, so it still works.
+// spawns. Hosts that run cron from the server instead (GridPane, and others using
+// `wp cron event run --due-now`) read the schedule directly, so WP-CLI is checked too.
 if ( 'yes' === sspw_get( 'sspw_freeze_cron' ) ) {
 	add_filter( 'pre_get_ready_cron_jobs', '__return_empty_array', PHP_INT_MAX );
+}
+
+if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI' ) ) {
+	if ( 'yes' === sspw_get( 'sspw_freeze_cron' ) ) {
+		WP_CLI::add_hook( 'before_invoke:cron event run', 'sspw_cli_block_cron_run' );
+	}
+	if ( sspw_has_action_scheduler() && 'yes' === sspw_get( 'sspw_freeze_actions' ) ) {
+		WP_CLI::add_hook( 'before_invoke:action-scheduler run', 'sspw_cli_block_queue_run' );
+	}
+}
+
+/**
+ * Running every due task is what the freeze is for; a task named on purpose
+ * (`wp cron event run my_hook`) still runs.
+ */
+function sspw_cli_block_cron_run() {
+	$assoc = WP_CLI::get_runner()->assoc_args;
+
+	if ( ! empty( $assoc['due-now'] ) || ! empty( $assoc['all'] ) ) {
+		WP_CLI::error( 'Staging Superpowers froze WP-Cron on this staging site, so due tasks were not run. Run a single task by name (wp cron event run <hook>), or untick "WP-Cron" in Tools > Staging Superpowers.' );
+	}
+}
+
+/**
+ * The queue runner skips the freeze when forced, so the whole command is refused;
+ * a single action can still be run by ID (wp action-scheduler action run <id>).
+ */
+function sspw_cli_block_queue_run() {
+	WP_CLI::error( 'Staging Superpowers froze scheduled actions on this staging site, so the queue was not run. Run a single action by ID (wp action-scheduler action run <id>), or untick "Scheduled actions" in Tools > Staging Superpowers.' );
 }
 
 // Look and feel.

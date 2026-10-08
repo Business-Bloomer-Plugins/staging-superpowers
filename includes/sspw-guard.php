@@ -33,8 +33,81 @@ function sspw_is_production_declared() {
 	return $declared && 'production' === wp_get_environment_type();
 }
 
+/**
+ * Site addresses are stored encoded, never as plain text. Pushing staging to
+ * live usually runs a search-replace of the staging address with the live one
+ * across the whole database; a plain stored address would be rewritten too and
+ * the plugin would turn itself on on the live site.
+ */
+function sspw_encode_fingerprint( $fingerprint ) {
+	return 'sspw1:' . base64_encode( (string) $fingerprint ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- not obfuscation: keeps search-replace from rewriting the stored address.
+}
+
+function sspw_decode_fingerprint( $value ) {
+	$value = (string) $value;
+
+	if ( 0 === strpos( $value, 'sspw1:' ) ) {
+		return (string) base64_decode( substr( $value, 6 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- see sspw_encode_fingerprint().
+	}
+
+	return $value;
+}
+
+/**
+ * Up to 1.2.0 the addresses were stored as plain text. A plain value matching
+ * this site may have been search-replaced onto the live site, so it is only
+ * trusted where the site looks like staging; elsewhere the admin confirms again.
+ */
+function sspw_migrate_fingerprints() {
+	static $done = false;
+
+	if ( $done ) {
+		return;
+	}
+	$done = true;
+
+	$current = sspw_site_fingerprint();
+	$trusted = ! sspw_is_production_declared() && sspw_looks_like_staging();
+
+	foreach ( array( 'sspw_armed_for', 'sspw_production_override' ) as $option ) {
+		$value = (string) get_option( $option, '' );
+		if ( '' === $value || 0 === strpos( $value, 'sspw1:' ) ) {
+			continue;
+		}
+		if ( $value === $current && ! $trusted && 'sspw_armed_for' === $option ) {
+			update_option( $option, '', false );
+		} elseif ( $value === $current && 'sspw_production_override' === $option && ! sspw_looks_like_staging() ) {
+			delete_option( $option );
+		} else {
+			update_option( $option, sspw_encode_fingerprint( $value ), false );
+		}
+	}
+
+	$history = (array) get_option( 'sspw_armed_history', array() );
+	$encoded = array_map(
+		function ( $entry ) {
+			return 0 === strpos( (string) $entry, 'sspw1:' ) ? (string) $entry : sspw_encode_fingerprint( $entry );
+		},
+		$history
+	);
+	if ( $encoded !== $history ) {
+		update_option( 'sspw_armed_history', $encoded, false );
+	}
+}
+
 function sspw_armed_for() {
-	return (string) get_option( 'sspw_armed_for', '' );
+	sspw_migrate_fingerprints();
+
+	return sspw_decode_fingerprint( get_option( 'sspw_armed_for', '' ) );
+}
+
+/**
+ * Every address the plugin was turned on for, newest first, decoded.
+ */
+function sspw_armed_history() {
+	sspw_migrate_fingerprints();
+
+	return array_values( array_filter( array_map( 'sspw_decode_fingerprint', (array) get_option( 'sspw_armed_history', array() ) ) ) );
 }
 
 /**
@@ -43,7 +116,9 @@ function sspw_armed_for() {
  * moment the database lands anywhere else.
  */
 function sspw_production_overridden() {
-	return sspw_site_fingerprint() === (string) get_option( 'sspw_production_override', '' );
+	sspw_migrate_fingerprints();
+
+	return sspw_site_fingerprint() === sspw_decode_fingerprint( get_option( 'sspw_production_override', '' ) );
 }
 
 function sspw_is_armed() {
@@ -119,9 +194,9 @@ function sspw_auto_arm() {
  */
 function sspw_arm() {
 	// Every address it was turned on for, kept so a link check on live can know the staging addresses.
-	$history = array_slice( array_unique( array_merge( array( sspw_site_fingerprint() ), (array) get_option( 'sspw_armed_history', array() ) ) ), 0, 10 );
-	update_option( 'sspw_armed_history', $history, false );
-	update_option( 'sspw_armed_for', sspw_site_fingerprint(), false );
+	$history = array_slice( array_unique( array_merge( array( sspw_site_fingerprint() ), sspw_armed_history() ) ), 0, 10 );
+	update_option( 'sspw_armed_history', array_map( 'sspw_encode_fingerprint', $history ), false );
+	update_option( 'sspw_armed_for', sspw_encode_fingerprint( sspw_site_fingerprint() ), false );
 	update_option( 'sspw_armed_at', time(), false );
 
 	if ( 'no' !== get_option( 'sspw_no_cache', 'yes' ) ) {
@@ -236,7 +311,7 @@ function sspw_handle_arm() {
 	sspw_arm();
 
 	if ( sspw_is_production_declared() ) {
-		update_option( 'sspw_production_override', sspw_site_fingerprint(), false );
+		update_option( 'sspw_production_override', sspw_encode_fingerprint( sspw_site_fingerprint() ), false );
 	}
 
 	wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url() );

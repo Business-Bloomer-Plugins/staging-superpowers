@@ -25,6 +25,9 @@ if ( 'yes' === sspw_get( 'sspw_http_firewall' ) ) {
 	// site's remote storage. Backups started by hand still run.
 	add_filter( 'updraftplus_boot_backup', 'sspw_no_scheduled_updraftplus', 10, 3 );
 
+	// WP Fusion's staging mode: no contact updates, tags or tracking reach the CRM.
+	add_filter( 'wpf_get_setting_staging_mode', '__return_true', PHP_INT_MAX );
+
 	// Payment test modes.
 	add_filter( 'edd_is_test_mode', '__return_true' );
 	add_filter( 'give_is_test_mode', '__return_true' );

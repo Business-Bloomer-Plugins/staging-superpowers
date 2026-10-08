@@ -39,7 +39,7 @@ https://www.youtube.com/watch?v=azXQoueJlTs
 = On WooCommerce stores =
 
 * Payment methods are swapped for a Staging Test Gateway, so no real card is charged.
-* Subscriptions copied from live are locked, so live renewals keep working.
+* Subscriptions copied from live are locked and never charged automatically, so live renewals keep working.
 * Webhooks are paused.
 
 = Safe to keep on your live site =
@@ -104,6 +104,12 @@ It blocks requests made through the WordPress HTTP API, which almost every plugi
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix: pushing staging to live with a search-replace of the site address (as most hosts and migration plugins do) could turn the plugin on on the live site. The staging address is now stored in a form search-replace cannot change. If an older stored address matches a site that does not look like staging, you are asked to confirm once more.
+* Fix: hosts that run cron from the server with WP-CLI (wp cron event run --due-now), such as GridPane, could still run frozen tasks. WP-CLI now respects the WP-Cron freeze, and wp action-scheduler run respects the scheduled actions freeze. Running a single task by name, or a single action by ID, still works.
+* New: WooCommerce Subscriptions runs in its own staging mode, so renewals are never charged automatically on staging.
+* New: WP Fusion runs in its own staging mode, so nothing reaches your CRM.
 
 = 1.2.0 =
 * New: Emails log. Every email the staging site tried to send is listed with its recipients, subject, the plugin that sent it, what happened (blocked or forwarded) and a count. Message bodies, headers and attachments are never kept, and CC and BCC addresses are only counted.
