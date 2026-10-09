@@ -4,6 +4,7 @@ name: Update readme and assets on WordPress.org
 # WordPress.org without a new version. Code changes still go out through a
 # release (deploy.yml). If main holds code that is not released yet, the 10up
 # action refuses to run, so a version bump pushed before its release is safe.
+# The first step checks that case itself and skips, so those pushes stay green.
 on:
   push:
     branches: [main]
@@ -19,8 +20,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Skip if main has unreleased code
+        id: released
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          if git diff --quiet "$tag" HEAD -- . ':!readme.txt' ':!.wordpress-org' ':!.github'; then
+            echo "deploy=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::main has code changes since $tag; the next release deploys readme and assets."
+            echo "deploy=no" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: WordPress.org plugin asset and readme update
+        if: steps.released.outputs.deploy == 'yes'
         uses: 10up/action-wordpress-plugin-asset-update@stable
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
