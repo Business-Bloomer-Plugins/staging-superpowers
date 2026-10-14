@@ -17,10 +17,31 @@ add_action( 'plugins_loaded', 'sspw_auto_arm', 5 );
  * can't make the fingerprint drift on every request.
  */
 function sspw_site_fingerprint() {
-	$home = (string) get_option( 'home' );
-	$home = preg_replace( '#^https?://#i', '', $home );
+	return sspw_normalize_home( get_option( 'home' ) );
+}
 
-	return strtolower( untrailingslashit( $home ) );
+/**
+ * The address saved in the database, ignoring WP_HOME. Some servers (Bitnami, some Docker
+ * images) build WP_HOME from the request's Host header, which any visitor can fake.
+ */
+function sspw_db_fingerprint() {
+	$options = wp_load_alloptions();
+
+	return isset( $options['home'] ) ? sspw_normalize_home( $options['home'] ) : sspw_site_fingerprint();
+}
+
+function sspw_normalize_home( $home ) {
+	return strtolower( untrailingslashit( preg_replace( '#^https?://#i', '', (string) $home ) ) );
+}
+
+/**
+ * True when the stored address matches this site, by the address WordPress reports or the
+ * one in the database, so a faked Host header can't switch the plugin off on a staging copy.
+ *
+ * @param string $stored Stored address.
+ */
+function sspw_matches_site( $stored ) {
+	return '' !== $stored && ( sspw_site_fingerprint() === $stored || sspw_db_fingerprint() === $stored );
 }
 
 /**
@@ -118,15 +139,14 @@ function sspw_armed_history() {
 function sspw_production_overridden() {
 	sspw_migrate_fingerprints();
 
-	return sspw_site_fingerprint() === sspw_decode_fingerprint( get_option( 'sspw_production_override', '' ) );
+	return sspw_matches_site( sspw_decode_fingerprint( get_option( 'sspw_production_override', '' ) ) );
 }
 
 function sspw_is_armed() {
 	static $armed = null;
 
 	if ( null === $armed ) {
-		$stored = sspw_armed_for();
-		$armed  = '' !== $stored && sspw_site_fingerprint() === $stored && ( ! sspw_is_production_declared() || sspw_production_overridden() );
+		$armed = sspw_matches_site( sspw_armed_for() ) && ( ! sspw_is_production_declared() || sspw_production_overridden() );
 	}
 
 	return $armed;
@@ -181,10 +201,11 @@ function sspw_activate() {
 
 /**
  * A staging copy refreshed to another staging address turns itself back on, so
- * nobody has to remember to click. Live-looking addresses never do.
+ * nobody has to remember to click. Live-looking addresses never do, and neither does
+ * a request whose address differs from the database's (a faked Host header).
  */
 function sspw_auto_arm() {
-	if ( sspw_armed_for() !== sspw_site_fingerprint() && ! sspw_is_production_declared() && sspw_looks_like_staging() ) {
+	if ( sspw_armed_for() !== sspw_site_fingerprint() && sspw_site_fingerprint() === sspw_db_fingerprint() && ! sspw_is_production_declared() && sspw_looks_like_staging() ) {
 		sspw_arm();
 	}
 }

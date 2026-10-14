@@ -4,7 +4,7 @@ Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,9 @@ It blocks requests made through the WordPress HTTP API, which almost every plugi
 6. The message visitors can be shown instead of the staging site.
 
 == Changelog ==
+
+= 1.3.1 =
+* Security: on servers that build the site address from the request (Bitnami, some Docker images), a faked Host header could turn the plugin on for one request on a live site, or off for one request on a staging copy. It now also checks the address saved in the database, and only turns itself on when both match.
 
 = 1.3.0 =
 * New: WooPayments and Mollie run in test mode, FluentCart and Restrict Content Pro too.
