@@ -2,11 +2,11 @@
 /**
  * Plugin Name:          Staging Superpowers
  * Description:          Make a staging copy of your site safe to test on: block emails, block outside services, freeze scheduled tasks and hide staging from search engines. With WooCommerce, it also swaps payment methods for a test gateway and pauses webhooks.
- * Version:              1.3.1
+ * Version:              1.3.2
  * Requires at least:    6.5
  * Requires PHP:         7.4
  * WC requires at least: 8.0
- * WC tested up to:      11.1.2
+ * WC tested up to:      11.3
  * Author:               Rodolfo Melogli
  * Author URI:           https://businessbloomer.com/
  * License:              GPL v2 or later
@@ -22,7 +22,7 @@ if ( defined( 'SSPW_PLUGIN_FILE' ) ) {
 	return;
 }
 
-define( 'SSPW_VERSION', '1.3.1' );
+define( 'SSPW_VERSION', '1.3.2' );
 define( 'SSPW_PLUGIN_FILE', __FILE__ );
 define( 'SSPW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SSPW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
