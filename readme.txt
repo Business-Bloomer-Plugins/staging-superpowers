@@ -2,7 +2,7 @@
 Contributors: businessbloomer
 Tags: staging, emails, development, testing, woocommerce
 Requires at least: 6.5
-Tested up to: 7.1
+Tested up to: 7.2
 Requires PHP: 7.4
 Stable tag: 1.3.2
 License: GPLv2 or later
